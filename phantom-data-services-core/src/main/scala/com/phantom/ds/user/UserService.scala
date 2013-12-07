@@ -42,6 +42,13 @@ object MapbackedUserService extends UserService {
   }
 
   def loginUser(loginRequest : UserLogin) : Future[UserResponse] = {
+
+    //    map.get(loginRequest.email) match {
+    //      case Some(x) => Future.successful {
+    //        UserResponse(200, "test")
+    //      }
+    //      case None => Future.failed(new Exception())
+    //    }
     Future.successful {
       UserResponse(200, "test")
     }

@@ -39,8 +39,17 @@ class UserEndpointSpec extends Specification
       val newUser = UserLogin("adamparrish@something.com", "mypassword")
       Post("/user/login", newUser) ~> userRoute ~> check {
         status == OK
+//        var res = responseAs[UserResponse]
+//        res.message must be equalTo ("test")
       }
     }
+
+    //    "fail if an account does not exist" in {
+    //      val newUser = UserLogin("adamparrish@something.com", "mypassword")
+    //      Post("/user/login", newUser) ~> userRoute ~> check {
+    //        status == OK
+    //      }
+    //    }
 
     "be able to get a user profile" in {
       Get("/user/1") ~> userRoute ~> check {
