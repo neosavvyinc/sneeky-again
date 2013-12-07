@@ -1,7 +1,7 @@
 package com.phantom.ds.user
 
 import spray.http.MediaTypes._
-import com.phantom.model.{ UserRegistration }
+import com.phantom.model.UserRegistration
 import com.phantom.model.UserJsonImplicits._
 import spray.json._
 import com.phantom.ds.DataHttpService
