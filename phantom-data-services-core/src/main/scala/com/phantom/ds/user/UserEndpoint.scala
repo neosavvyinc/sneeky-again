@@ -34,7 +34,7 @@ trait UserEndpoint extends DataHttpService {
           }
         }
       } ~
-      pathPrefix("user" / "profile" / LongNumber) { id =>
+      pathPrefix("user" / LongNumber) { id =>
         get {
           respondWithMediaType(`application/json`) {
             complete {
@@ -42,6 +42,24 @@ trait UserEndpoint extends DataHttpService {
             }
           }
         }
+      } ~
+      pathPrefix("user" / LongNumber / "contacts") { id =>
+        get {
+          respondWithMediaType(`application/json`) {
+            complete {
+              StatusCodes.OK
+            }
+          }
+        } ~
+          post {
+            respondWithMediaType(`application/json`) {
+              entity(as[List[String]]) { contacts /* list of phone numbers */ =>
+                complete {
+                  StatusCodes.OK
+                }
+              }
+            }
+          }
       }
 
 }

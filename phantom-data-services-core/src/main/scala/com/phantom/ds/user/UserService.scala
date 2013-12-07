@@ -21,9 +21,7 @@ object UserService {
   def apply()(implicit ec : ExecutionContext) = new UserService {
 
     def registerUser(req : UserRegistration) : Future[StatusCode] = {
-      future {
-        StatusCodes.OK
-      }
+      future(StatusCodes.OK)
     }
 
   }
