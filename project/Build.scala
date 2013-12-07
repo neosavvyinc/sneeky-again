@@ -2,9 +2,11 @@ import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import sbt._
 import Keys._
+import sbtassembly.Plugin.{PathList, MergeStrategy, AssemblyKeys}
 import sbtrelease.ReleasePlugin._
 import spray.revolver.RevolverPlugin.Revolver
 import scalariform.formatter.preferences._
+import AssemblyKeys._
 
 
 object Build extends sbt.Build {
@@ -20,7 +22,7 @@ object Build extends sbt.Build {
         Shared.Spray ++
           Shared.Akka ++
           Shared.Logging ++
-          Shared.Other) ++ Revolver.settings
+          Shared.Other) ++ Revolver.settings ++ sbtassembly.Plugin.assemblySettings ++ Assembly.prefs
     )
 
   def project(id: String, base: File, settings: Seq[Def.Setting[_]] = Nil) =
@@ -118,3 +120,20 @@ object Formatting {
     .setPreference(AlignParameters, true)
     .setPreference(SpaceBeforeColon, true)
 }
+
+
+
+object Assembly {
+  val phantomMergeStrategy : String => MergeStrategy = {
+    case "logback.properties" => MergeStrategy.discard
+    case "application.conf" => MergeStrategy.discard
+    case "reference.conf" => MergeStrategy.discard
+    case PathList("META-INF", xs @ _*)      => MergeStrategy.discard
+    case _                  => MergeStrategy.deduplicate
+  }
+
+  val prefs = Set(jarName in assembly := "phantom.jar",
+                  mergeStrategy in assembly := phantomMergeStrategy)
+}
+
+
