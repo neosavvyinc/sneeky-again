@@ -1,29 +1,50 @@
 package com.phantom.ds.user
 
-import com.phantom.model._
 import scala.concurrent.{ ExecutionContext, Future }
-import scala.concurrent.future
-import com.phantom.model.UserRegistration
-import spray.http.{ StatusCodes, StatusCode }
+import spray.http.{ StatusCode, StatusCodes }
+import com.phantom.model._
+import com.phantom.ds.framework.exception.PhantomException
+import scala.collection.mutable.{ Map => MMap }
 
 trait UserService {
 
-  def registerUser(registrationRequest : UserRegistration) : Future[StatusCode]
+  def registerUser(registrationRequest : UserRegistration) : Future[UserResponse]
+  def loginUser(loginRequest : UserLogin) : Future[UserResponse]
 
 }
 
-class DuplicateUserException(message : String = "Email already in use") extends Exception(message) {
+class DuplicateUserException extends Exception with PhantomException {
   val code = 101
+  val message : String = "Email already in use"
 }
 
 object UserService {
 
-  def apply()(implicit ec : ExecutionContext) = new UserService {
+  def apply()(implicit ec : ExecutionContext) = MapbackedUserService
 
-    def registerUser(req : UserRegistration) : Future[StatusCode] = {
-      future(StatusCodes.OK)
+  def registerUser(req : UserRegistration) : Future[StatusCode] = Future.successful(StatusCodes.OK)
+  def loginUser(req : UserLogin) : Future[StatusCode] = Future.successful(StatusCodes.OK)
+}
+
+object MapbackedUserService extends UserService {
+
+  val map : MMap[String, Int] = MMap.empty
+
+  def registerUser(registrationRequest : UserRegistration) : Future[UserResponse] = {
+
+    map.get(registrationRequest.email) match {
+      case Some(x) => Future.failed(new DuplicateUserException())
+      case None => Future.successful {
+        map(registrationRequest.email) = map.size + 1
+        UserResponse(200, registrationRequest.email)
+      }
     }
+  }
 
+  def loginUser(loginRequest : UserLogin) : Future[UserResponse] = {
+    Future.successful {
+      UserResponse(200, "test")
+    }
   }
 
 }

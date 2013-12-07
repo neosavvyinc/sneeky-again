@@ -28,9 +28,7 @@ trait UserEndpoint extends DataHttpService {
           respondWithMediaType(`application/json`)
           entity(as[UserLogin]) {
             reg =>
-              complete {
-                StatusCodes.OK
-              }
+              complete(userService.loginUser(reg))
           }
         }
       } ~

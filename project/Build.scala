@@ -42,8 +42,8 @@ object Build extends sbt.Build {
 
 object Shared {
 
-  val AkkaVersion = "2.1.4"
-  val SprayVersion = "1.1-RC3"
+  val AkkaVersion = "2.2.3"
+  val SprayVersion = "1.2.0"
   val LogbackVersion = "1.0.13"
   
   val Spray = Seq(
