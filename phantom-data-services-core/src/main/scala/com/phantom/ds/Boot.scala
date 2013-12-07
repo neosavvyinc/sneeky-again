@@ -11,7 +11,7 @@ object Boot extends App with DSConfiguration {
 
   // create and start our service actor
 
-  val currantService = system.actorOf(Props(new CurrantRouteActor()), "service")
+  val currantService = system.actorOf(Props(new PhantomRouteActor()), "service")
 
   // start a new HTTP server on port 8080 with our service actor as the handler
   IO(Http) ! Http.Bind(currantService, interface = "localhost", port = 9090)

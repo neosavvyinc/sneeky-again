@@ -1,13 +1,12 @@
 package com.phantom.ds.user
 
 import spray.http.MediaTypes._
-import com.phantom.model.{ CurrantUserJsonImplicits, CurrantUserRegistration }
+import com.phantom.model.{ UserRegistration }
+import com.phantom.model.UserJsonImplicits._
 import spray.json._
 import com.phantom.ds.DataHttpService
 
 trait UserEndpoint extends DataHttpService {
-
-  import CurrantUserJsonImplicits._
 
   val userService = UserService()
 
@@ -15,7 +14,7 @@ trait UserEndpoint extends DataHttpService {
     pathPrefix("registration") {
       post {
         respondWithMediaType(`application/json`)
-        entity(as[CurrantUserRegistration]) {
+        entity(as[UserRegistration]) {
           reg =>
             complete {
               userService.registerUser(reg)

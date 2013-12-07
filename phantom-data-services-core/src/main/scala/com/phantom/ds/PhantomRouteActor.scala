@@ -11,7 +11,7 @@ import com.phantom.ds.user.UserEndpoint
  * Time: 4:53 PM
  */
 
-class CurrantRouteActor() extends Actor with UserEndpoint {
+class PhantomRouteActor() extends Actor with UserEndpoint {
 
   // the HttpService trait defines only one abstract member, which
   // connects the services environment to the enclosing actor or test
