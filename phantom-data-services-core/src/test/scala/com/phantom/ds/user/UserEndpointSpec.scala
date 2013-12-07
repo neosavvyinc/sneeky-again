@@ -39,8 +39,8 @@ class UserEndpointSpec extends Specification
       val newUser = UserLogin("adamparrish@something.com", "mypassword")
       Post("/user/login", newUser) ~> userRoute ~> check {
         status == OK
-//        var res = responseAs[UserResponse]
-//        res.message must be equalTo ("test")
+        //        var res = responseAs[UserResponse]
+        //        res.message must be equalTo ("test")
       }
     }
 

@@ -22,8 +22,6 @@ object UserService {
 
   def apply()(implicit ec : ExecutionContext) = MapbackedUserService
 
-  def registerUser(req : UserRegistration) : Future[StatusCode] = Future.successful(StatusCodes.OK)
-  def loginUser(req : UserLogin) : Future[StatusCode] = Future.successful(StatusCodes.OK)
 }
 
 object MapbackedUserService extends UserService {
