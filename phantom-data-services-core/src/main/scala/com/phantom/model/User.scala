@@ -4,6 +4,9 @@ case class UserRegistration(email : String,
                             birthday : String,
                             password : String)
 
+case class UserLogin(email : String,
+                     password : String)
+
 case class UserInsert(email : String,
                       birthday : String,
                       saltyHash : String,

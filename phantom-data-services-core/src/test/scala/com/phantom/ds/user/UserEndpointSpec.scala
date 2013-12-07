@@ -1,6 +1,6 @@
 package com.phantom.ds.user
 
-import com.phantom.model.{ UserRegistration }
+import com.phantom.model._
 import com.phantom.model.UserJsonImplicits._
 import spray.http.StatusCodes._
 
@@ -14,15 +14,24 @@ class UserEndpointSpec extends Specification with Specs2RouteTest with Logging w
   def actorRefFactory = system
 
   "User Service" should {
-    "be able to register a user without facebook" in {
-      val newUser = UserRegistration("adamparrish@something.com", "8/10/1981", "somethingelse")
-      Post("/registration", newUser) ~> userRoute ~> check {
+    "be able to register a user" in {
+      val newUser = UserRegistration("adamparrish@something.com", "8/10/1981", "mypassword")
+      Post("/user/register", newUser) ~> userRoute ~> check {
         status == OK
-        //        val response = responseAs[InsertResponse]
-        //        response.profileId must be equalTo 1
-        //        response.userId must be equalTo 1
       }
+    }
 
+    "be able to log in a user " in {
+      val newUser = UserLogin("adamparrish@something.com", "mypassword")
+      Post("/user/login", newUser) ~> userRoute ~> check {
+        status == OK
+      }
+    }
+
+    "be able to get a user profile" in {
+      Get("/user/profile/1") ~> userRoute ~> check {
+        status == OK
+      }
     }
 
     "fail if registering a user with a duplicate email" in {
