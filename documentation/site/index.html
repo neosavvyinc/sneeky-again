@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="./lib/bootstrap/docs-assets/ico/favicon.png">
+
+    <title>Currant API Docs</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="./lib/bootstrap/dist/css/bootstrap.css" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy this line! -->
+    <!--[if lt IE 9]><script src="./lib/bootstrap/docs-assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Custom styles for this template -->
+    <link href="carousel.css" rel="stylesheet">
+</head>
+<!-- NAVBAR
+================================================== -->
+<body>
+<div class="navbar-wrapper">
+    <div class="container">
+
+        <div class="navbar navbar-inverse navbar-static-top" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="./">Currant API Documentation</a>
+                </div>
+                <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li><a href="#profile">Profiles</a></li>
+                        <li><a href="#user">Users</a></li>
+                        <li><a href="#game">Games</a></li>
+                        <li><a href="#ci">CI</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- Carousel
+================================================== -->
+<div id="myCarousel" class="carousel slide" data-ride="carousel">
+    <!-- Indicators -->
+    <ol class="carousel-indicators">
+        <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+        <li data-target="#myCarousel" data-slide-to="1"></li>
+        <li data-target="#myCarousel" data-slide-to="2"></li>
+        <li data-target="#myCarousel" data-slide-to="3"></li>
+    </ol>
+    <div class="carousel-inner">
+        <div class="item active">
+            <img data-src="holder.js/300x300/auto/#777:#7a7a7a/text:profileficated" alt="profileficated">
+            <div class="container">
+                <div class="carousel-caption">
+                    <h1>Profile Service</h1>
+                    <p>We have completed some of the profile service</p>
+                    <p><a class="btn btn-lg btn-primary" href="#profile" role="button">Click here to see API Docs</a></p>
+                </div>
+            </div>
+        </div>
+        <div class="item">
+            <img data-src="holder.js/300x300/auto/#666:#6a6a6a/text:userfied" alt="userfied">
+            <div class="container">
+                <div class="carousel-caption">
+                    <h1>User Service</h1>
+                    <p>We have completed some of the User Service</p>
+                    <p><a class="btn btn-lg btn-primary" href="#user" role="button">Click here to see them thar API Docs!</a></p>
+                </div>
+            </div>
+        </div>
+        <div class="item">
+            <img data-src="holder.js/300x300/auto/#555:#5a5a5a/text:gameification" alt="gameification">
+            <div class="container">
+                <div class="carousel-caption">
+                    <h1>Game Service</h1>
+                    <p>We have completed some of the Game Service</p>
+                    <p><a class="btn btn-lg btn-primary" href="#game" role="button">Click here to see them thar API Docs!</a></p>
+                </div>
+            </div>
+        </div>
+        <div class="item">
+            <img data-src="holder.js/300x300/auto/#444:#5a5a5a/text:welcome to the continuous zone" alt="welcome to the continuous zone">
+            <div class="container">
+                <div class="carousel-caption">
+                    <h1>Continuous Integration</h1>
+                    <p>We have a continuously built system to keep an eye on our work</p>
+                    <p><a class="btn btn-lg btn-primary" href="#ci" role="button">Continuous Integration is now Up!</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <a class="left carousel-control" href="#myCarousel" data-slide="prev"><span class="glyphicon glyphicon-chevron-left"></span></a>
+    <a class="right carousel-control" href="#myCarousel" data-slide="next"><span class="glyphicon glyphicon-chevron-right"></span></a>
+</div><!-- /.carousel -->
+
+
+
+<!-- Marketing messaging and featurettes
+================================================== -->
+<!-- Wrap the rest of the page in another container to center all the content. -->
+
+<div class="container marketing" ng-app="currant-docs" ng-controller="AppController">
+
+
+    <!-- START THE FEATURETTES -->
+
+    <hr id="profile" class="featurette-divider">
+
+    <ng-include src="'profile/profile-service-ptl.html'"></ng-include>
+
+    <hr id="user" class="featurette-divider">
+
+    <ng-include src="'user/user-service-ptl.html'"></ng-include>
+
+    <hr id="game" class="featurette-divider">
+
+    <ng-include src="'game/game-service-ptl.html'"></ng-include>
+
+    <hr id="ci" class="featurette-divider">
+
+    <ng-include src="'ci/ci-ptl.html'"></ng-include>
+
+    <hr class="featurette-divider">
+
+    <!-- /END THE FEATURETTES -->
+
+
+    <!-- FOOTER -->
+    <footer>
+        <p class="pull-right"><a href="#">Back to top</a></p>
+        <p>&copy; 2013 Neosavvy, Inc. &middot;</p>
+    </footer>
+
+</div><!-- /.container -->
+
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="./lib/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="./lib/bootstrap/docs-assets/js/holder.js"></script>
+<script src="./lib/angular/angular.js"></script>
+<script src="./js/app.js"></script>
+</body>
+</html>

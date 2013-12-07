@@ -1,0 +1,54 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET           /                                                                    controllers.Application.index
+
+# Map static resources from the /public folder to the /assets URL path
+GET           /assets/*file                                                        controllers.Assets.at(path="/public", file)
+
+POST          /registration/:id                                                    controllers.User.register()
+
+#GET           /profiles/facebook/:id                                               controllers.Profiles.find( facebookId: String )
+
+POST          /login                                                               controllers.Authentication.login()
+
+POST          /profiles/pushIdentifier                                             controllers.Profiles.updatePushIdentifier()
+
+GET           /profiles/:id                                                        controllers.Profiles.find(id: Float)
+GET           /profiles/:id/extended                                               controllers.Profiles.findExtended(id: Float)
+PUT           /profiles/:id                                                        controllers.Profiles.update()
+GET           /profiles/:id/clubs                                                  controllers.Profiles.findClubs()
+GET           /profiles/:id/clubs/explore                                          controllers.Profiles.exploreClubs()
+POST          /profiles/:id/clubs                                                  controllers.Profiles.updateClubs()
+GET           /profiles/:id/friends                                                controllers.Profiles.findFriends(currantUserId: Float, friendStatus: String)
+POST          /profiles/:id/friends/                                               controllers.Profiles.updateFriends(currantUserId: Float)
+GET           /profiles/:id/games                                                  controllers.Profiles.findAllGames(id: Float, location: /* other query/filter params */)
+POST          /profiles/:id/games                                                  controllers.Profiles.updateGames(id: Float)
+
+
+GET           /sports                                                              controllers.Sports.findAll()
+
+GET           /games                                                               controllers.Games.find(type: String, location: /* etc. other query/filter params */)
+GET           /games/:type                                                         controllers.Games.findGames( lat: Float, long: Float, sportId: Float, visibility: String )
+POST          /games/new                                                           controllers.Games.create()
+PUT           /games/:id                                                           controllers.Games.update(id: Float)
+PUT           /games/:id/delta/                                                    controllers.Games.updateDelta(id: Float) //optional for later to improve performance
+DELETE        /games/:id                                                           controllers.Games.delete(id: Float)
+GET           /games/:id/players                                                   controllers.Games.findPlayers(id: Float)
+POST          /games/:id/players                                                   controllers.Games.updatePlayers(gameId: Float)
+POST          /games/:id/equipment/new                                             controllers.Games.createEquipment()
+
+POST          /clubs/new                                                           controllers.Clubs.create()
+GET           /clubs/:id                                                           controllers.Clubs.findClubInfo()
+GET           /clubs/:id/members                                                   controllers.Clubs.findMembers()
+GET           /clubs/:id/matches                                                   controllers.Clubs.findMatches( matchType : String )
+
+
+
+# TO DO
+# group like-resource routes
+# determine correct datatype for Id's
+# id for route vs. verbose id names?
+# resource/controller plurality, Model singular

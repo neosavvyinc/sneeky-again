@@ -1,0 +1,19 @@
+{
+  "name": "currant-api-documentation",
+  "version": "0.0.1",
+  "homepage": "http://currant.mobi",
+  "authors": [
+    "Neosavvy"
+  ],
+  "description": "A Simple Documentation for Currant API",
+  "keywords": [],
+  "license": "MIT",
+  "ignore": [
+    "bower_components"
+  ],
+  "dependencies": {
+      "bootstrap": "3.0.2"
+  },
+  "devDependencies": {
+  }
+}
