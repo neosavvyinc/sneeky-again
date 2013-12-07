@@ -23,7 +23,7 @@ CREATE TABLE CURRANT_USER(
 CREATE TABLE PROFILE(
   profile_id BIGSERIAL PRIMARY KEY NOT NULL,
   currant_user_id BIGINT NOT NULL,
-  source VARCHAR (10) NOT NULL, /*currant, facebook, etc..not sure how this will play out since not sure the rules of editting a profile if it comes from fb */
+  source VARCHAR (10) NOT NULL, /*phantom, facebook, etc..not sure how this will play out since not sure the rules of editting a profile if it comes from fb */
   source_identifier VARCHAR (256) NOT NULL, /*TODO: Decide if this is the right data type */
   first_name VARCHAR (20),
   last_name VARCHAR(20),
