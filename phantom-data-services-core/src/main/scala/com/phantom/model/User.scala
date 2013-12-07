@@ -4,6 +4,8 @@ case class UserRegistration(email : String,
                             birthday : String,
                             password : String)
 
+case class RegistrationResponse(code : Int, message : String) //total dummy class
+
 case class UserInsert(email : String,
                       birthday : String,
                       saltyHash : String,
