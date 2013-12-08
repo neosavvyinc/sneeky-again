@@ -12,7 +12,7 @@ trait UserEndpoint extends DataHttpService {
   val userService = UserService()
 
   val userRoute =
-    pathPrefix("user" / "register") {
+    pathPrefix("users" / "register") {
       post {
         respondWithMediaType(`application/json`)
         entity(as[UserRegistration]) {
@@ -23,7 +23,7 @@ trait UserEndpoint extends DataHttpService {
         }
       }
     } ~
-      pathPrefix("user" / "login") {
+      pathPrefix("users" / "login") {
         post {
           respondWithMediaType(`application/json`)
           entity(as[UserLogin]) {
@@ -32,7 +32,7 @@ trait UserEndpoint extends DataHttpService {
           }
         }
       } ~
-      pathPrefix("user" / LongNumber) { id =>
+      pathPrefix("users" / LongNumber) { id =>
         get {
           respondWithMediaType(`application/json`) {
             complete {
@@ -41,7 +41,7 @@ trait UserEndpoint extends DataHttpService {
           }
         }
       } ~
-      pathPrefix("user" / LongNumber / "contacts") { id =>
+      pathPrefix("users" / LongNumber / "contacts") { id =>
         get {
           respondWithMediaType(`application/json`) {
             complete {

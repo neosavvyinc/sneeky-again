@@ -31,7 +31,7 @@ package object httpx {
     implicit val userRegistrationFormat = jsonFormat3(UserRegistration)
     implicit val userInsertFormat = jsonFormat4(UserInsert)
     implicit val userFormat = jsonFormat5(User)
-    implicit val regResponse = jsonFormat2(UserResponse)
+    implicit val userResponse = jsonFormat2(UserResponse)
 
     implicit val conversationStarterFormat = jsonFormat4(ConversationStarter)
     implicit val conversationItemFormat = jsonFormat6(ConversationItem)
