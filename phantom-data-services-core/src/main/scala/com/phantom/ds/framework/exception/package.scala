@@ -6,7 +6,6 @@ package object exception {
 
   trait PhantomException {
     def code : Int
-    def message : String
   }
 
   object Errors {

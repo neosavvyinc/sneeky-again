@@ -6,19 +6,39 @@ import spray.http.ContentTypes._
 import spray.http.{ HttpEntity, HttpResponse }
 import spray.http.StatusCodes.OK
 import spray.json._
-import com.phantom.model.{ RegistrationResponse, User, UserInsert, UserRegistration }
+import com.phantom.model.{ UserResponse, User, UserInsert, UserRegistration }
+import com.phantom.model._
 import com.phantom.ds.framework.exception.PhantomException
+import spray.http.HttpResponse
+import spray.http.HttpResponse
+import spray.http.HttpResponse
+import spray.http.HttpResponse
+import com.phantom.model.UserInsert
+import spray.http.HttpResponse
+import com.phantom.model.ConversationSummary
+import com.phantom.model.ConversationItem
+import com.phantom.model.User
+import com.phantom.model.ConversationStarter
+import com.phantom.model.UserRegistration
+import com.phantom.model.ConversationDetail
 
 package object httpx {
 
   private[httpx]type JF[T] = JsonFormat[T]
 
   trait PhantomJsonProtocol extends DefaultJsonProtocol {
-    implicit val failureFormat = jsonFormat3(Failure)
+    implicit val failureFormat = jsonFormat2(Failure)
     implicit val userRegistrationFormat = jsonFormat3(UserRegistration)
     implicit val userInsertFormat = jsonFormat4(UserInsert)
     implicit val userFormat = jsonFormat5(User)
-    implicit val regResponse = jsonFormat2(RegistrationResponse)
+    implicit val regResponse = jsonFormat2(UserResponse)
+
+    implicit val conversationStarterFormat = jsonFormat4(ConversationStarter)
+    implicit val conversationItemFormat = jsonFormat6(ConversationItem)
+    implicit val conversationSummaryFormat = jsonFormat1(ConversationSummary)
+    implicit val conversationDetail = jsonFormat2(ConversationDetail)
+    implicit val conversationFeed = jsonFormat1(Feed)
+
     //implicit def payloadFormat[T](implicit tag : ClassManifest[T]) : RootJsonFormat[Payload[T]] = jsonFormat1(Payload[T])
   }
 
@@ -49,14 +69,14 @@ package object httpx {
 
     private def toJson(t : Throwable) = {
       val failure = t match {
-        case x : PhantomException => Failure(x.code, x.message, Errors.getMessage(x.code))
-        case _                    => Failure(defaultCode, t.getMessage, Errors.getMessage(defaultCode))
+        case x : PhantomException => Failure(x.code, Errors.getMessage(x.code))
+        case _                    => Failure(defaultCode, Errors.getMessage(defaultCode))
       }
       failureFormat.write(failure)
     }
   }
 
-  case class Failure(errorCode : Int, errorMessage : String, displayError : String)
+  case class Failure(errorCode : Int, displayError : String)
 
   //case class Payload[T](payload : T)
 }
