@@ -15,7 +15,6 @@ trait UserService {
 
 class DuplicateUserException extends Exception with PhantomException {
   val code = 101
-  val message : String = "Email already in use"
 }
 
 object UserService {
