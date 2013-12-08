@@ -2,9 +2,11 @@ import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import sbt._
 import Keys._
+import sbtassembly.Plugin.{PathList, MergeStrategy, AssemblyKeys}
 import sbtrelease.ReleasePlugin._
 import spray.revolver.RevolverPlugin.Revolver
 import scalariform.formatter.preferences._
+import AssemblyKeys._
 
 
 object Build extends sbt.Build {
@@ -20,7 +22,7 @@ object Build extends sbt.Build {
         Shared.Spray ++
           Shared.Akka ++
           Shared.Logging ++
-          Shared.Other) ++ Revolver.settings
+          Shared.Other) ++ Revolver.settings ++ sbtassembly.Plugin.assemblySettings ++ Assembly.prefs
     )
 
   def project(id: String, base: File, settings: Seq[Def.Setting[_]] = Nil) =
@@ -49,13 +51,13 @@ object Shared {
   val Spray = Seq(
     "io.spray" % "spray-can" % SprayVersion,
     "io.spray" % "spray-routing" % SprayVersion,
-    "io.spray" % "spray-testkit" % SprayVersion,
+    "io.spray" % "spray-testkit" % SprayVersion % "test",
     "io.spray" %% "spray-json" % "1.2.5"
   )
 
   val Akka = Seq(
     "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
-    "com.typesafe.akka" %% "akka-testkit" % AkkaVersion
+    "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % "test"
   )
 
   val Logging = Seq(
@@ -118,3 +120,18 @@ object Formatting {
     .setPreference(AlignParameters, true)
     .setPreference(SpaceBeforeColon, true)
 }
+
+
+
+object Assembly {
+  val prefs = Set(jarName in assembly := "phantom.jar",
+    mainClass in assembly := None,
+    mergeStrategy in assembly <<= (mergeStrategy in assembly) {(old) =>
+    {
+      case "logback.properties" =>  MergeStrategy.discard
+      case "application.conf" => MergeStrategy.discard
+      case x => old(x)
+    }})
+}
+
+
