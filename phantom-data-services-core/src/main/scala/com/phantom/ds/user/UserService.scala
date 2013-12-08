@@ -29,8 +29,6 @@ object MapbackedUserService extends UserService with Logging {
   val map : MMap[String, Int] = MMap.empty
 
   def registerUser(registrationRequest : UserRegistration) : Future[UserResponse] = {
-
-  def registerUser(registrationRequest : UserRegistration) : Future[RegistrationResponse] = {
     log.info(s"registering $registrationRequest")
     map.get(registrationRequest.email) match {
       case Some(x) => Future.failed(new DuplicateUserException())
