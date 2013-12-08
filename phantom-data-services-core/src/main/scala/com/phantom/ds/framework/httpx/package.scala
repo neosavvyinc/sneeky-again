@@ -18,7 +18,6 @@ import spray.http.HttpResponse
 import com.phantom.model.ConversationSummary
 import com.phantom.model.ConversationItem
 import com.phantom.model.User
-import com.phantom.model.RegistrationResponse
 import com.phantom.model.ConversationStarter
 import com.phantom.model.UserRegistration
 import com.phantom.model.ConversationDetail
@@ -33,7 +32,6 @@ package object httpx {
     implicit val userInsertFormat = jsonFormat4(UserInsert)
     implicit val userFormat = jsonFormat5(User)
     implicit val regResponse = jsonFormat2(UserResponse)
-    implicit val regResponse = jsonFormat2(RegistrationResponse)
 
     implicit val conversationStarterFormat = jsonFormat4(ConversationStarter)
     implicit val conversationItemFormat = jsonFormat6(ConversationItem)
