@@ -22,7 +22,7 @@
                * BOOL (on, off)
             * Response
                * 200?
-      * Get friends
+      * Get contacts
          * Request
             * User Id
          * Response

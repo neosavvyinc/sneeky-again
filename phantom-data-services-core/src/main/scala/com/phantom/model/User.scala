@@ -4,7 +4,10 @@ case class UserRegistration(email : String,
                             birthday : String,
                             password : String)
 
-case class RegistrationResponse(code : Int, message : String) //total dummy class
+case class UserLogin(email : String,
+                     password : String)
+
+case class UserResponse(code : Int, message : String) //total dummy class
 
 case class UserInsert(email : String,
                       birthday : String,
