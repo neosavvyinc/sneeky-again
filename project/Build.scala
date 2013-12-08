@@ -51,13 +51,13 @@ object Shared {
   val Spray = Seq(
     "io.spray" % "spray-can" % SprayVersion,
     "io.spray" % "spray-routing" % SprayVersion,
-    "io.spray" % "spray-testkit" % SprayVersion,
+    "io.spray" % "spray-testkit" % SprayVersion % "test",
     "io.spray" %% "spray-json" % "1.2.5"
   )
 
   val Akka = Seq(
     "com.typesafe.akka" %% "akka-actor" % AkkaVersion,
-    "com.typesafe.akka" %% "akka-testkit" % AkkaVersion
+    "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % "test"
   )
 
   val Logging = Seq(
@@ -124,16 +124,14 @@ object Formatting {
 
 
 object Assembly {
-  val phantomMergeStrategy : String => MergeStrategy = {
-    case "logback.properties" => MergeStrategy.discard
-    case "application.conf" => MergeStrategy.discard
-    case "reference.conf" => MergeStrategy.discard
-    case PathList("META-INF", xs @ _*)      => MergeStrategy.discard
-    case _                  => MergeStrategy.deduplicate
-  }
-
   val prefs = Set(jarName in assembly := "phantom.jar",
-                  mergeStrategy in assembly := phantomMergeStrategy)
+    mainClass in assembly := None,
+    mergeStrategy in assembly <<= (mergeStrategy in assembly) {(old) =>
+    {
+      case "logback.properties" =>  MergeStrategy.discard
+      case "application.conf" => MergeStrategy.discard
+      case x => old(x)
+    }})
 }
 
 

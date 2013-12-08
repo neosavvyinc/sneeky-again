@@ -4,6 +4,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import com.phantom.model.{ RegistrationResponse, UserRegistration }
 import com.phantom.ds.framework.exception.PhantomException
 import scala.collection.mutable.{ Map => MMap }
+import com.phantom.ds.framework.Logging
 
 trait UserService {
 
@@ -26,12 +27,12 @@ object UserService {
 
 }
 
-object MapbackedUserService extends UserService {
+object MapbackedUserService extends UserService with Logging {
 
   val map : MMap[String, Int] = MMap.empty
 
   def registerUser(registrationRequest : UserRegistration) : Future[RegistrationResponse] = {
-
+    log.info(s"registering $registrationRequest")
     map.get(registrationRequest.email) match {
       case Some(x) => Future.failed(new DuplicateUserException())
       case None => Future.successful {
