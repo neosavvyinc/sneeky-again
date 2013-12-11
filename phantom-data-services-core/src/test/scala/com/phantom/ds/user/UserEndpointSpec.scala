@@ -27,6 +27,7 @@ class UserEndpointSpec extends Specification
 
   // NOTE: making these tests sequential for now
   // while they depend on the mutable Mapbacked Service
+  // can we get rid of this???
   sequential
 
   "User Service" should {
@@ -79,9 +80,13 @@ class UserEndpointSpec extends Specification
       }
     }
 
-    "be able to get a user's friends" in clearMap {
+    "be able to get a user's conctacts" in clearMap {
       Get("/users/1/contacts") ~> userRoute ~> check {
         status == OK
+        //        assertPayload[UserResponse] { response =>
+        //          response.code must be equalTo 200
+        //          response.message must be equalTo """["614-499-3676",:614-519-2050]"""
+        //        }
       }
     }
 
@@ -95,6 +100,20 @@ class UserEndpointSpec extends Specification
     "fail to find an unregistered user" in clearMap {
       Get("/users/1") ~> userRoute ~> check {
         assertFailure(103)
+      }
+    }
+
+    "be able to get a registered user" in clearMap {
+      val newUser = UserRegistration("ccaplinger@neosavvy.com", "10/12/1986", "mypassword")
+      Post("/users/register", newUser) ~> userRoute ~> check {
+        status == OK
+      }
+
+      Get("/users/1") ~> userRoute ~> check {
+        assertPayload[UserResponse] { response =>
+          response.code must be equalTo 200
+          response.message must be equalTo """{"id":1,"email":"ccaplinger@neosavvy.com","birthday":"1/1/01","active":true}"""
+        }
       }
     }
 
