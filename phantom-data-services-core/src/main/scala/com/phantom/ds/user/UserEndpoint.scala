@@ -33,30 +33,27 @@ trait UserEndpoint extends DataHttpService
           }
         }
       } ~
-      pathPrefix("users" / LongNumber) { id =>
-        get {
-          respondWithMediaType(`application/json`) {
-            complete(userService.findUser(id))
-          }
-        }
-      } ~
       pathPrefix("users" / LongNumber / "contacts") { id =>
         get {
           respondWithMediaType(`application/json`) {
-            complete {
-              StatusCodes.OK
-            }
+            complete(userService.findContactsForUser(id))
           }
         } ~
           post {
             respondWithMediaType(`application/json`) {
               entity(as[List[String]]) { contacts /* list of phone numbers */ =>
                 complete {
-                  StatusCodes.OK
+                  StatusCodes.NotFound
                 }
               }
             }
           }
+      } ~
+      pathPrefix("users" / LongNumber) { id =>
+        get {
+          respondWithMediaType(`application/json`) {
+            complete(userService.findUser(id))
+          }
+        }
       }
-
 }

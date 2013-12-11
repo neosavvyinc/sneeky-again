@@ -19,7 +19,7 @@ object Build extends sbt.Build {
     project(id = "phantom-data-services-core",
       base = file("phantom-data-services-core"),
       settings = Seq(libraryDependencies ++=
-        Shared.Spray ++
+          Shared.Spray ++
           Shared.Akka ++
           Shared.Logging ++
           Shared.Other) ++ Revolver.settings ++ sbtassembly.Plugin.assemblySettings ++ Assembly.prefs

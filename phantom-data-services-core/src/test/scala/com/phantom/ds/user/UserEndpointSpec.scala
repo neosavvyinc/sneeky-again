@@ -5,7 +5,7 @@ import com.phantom.ds.framework.httpx._
 import spray.http.StatusCodes._
 import org.specs2._
 import mutable.Specification
-import specification.Before
+import specification.{ Before, After }
 import spray.testkit.Specs2RouteTest
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.PhantomEndpointSpec
@@ -14,6 +14,7 @@ object clearMap extends Before {
   def before {
     MapbackedUserService.map.clear
   }
+
 }
 
 class UserEndpointSpec extends Specification
@@ -74,19 +75,18 @@ class UserEndpointSpec extends Specification
       }
     }
 
-    "be able to get a user profile" in clearMap {
-      Get("/users/1") ~> userRoute ~> check {
+    "be able to get a user's contacts" in clearMap {
+      val newUser = UserRegistration("ccaplinger@neosavvy.com", "10/12/1986", "mypassword")
+      Post("/users/register", newUser) ~> userRoute ~> check {
         status == OK
       }
-    }
 
-    "be able to get a user's conctacts" in clearMap {
       Get("/users/1/contacts") ~> userRoute ~> check {
         status == OK
-        //        assertPayload[UserResponse] { response =>
-        //          response.code must be equalTo 200
-        //          response.message must be equalTo """["614-499-3676",:614-519-2050]"""
-        //        }
+        assertPayload[UserResponse] { response =>
+          response.code must be equalTo 200
+          response.message must be equalTo """["614-499-3676","614-519-2050"]"""
+        }
       }
     }
 
