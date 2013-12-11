@@ -14,5 +14,5 @@ object Boot extends App with DSConfiguration {
   val phantomService = system.actorOf(Props(new PhantomRouteActor()), "service")
 
   // start a new HTTP server on port 8080 with our service actor as the handler
-  IO(Http) ! Http.Bind(phantomService, interface = "localhost", port = 9090)
+  IO(Http) ! Http.Bind(phantomService, interface = "0.0.0.0", port = 9090)
 }
