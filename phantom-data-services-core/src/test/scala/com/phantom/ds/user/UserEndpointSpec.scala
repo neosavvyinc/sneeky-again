@@ -1,12 +1,12 @@
 package com.phantom.ds.user
 
 import com.phantom.model._
-import com.phantom.model.UserJsonImplicits._
 import spray.http.StatusCodes._
 import org.specs2.mutable.Specification
 import spray.testkit.Specs2RouteTest
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.PhantomEndpointSpec
+import org.joda.time.LocalDate
 
 class UserEndpointSpec extends Specification
     with PhantomEndpointSpec
@@ -16,9 +16,11 @@ class UserEndpointSpec extends Specification
 
   def actorRefFactory = system
 
+  val birthday = LocalDate.parse("1981-08-10")
+
   "User Service" should {
     "be able to register a user" in {
-      val newUser = UserRegistration("adamparrish@something.com", "8/10/1981", "mypassword")
+      val newUser = UserRegistration("adamparrish@something.com", birthday, "mypassword")
       Post("/users/register", newUser) ~> userRoute ~> check {
         assertPayload[UserResponse] { response =>
           response.code must be equalTo 200
@@ -28,7 +30,7 @@ class UserEndpointSpec extends Specification
     }
 
     "fail if registering a user with a duplicate email" in {
-      val newUser = UserRegistration("adamparrish@something.com", "8/10/1981", "somethingelse")
+      val newUser = UserRegistration("adamparrish@something.com", birthday, "somethingelse")
       Post("/users/register", newUser) ~> userRoute ~> check {
         status == OK
       }

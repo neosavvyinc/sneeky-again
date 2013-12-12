@@ -3,7 +3,6 @@ package com.phantom.ds.user
 import spray.http.MediaTypes._
 import spray.http.StatusCodes
 import com.phantom.model._
-import com.phantom.model.UserJsonImplicits._
 import spray.json._
 import com.phantom.ds.DataHttpService
 
