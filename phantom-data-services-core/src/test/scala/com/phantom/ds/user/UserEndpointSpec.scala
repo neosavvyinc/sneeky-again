@@ -13,6 +13,7 @@ import com.phantom.ds.PhantomEndpointSpec
 object clearMap extends Before {
   def before {
     MapbackedUserService.map.clear
+    MapbackedUserService.contactList = List[String]()
   }
 
 }
@@ -75,7 +76,7 @@ class UserEndpointSpec extends Specification
       }
     }
 
-    "be able to get a user's contacts" in clearMap {
+    "return an empty list of contacts if a user does not have any" in clearMap {
       val newUser = UserRegistration("ccaplinger@neosavvy.com", "10/12/1986", "mypassword")
       Post("/users/register", newUser) ~> userRoute ~> check {
         status == OK
@@ -85,15 +86,45 @@ class UserEndpointSpec extends Specification
         status == OK
         assertPayload[UserResponse] { response =>
           response.code must be equalTo 200
-          response.message must be equalTo """["614-499-3676","614-519-2050"]"""
+          response.message must be equalTo """[]"""
         }
       }
     }
 
+    // "return a NonexistantUserException if you try to update contacts for a nonexistant user"
+
     "be able to update your contacts with a list of phone numbers" in clearMap {
+      val newUser = UserRegistration("adamparrish@something.com", "8/10/1981", "somethingelse")
+      Post("/users/register", newUser) ~> userRoute ~> check {
+        status == OK
+      }
+
       val phoneNumbers = List("(614)499-3676", "(614)519-2050", "(614)206-1266")
       Post("/users/1/contacts", phoneNumbers) ~> userRoute ~> check {
+        assertPayload[UserResponse] { response =>
+          response.code must be equalTo 200
+          response.message must be equalTo """["(614)499-3676","(614)519-2050","(614)206-1266"]"""
+        }
+      }
+    }
+
+    "be able to get a user's contacts" in clearMap {
+      val newUser = UserRegistration("ccaplinger@neosavvy.com", "10/12/1986", "mypassword")
+      Post("/users/register", newUser) ~> userRoute ~> check {
         status == OK
+      }
+
+      val phoneNumbers = List("614-499-3676", "614-519-2050")
+      Post("/users/1/contacts", phoneNumbers) ~> userRoute ~> check {
+        status == OK
+      }
+
+      Get("/users/1/contacts") ~> userRoute ~> check {
+        status == OK
+        assertPayload[UserResponse] { response =>
+          response.code must be equalTo 200
+          response.message must be equalTo """["614-499-3676","614-519-2050"]"""
+        }
       }
     }
 

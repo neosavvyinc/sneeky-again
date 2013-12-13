@@ -34,6 +34,7 @@ object UserService {
 object MapbackedUserService extends UserService with Logging with PhantomJsonProtocol {
 
   val map : MMap[Int, UserLogin] = MMap.empty
+  var contactList = List[String]();
 
   def registerUser(registrationRequest : UserRegistration) : Future[UserResponse] = {
     log.info(s"registering $registrationRequest")
@@ -75,10 +76,20 @@ object MapbackedUserService extends UserService with Logging with PhantomJsonPro
     log.info(s"finding contacts for user with id => $id")
     map.get(id.toInt) match {
       case Some(user : UserLogin) => Future.successful {
-        UserResponse(200, List("614-499-1499", "614-519-2050").toJson.toString)
+        UserResponse(200, contactList.toJson.toString)
       }
       case None => Future.failed(new NonexistantUserException())
     }
   }
 
+  def updateContactsForUser(id : Long, contacts : List[String]) : Future[UserResponse] = {
+    log.info(s"updating contacts for use with id => $id")
+    map.get(id.toInt) match {
+      case Some(user : UserLogin) => Future.successful {
+        contactList = contacts
+        UserResponse(200, contactList.toJson.toString)
+      }
+      case None => Future.failed(new NonexistantUserException())
+    }
+  }
 }

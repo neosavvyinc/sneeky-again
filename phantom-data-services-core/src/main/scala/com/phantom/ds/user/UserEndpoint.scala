@@ -43,7 +43,7 @@ trait UserEndpoint extends DataHttpService
             respondWithMediaType(`application/json`) {
               entity(as[List[String]]) { contacts /* list of phone numbers */ =>
                 complete {
-                  StatusCodes.NotFound
+                  userService.updateContactsForUser(id, contacts)
                 }
               }
             }
