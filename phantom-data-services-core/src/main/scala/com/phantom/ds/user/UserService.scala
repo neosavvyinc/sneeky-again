@@ -38,19 +38,19 @@ object MapbackedUserService extends UserService with Logging with PhantomJsonPro
 
   def registerUser(registrationRequest : UserRegistration) : Future[UserResponse] = {
     log.info(s"registering $registrationRequest")
-    map.values.find(_.email == registrationRequest.email) match {
-      case Some(x) => Future.failed(new DuplicateUserException())
-      case None => Future.successful {
-        map(map.size + 1) = UserLogin(registrationRequest.email, registrationRequest.password)
-        UserResponse(200, registrationRequest.email)
-      }
+    map.values.collectFirst {
+      case u : UserLogin if u.email == registrationRequest.email => Future.failed(new DuplicateUserException())
+    }.getOrElse {
+      map(map.size + 1) = UserLogin(registrationRequest.email, registrationRequest.password)
+      Future.successful(UserResponse(200, registrationRequest.email))
     }
+
   }
 
   def loginUser(loginRequest : UserLogin) : Future[UserResponse] = {
     log.info(s"logging in $loginRequest")
     map.values.collectFirst {
-      case (u : UserLogin) if u.email == loginRequest.email && u.password == loginRequest.password =>
+      case u : UserLogin if u.email == loginRequest.email && u.password == loginRequest.password =>
         Future.successful(UserResponse(200, "logged in!"))
     }.getOrElse(Future.failed(new NonexistantUserException()))
   }
