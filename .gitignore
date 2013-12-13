@@ -7,4 +7,7 @@ src_managed/
 test-output/
 *.iml
 *.swp
+*.swo
 logback.properties
+*.log
+tags
