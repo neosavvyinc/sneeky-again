@@ -91,7 +91,12 @@ class UserEndpointSpec extends Specification
       }
     }
 
-    // "return a NonexistantUserException if you try to update contacts for a nonexistant user"
+    "return a NonexistantUserException if you try to update contacts for a nonexistant user" in clearMap {
+      val phoneNumbers = List("(614)499-3676", "(614)519-2050", "(614)206-1266")
+      Post("/users/1/contacts", phoneNumbers) ~> userRoute ~> check {
+        assertFailure(103);
+      }
+    }
 
     "be able to update your contacts with a list of phone numbers" in clearMap {
       val newUser = UserRegistration("adamparrish@something.com", "8/10/1981", "somethingelse")

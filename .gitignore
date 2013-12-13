@@ -9,4 +9,5 @@ test-output/
 *.swp
 *.swo
 logback.properties
+*.log
 tags

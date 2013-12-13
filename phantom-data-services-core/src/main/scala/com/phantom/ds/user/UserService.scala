@@ -38,9 +38,7 @@ object MapbackedUserService extends UserService with Logging with PhantomJsonPro
 
   def registerUser(registrationRequest : UserRegistration) : Future[UserResponse] = {
     log.info(s"registering $registrationRequest")
-    map.values.find { user : UserLogin =>
-      user.email == registrationRequest.email
-    } match {
+    map.values.find(_.email == registrationRequest.email) match {
       case Some(x) => Future.failed(new DuplicateUserException())
       case None => Future.successful {
         map(map.size + 1) = UserLogin(registrationRequest.email, registrationRequest.password)
@@ -51,45 +49,33 @@ object MapbackedUserService extends UserService with Logging with PhantomJsonPro
 
   def loginUser(loginRequest : UserLogin) : Future[UserResponse] = {
     log.info(s"logging in $loginRequest")
-
-    map.values.find { user : UserLogin =>
-      user.email == loginRequest.email
-    } match {
-      case Some(user) =>
-        if (user.password == loginRequest.password) Future.successful(UserResponse(200, "logged in!"))
-        else Future.failed(new NonexistantUserException())
-      case None => Future.failed(new NonexistantUserException())
-    }
+    map.values.collectFirst {
+      case (u : UserLogin) if u.email == loginRequest.email && u.password == loginRequest.password =>
+        Future.successful(UserResponse(200, "logged in!"))
+    }.getOrElse(Future.failed(new NonexistantUserException()))
   }
 
   def findUser(id : Long) : Future[UserResponse] = {
     log.info(s"finding contacts for user with id => $id")
-    map.get(id.toInt) match {
-      case Some(user : UserLogin) => Future.successful {
-        UserResponse(200, User(id, user.email, "1/1/01", true).toJson.toString)
-      }
-      case None => Future.failed(new NonexistantUserException())
-    }
+    map.get(id.toInt)
+      .map(u => Future.successful(UserResponse(200, User(id, u.email, "1/1/01", true).toJson.toString)))
+      .getOrElse(Future.failed(new NonexistantUserException()))
   }
 
   def findContactsForUser(id : Long) : Future[UserResponse] = {
     log.info(s"finding contacts for user with id => $id")
-    map.get(id.toInt) match {
-      case Some(user : UserLogin) => Future.successful {
-        UserResponse(200, contactList.toJson.toString)
-      }
-      case None => Future.failed(new NonexistantUserException())
-    }
+    map.get(id.toInt)
+      .map(u => Future.successful(UserResponse(200, contactList.toJson.toString)))
+      .getOrElse(Future.failed(new NonexistantUserException()))
   }
 
   def updateContactsForUser(id : Long, contacts : List[String]) : Future[UserResponse] = {
     log.info(s"updating contacts for use with id => $id")
-    map.get(id.toInt) match {
-      case Some(user : UserLogin) => Future.successful {
+    map.get(id.toInt)
+      .map(u => Future.successful {
         contactList = contacts
         UserResponse(200, contactList.toJson.toString)
-      }
-      case None => Future.failed(new NonexistantUserException())
-    }
+      })
+      .getOrElse(Future.failed(new NonexistantUserException()))
   }
 }
