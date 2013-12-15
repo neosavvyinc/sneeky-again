@@ -14,6 +14,8 @@ class UserEndpointSpec extends Specification
     with Logging
     with UserEndpoint {
 
+  sequential
+
   def actorRefFactory = system
 
   "User Service" should {

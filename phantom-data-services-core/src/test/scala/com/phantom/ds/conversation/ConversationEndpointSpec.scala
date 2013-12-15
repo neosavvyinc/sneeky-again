@@ -24,13 +24,13 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
   def actorRefFactory = system
 
   "Conversation Service" should {
-    "Should return a 102 NoFeedFoundException if there is no data for a user" in {
+    "return a 102 NoFeedFoundException if there is no data for a user" in {
       Get("/conversation/1") ~> conversationRoute ~> check {
         assertFailure(102)
       }
     }
 
-    "Should support receiving a multi-part form post to start or update a conversation, if no image it throws error" in {
+    "support receiving a multi-part form post to start or update a conversation, if no image it throws error" in {
 
       val multipartForm = MultipartFormData {
         Map(
@@ -45,7 +45,7 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
 
     }
 
-    "Should support receiving a multi-part form post to start or update a conversation with image" in {
+    "support receiving a multi-part form post to start a conversation with image" in {
 
       val source = scala.io.Source.fromInputStream(getClass.getResourceAsStream("/testFile.png"))
       val byteArray = source.map(_.toByte).toArray
@@ -55,7 +55,8 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
         Map(
           "imageText" -> BodyPart("This is the image text"),
           "userid" -> BodyPart("adamparrish"),
-          "image" -> BodyPart(byteArray)
+          "image" -> BodyPart(byteArray),
+          "toUsers" -> BodyPart("user1,user2,user3")
         )
       }
 
@@ -65,7 +66,29 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
 
     }
 
-    "Should support a simple image upload to prove that it works" in {
+    "support receiving a multi-part form post to update a conversation with image" in {
+
+      val source = scala.io.Source.fromInputStream(getClass.getResourceAsStream("/testFile.png"))
+      val byteArray = source.map(_.toByte).toArray
+      source.close()
+
+      val multipartFormWithData = MultipartFormData {
+        Map(
+          "convId" -> BodyPart("1"),
+          "imageText" -> BodyPart("This is the image text"),
+          "userid" -> BodyPart("adamparrish"),
+          "image" -> BodyPart(byteArray),
+          "toUsers" -> BodyPart("user1,user2,user3")
+        )
+      }
+
+      Post("/conversation/startOrUpdate", multipartFormWithData) ~> conversationRoute ~> check {
+        status === OK
+      }
+
+    }
+
+    "support a simple image upload to prove that it works" in {
 
       val source = scala.io.Source.fromInputStream(getClass.getResourceAsStream("/testFile.png"))
       val byteArray = source.map(_.toByte).toArray

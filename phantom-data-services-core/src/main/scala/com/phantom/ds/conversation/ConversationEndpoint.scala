@@ -45,10 +45,12 @@ trait ConversationEndpoint extends DataHttpService {
       pathPrefix(conversation) {
         path("startOrUpdate") {
           post {
-            formFields('image.as[Array[Byte]], 'imageText, 'userid) { (image, imageText, userid) =>
+            formFields('image.as[Array[Byte]], 'imageText, 'userid, 'toUsers, 'convId.as[Int]?) { (image, imageText, userid, toUsers, convId) =>
 
               println("imageText> " + imageText)
-              println("userid> " + userid);
+              println("userid> " + userid)
+              println("toUsers> " + toUsers)
+              println("convId> " + convId)
 
               val fos : FileOutputStream = new FileOutputStream("testAdam.png");
               try {
