@@ -6,6 +6,7 @@ import com.phantom.model.{ ConversationItem, ConversationSummary }
 
 import scala.Some
 import spray.http.MultipartFormData
+import java.io.FileOutputStream
 
 /**
  * Created by Neosavvy
@@ -78,6 +79,29 @@ trait ConversationEndpoint extends DataHttpService {
             }
 
             ConversationInsertResponse(100)
+          }
+        }
+      } ~ {
+        val ByteJsonFormat = null
+
+        import spray.httpx.encoding.{ NoEncoding, Gzip }
+
+        pathPrefix("conversation") {
+          path("upload") {
+            post {
+              formField('imageupload.as[Array[Byte]]) { file =>
+                // import spray.httpx.SprayJsonSupport._
+                val fos : FileOutputStream = new FileOutputStream("test.png");
+                try {
+                  fos.write(file);
+                } finally {
+                  fos.close();
+                }
+                complete {
+                  "0"
+                }
+              }
+            }
           }
         }
       }

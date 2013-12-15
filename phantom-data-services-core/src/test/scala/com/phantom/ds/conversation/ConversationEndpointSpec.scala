@@ -7,6 +7,8 @@ import org.specs2.mutable.Specification
 import spray.testkit.Specs2RouteTest
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.PhantomEndpointSpec
+import spray.http.{ BodyPart, MultipartFormData }
+import java.io.{ FileInputStream, FileOutputStream }
 
 /**
  * Created by Neosavvy
@@ -24,6 +26,59 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
       Get("/conversation/1") ~> conversationRoute ~> check {
         assertFailure(102)
       }
+    }
+
+    "Should support receiving a multi-part form post to start or update a conversation, if no image it throws error" in {
+
+      val multipartForm = MultipartFormData {
+        Map(
+          "imageText" -> BodyPart("This is the image text"),
+          "userid" -> BodyPart("adamparrish")
+        )
+      }
+
+      Post("/api/conversation/startOrUpdate", multipartForm) ~> conversationRoute ~> check {
+        status === OK
+      }
+
+    }
+    //
+    //    "Should support receiving a multi-part form post to start or update a conversation with image" in {
+    //
+    //      val source = scala.io.Source.fromInputStream(getClass.getResourceAsStream("testFile.png"))
+    //      val byteArray = source.map(_.toByte).toArray
+    //      source.close()
+    //
+    //      val multipartFormWithData = MultipartFormData {
+    //        Map(
+    //          "imageText" -> BodyPart("This is the image text"),
+    //          "userid" -> BodyPart("adamparrish"),
+    //          "image" -> BodyPart(byteArray)
+    //        )
+    //      }
+    //
+    //      Post("/api/conversation/startOrUpdate", multipartFormWithData) ~> conversationRoute ~> check {
+    //        status === OK
+    //      }
+    //
+    //    }
+
+    "Should support a simple image upload to prove that it works" in {
+
+      val source = scala.io.Source.fromInputStream(getClass.getResourceAsStream("/testFile.png"))
+      val byteArray = source.map(_.toByte).toArray
+      source.close()
+
+      val multipartFormWithData = MultipartFormData {
+        Map(
+          "imageupload" -> BodyPart(byteArray)
+        )
+      }
+
+      Post("/conversation/upload", multipartFormWithData) ~> conversationRoute ~> check {
+        status === OK
+      }
+
     }
   }
 
