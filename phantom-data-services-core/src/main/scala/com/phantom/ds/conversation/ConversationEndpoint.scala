@@ -51,7 +51,8 @@ trait ConversationEndpoint extends DataHttpService {
               println("userid> " + userid)
               println("toUsers> " + toUsers)
               println("convId> " + convId)
-
+              //TODO Make sure this file is saved outside classpath
+              //TODO Make sure this file is unique to each conversation so that we can clean it later
               val fos : FileOutputStream = new FileOutputStream("testAdam.png");
               try {
                 fos.write(image);
@@ -74,6 +75,8 @@ trait ConversationEndpoint extends DataHttpService {
         path("upload") {
           post {
             formField('imageupload.as[Array[Byte]]) { file =>
+              //TODO Make sure this file is saved outside classpath
+              //TODO Make sure this file is unique to each conversation so that we can clean it later
               val fos : FileOutputStream = new FileOutputStream("test.png");
               try {
                 fos.write(file);
