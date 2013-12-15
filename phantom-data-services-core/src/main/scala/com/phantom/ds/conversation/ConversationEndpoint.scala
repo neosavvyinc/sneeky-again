@@ -37,73 +37,52 @@ trait ConversationEndpoint extends DataHttpService {
             }
           }
       }
-    } ~
-      pathPrefix("api" / conversation / "startOrUpdate") {
-        post {
-          handleWith { data : MultipartFormData =>
+    } ~ {
+      val ByteJsonFormat = null
 
-            val inputTuple = for {
-              imageText <- data.get("imageText") match {
-                case Some(imageTextString) =>
-                  imageTextString.entity.asString
-                case None =>
-                  ""
-              }
+      import spray.httpx.encoding.{ NoEncoding, Gzip }
 
-              //              userList <- data.get("userList[]") match {
-              //                case Some(userListAry) =>
-              //                  userListAry.entity.asString
-              //                case None =>
-              //                  ""
-              //              }
+      post {
+        formFields('image.as[Array[Byte]], 'imageText, 'userid) { (image, imageText, userid) =>
 
-              userId <- data.get("userid") match {
-                case Some(userIdString) =>
-                  userIdString.entity.asString
-                case None =>
-                  ""
-              }
-            } yield (imageText, userId)
+          println("imageText> " + imageText)
+          println("userid> " + userid);
 
-            println(">>>>" + inputTuple(0))
-            //            println(">>>>" + inputTuple._2)
-            println(">>>>" + inputTuple(1))
-
-            data.get("image") match {
-              case Some(imageEntity) =>
-              //write the bytes to disk and return a url
-
-              case None              =>
-              //image wasnt provided this is an error
-
-            }
-
-            ConversationInsertResponse(100)
+          val fos : FileOutputStream = new FileOutputStream("testAdam.png");
+          try {
+            fos.write(image);
+          } finally {
+            fos.close();
+          }
+          complete {
+            "0"
           }
         }
-      } ~ {
-        val ByteJsonFormat = null
 
-        import spray.httpx.encoding.{ NoEncoding, Gzip }
+      }
 
-        pathPrefix("conversation") {
-          path("upload") {
-            post {
-              formField('imageupload.as[Array[Byte]]) { file =>
-                // import spray.httpx.SprayJsonSupport._
-                val fos : FileOutputStream = new FileOutputStream("test.png");
-                try {
-                  fos.write(file);
-                } finally {
-                  fos.close();
-                }
-                complete {
-                  "0"
-                }
+    } ~ {
+      val ByteJsonFormat = null
+
+      import spray.httpx.encoding.{ NoEncoding, Gzip }
+
+      pathPrefix(conversation) {
+        path("upload") {
+          post {
+            formField('imageupload.as[Array[Byte]]) { file =>
+              val fos : FileOutputStream = new FileOutputStream("test.png");
+              try {
+                fos.write(file);
+              } finally {
+                fos.close();
+              }
+              complete {
+                "0"
               }
             }
           }
         }
       }
+    }
 
 }

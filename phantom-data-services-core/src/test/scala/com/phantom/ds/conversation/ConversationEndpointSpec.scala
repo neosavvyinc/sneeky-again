@@ -38,30 +38,30 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
       }
 
       Post("/api/conversation/startOrUpdate", multipartForm) ~> conversationRoute ~> check {
+        handled === false
+      }
+
+    }
+
+    "Should support receiving a multi-part form post to start or update a conversation with image" in {
+
+      val source = scala.io.Source.fromInputStream(getClass.getResourceAsStream("/testFile.png"))
+      val byteArray = source.map(_.toByte).toArray
+      source.close()
+
+      val multipartFormWithData = MultipartFormData {
+        Map(
+          "imageText" -> BodyPart("This is the image text"),
+          "userid" -> BodyPart("adamparrish"),
+          "image" -> BodyPart(byteArray)
+        )
+      }
+
+      Post("/api/conversation/startOrUpdate", multipartFormWithData) ~> conversationRoute ~> check {
         status === OK
       }
 
     }
-    //
-    //    "Should support receiving a multi-part form post to start or update a conversation with image" in {
-    //
-    //      val source = scala.io.Source.fromInputStream(getClass.getResourceAsStream("testFile.png"))
-    //      val byteArray = source.map(_.toByte).toArray
-    //      source.close()
-    //
-    //      val multipartFormWithData = MultipartFormData {
-    //        Map(
-    //          "imageText" -> BodyPart("This is the image text"),
-    //          "userid" -> BodyPart("adamparrish"),
-    //          "image" -> BodyPart(byteArray)
-    //        )
-    //      }
-    //
-    //      Post("/api/conversation/startOrUpdate", multipartFormWithData) ~> conversationRoute ~> check {
-    //        status === OK
-    //      }
-    //
-    //    }
 
     "Should support a simple image upload to prove that it works" in {
 
