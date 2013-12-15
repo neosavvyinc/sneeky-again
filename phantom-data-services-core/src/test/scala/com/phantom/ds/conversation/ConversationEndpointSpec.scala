@@ -19,6 +19,8 @@ import java.io.{ FileInputStream, FileOutputStream }
  */
 class ConversationEndpointSpec extends Specification with PhantomEndpointSpec with Specs2RouteTest with Logging with ConversationEndpoint {
 
+  sequential
+
   def actorRefFactory = system
 
   "Conversation Service" should {
@@ -32,12 +34,12 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
 
       val multipartForm = MultipartFormData {
         Map(
-          "imageText" -> BodyPart("This is the image text"),
+          "imageText" -> BodyPart("This is the image text with no image"),
           "userid" -> BodyPart("adamparrish")
         )
       }
 
-      Post("/api/conversation/startOrUpdate", multipartForm) ~> conversationRoute ~> check {
+      Post("/conversation/startOrUpdate", multipartForm) ~> conversationRoute ~> check {
         handled === false
       }
 
@@ -57,7 +59,7 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
         )
       }
 
-      Post("/api/conversation/startOrUpdate", multipartFormWithData) ~> conversationRoute ~> check {
+      Post("/conversation/startOrUpdate", multipartFormWithData) ~> conversationRoute ~> check {
         status === OK
       }
 

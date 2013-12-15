@@ -42,25 +42,27 @@ trait ConversationEndpoint extends DataHttpService {
 
       import spray.httpx.encoding.{ NoEncoding, Gzip }
 
-      post {
-        formFields('image.as[Array[Byte]], 'imageText, 'userid) { (image, imageText, userid) =>
+      pathPrefix(conversation) {
+        path("startOrUpdate") {
+          post {
+            formFields('image.as[Array[Byte]], 'imageText, 'userid) { (image, imageText, userid) =>
 
-          println("imageText> " + imageText)
-          println("userid> " + userid);
+              println("imageText> " + imageText)
+              println("userid> " + userid);
 
-          val fos : FileOutputStream = new FileOutputStream("testAdam.png");
-          try {
-            fos.write(image);
-          } finally {
-            fos.close();
-          }
-          complete {
-            "0"
+              val fos : FileOutputStream = new FileOutputStream("testAdam.png");
+              try {
+                fos.write(image);
+              } finally {
+                fos.close();
+              }
+              complete {
+                "0"
+              }
+            }
           }
         }
-
       }
-
     } ~ {
       val ByteJsonFormat = null
 
