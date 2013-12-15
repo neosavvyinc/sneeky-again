@@ -19,3 +19,5 @@ case class ConversationDetail(id : Long,
                               conversationItems : List[ConversationItem])
 
 case class Feed(conversations : List[ConversationSummary])
+
+case class ConversationInsertResponse(id : Long)

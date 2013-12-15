@@ -20,10 +20,6 @@ trait ConversationEndpoint extends DataHttpService {
   val conversationService = ConversationService()
   val conversation = "conversation"
 
-  case class ConversationInsertResponse(id : Long)
-
-  implicit val conversationResponse = jsonFormat1(ConversationInsertResponse)
-
   val conversationRoute =
 
     pathPrefix(conversation) {

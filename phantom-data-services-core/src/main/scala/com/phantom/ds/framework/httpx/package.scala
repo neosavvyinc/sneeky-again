@@ -38,6 +38,7 @@ package object httpx {
     implicit val conversationSummaryFormat = jsonFormat1(ConversationSummary)
     implicit val conversationDetail = jsonFormat2(ConversationDetail)
     implicit val conversationFeed = jsonFormat1(Feed)
+    implicit val conversationResponse = jsonFormat1(ConversationInsertResponse)
 
     //implicit def payloadFormat[T](implicit tag : ClassManifest[T]) : RootJsonFormat[Payload[T]] = jsonFormat1(Payload[T])
   }
