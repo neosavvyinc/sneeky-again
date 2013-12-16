@@ -21,5 +21,4 @@ case class UserInsert(email : String,
 case class User(id : Long,
                 email : LocalDate,
                 birthday : String,
-                saltyHash : String,
                 active : Boolean)

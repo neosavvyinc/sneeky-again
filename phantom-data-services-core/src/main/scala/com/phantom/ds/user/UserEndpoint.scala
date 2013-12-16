@@ -3,10 +3,15 @@ package com.phantom.ds.user
 import spray.http.MediaTypes._
 import spray.http.StatusCodes
 import com.phantom.model._
+<<<<<<< HEAD
+=======
+import com.phantom.ds.framework.httpx._
+>>>>>>> master
 import spray.json._
 import com.phantom.ds.DataHttpService
 
-trait UserEndpoint extends DataHttpService {
+trait UserEndpoint extends DataHttpService
+    with PhantomJsonProtocol {
 
   val userService = UserService()
 
@@ -31,32 +36,27 @@ trait UserEndpoint extends DataHttpService {
           }
         }
       } ~
-      pathPrefix("users" / LongNumber) { id =>
-        get {
-          respondWithMediaType(`application/json`) {
-            complete {
-              StatusCodes.OK
-            }
-          }
-        }
-      } ~
       pathPrefix("users" / LongNumber / "contacts") { id =>
         get {
           respondWithMediaType(`application/json`) {
-            complete {
-              StatusCodes.OK
-            }
+            complete(userService.findContactsForUser(id))
           }
         } ~
           post {
             respondWithMediaType(`application/json`) {
               entity(as[List[String]]) { contacts /* list of phone numbers */ =>
                 complete {
-                  StatusCodes.OK
+                  userService.updateContactsForUser(id, contacts)
                 }
               }
             }
           }
+      } ~
+      pathPrefix("users" / LongNumber) { id =>
+        get {
+          respondWithMediaType(`application/json`) {
+            complete(userService.findUser(id))
+          }
+        }
       }
-
 }
