@@ -19,6 +19,6 @@ case class UserInsert(email : String,
 // TO DO
 // secret client-facing/obfuscated user id?
 case class User(id : Long,
-                email : LocalDate,
-                birthday : String,
+                email : String,
+                birthday : LocalDate,
                 active : Boolean)

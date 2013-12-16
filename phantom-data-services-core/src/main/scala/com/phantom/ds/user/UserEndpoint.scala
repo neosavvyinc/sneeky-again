@@ -1,12 +1,8 @@
 package com.phantom.ds.user
 
 import spray.http.MediaTypes._
-import spray.http.StatusCodes
 import com.phantom.model._
-<<<<<<< HEAD
-=======
 import com.phantom.ds.framework.httpx._
->>>>>>> master
 import spray.json._
 import com.phantom.ds.DataHttpService
 
