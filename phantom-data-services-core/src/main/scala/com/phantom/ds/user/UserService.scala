@@ -8,6 +8,7 @@ import com.phantom.model._
 import com.phantom.ds.framework.exception.PhantomException
 import scala.collection.mutable.{ Map => MMap }
 import com.phantom.ds.framework.Logging
+import org.joda.time.LocalDate
 
 trait UserService {
 
@@ -34,7 +35,7 @@ object UserService {
 object MapbackedUserService extends UserService with Logging with PhantomJsonProtocol {
 
   val map : MMap[Int, UserLogin] = MMap.empty
-  var contactList = List[String]();
+  var contactList = List[String]()
 
   def registerUser(registrationRequest : UserRegistration) : Future[UserResponse] = {
     log.info(s"registering $registrationRequest")
@@ -42,6 +43,7 @@ object MapbackedUserService extends UserService with Logging with PhantomJsonPro
       case u : UserLogin if u.email == registrationRequest.email => Future.failed(new DuplicateUserException())
     }.getOrElse {
       map(map.size + 1) = UserLogin(registrationRequest.email, registrationRequest.password)
+      log.info("added user to map")
       Future.successful(UserResponse(200, registrationRequest.email))
     }
 
@@ -58,7 +60,7 @@ object MapbackedUserService extends UserService with Logging with PhantomJsonPro
   def findUser(id : Long) : Future[UserResponse] = {
     log.info(s"finding contacts for user with id => $id")
     map.get(id.toInt)
-      .map(u => Future.successful(UserResponse(200, User(id, u.email, "1/1/01", true).toJson.toString)))
+      .map(u => Future.successful(UserResponse(200, User(id, u.email, LocalDate.parse("2001-01-01"), true).toJson.toString)))
       .getOrElse(Future.failed(new NonexistantUserException()))
   }
 

@@ -9,6 +9,7 @@ import specification.{ Before, After }
 import spray.testkit.Specs2RouteTest
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.PhantomEndpointSpec
+import org.joda.time.LocalDate
 
 object clearMap extends Before {
   def before {
@@ -27,15 +28,13 @@ class UserEndpointSpec extends Specification
 
   def actorRefFactory = system
 
-  // NOTE: making these tests sequential for now
-  // while they depend on the mutable Mapbacked Service
-  // can we get rid of this???
+  val birthday = LocalDate.parse("1981-08-10")
   sequential
 
   "User Service" should {
 
     "be able to register a user" in clearMap {
-      val newUser = UserRegistration("adamparrish@something.com", "8/10/1981", "mypassword")
+      val newUser = UserRegistration("adamparrish@something.com", birthday, "mypassword")
       Post("/users/register", newUser) ~> userRoute ~> check {
         assertPayload[UserResponse] { response =>
           response.code must be equalTo 200
@@ -45,7 +44,7 @@ class UserEndpointSpec extends Specification
     }
 
     "fail if registering a user with a duplicate email" in clearMap {
-      val newUser = UserRegistration("adamparrish@something.com", "8/10/1981", "somethingelse")
+      val newUser = UserRegistration("adamparrish@something.com", birthday, "somethingelse")
       Post("/users/register", newUser) ~> userRoute ~> check {
         status == OK
       }
@@ -63,7 +62,7 @@ class UserEndpointSpec extends Specification
     }
 
     "log in if a user exists" in clearMap {
-      val newUser = UserRegistration("adamparrish@something.com", "8/10/1981", "mypassword")
+      val newUser = UserRegistration("adamparrish@something.com", birthday, "mypassword")
       Post("/users/register", newUser) ~> userRoute ~> check {
         status == OK
       }
@@ -77,7 +76,7 @@ class UserEndpointSpec extends Specification
     }
 
     "return an empty list of contacts if a user does not have any" in clearMap {
-      val newUser = UserRegistration("ccaplinger@neosavvy.com", "10/12/1986", "mypassword")
+      val newUser = UserRegistration("ccaplinger@neosavvy.com", birthday, "mypassword")
       Post("/users/register", newUser) ~> userRoute ~> check {
         status == OK
       }
@@ -99,7 +98,7 @@ class UserEndpointSpec extends Specification
     }
 
     "be able to update your contacts with a list of phone numbers" in clearMap {
-      val newUser = UserRegistration("adamparrish@something.com", "8/10/1981", "somethingelse")
+      val newUser = UserRegistration("adamparrish@something.com", birthday, "somethingelse")
       Post("/users/register", newUser) ~> userRoute ~> check {
         status == OK
       }
@@ -114,7 +113,7 @@ class UserEndpointSpec extends Specification
     }
 
     "be able to get a user's contacts" in clearMap {
-      val newUser = UserRegistration("ccaplinger@neosavvy.com", "10/12/1986", "mypassword")
+      val newUser = UserRegistration("ccaplinger@neosavvy.com", birthday, "mypassword")
       Post("/users/register", newUser) ~> userRoute ~> check {
         status == OK
       }
@@ -140,7 +139,7 @@ class UserEndpointSpec extends Specification
     }
 
     "be able to get a registered user" in clearMap {
-      val newUser = UserRegistration("ccaplinger@neosavvy.com", "10/12/1986", "mypassword")
+      val newUser = UserRegistration("ccaplinger@neosavvy.com", birthday, "mypassword")
       Post("/users/register", newUser) ~> userRoute ~> check {
         status == OK
       }
@@ -148,7 +147,7 @@ class UserEndpointSpec extends Specification
       Get("/users/1") ~> userRoute ~> check {
         assertPayload[UserResponse] { response =>
           response.code must be equalTo 200
-          response.message must be equalTo """{"id":1,"email":"ccaplinger@neosavvy.com","birthday":"1/1/01","active":true}"""
+          response.message must be equalTo """{"id":1,"email":"ccaplinger@neosavvy.com","birthday":"20010101","active":true}"""
         }
       }
     }

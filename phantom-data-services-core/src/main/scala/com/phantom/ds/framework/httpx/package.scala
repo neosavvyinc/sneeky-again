@@ -3,16 +3,11 @@ package com.phantom.ds.framework
 import spray.httpx.marshalling.{ ToResponseMarshallingContext, ToResponseMarshaller }
 import scala.concurrent.{ ExecutionContext, Future }
 import spray.http.ContentTypes._
-import spray.http.{ HttpEntity, HttpResponse }
+import spray.http.HttpEntity
 import spray.http.StatusCodes.OK
 import spray.json._
-import com.phantom.model.{ UserResponse, User, UserInsert, UserRegistration }
 import com.phantom.model._
 import com.phantom.ds.framework.exception.PhantomException
-import spray.http.HttpResponse
-import spray.http.HttpResponse
-import spray.http.HttpResponse
-import spray.http.HttpResponse
 import com.phantom.model.UserInsert
 import spray.http.HttpResponse
 import com.phantom.model.ConversationSummary
@@ -21,6 +16,8 @@ import com.phantom.model.User
 import com.phantom.model.ConversationStarter
 import com.phantom.model.UserRegistration
 import com.phantom.model.ConversationDetail
+import org.joda.time.{ LocalDate, DateTimeZone, DateTime }
+import org.joda.time.format.ISODateTimeFormat
 
 package object httpx {
 
@@ -30,6 +27,7 @@ package object httpx {
     implicit val failureFormat = jsonFormat2(Failure)
     implicit val userRegistrationFormat = jsonFormat3(UserRegistration)
     implicit val userInsertFormat = jsonFormat4(UserInsert)
+
     implicit val userFormat = jsonFormat4(User)
     implicit val userLoginFormat = jsonFormat2(UserLogin)
     implicit val userResponseFormat = jsonFormat2(UserResponse)
@@ -39,6 +37,30 @@ package object httpx {
     implicit val conversationSummaryFormat = jsonFormat1(ConversationSummary)
     implicit val conversationDetail = jsonFormat2(ConversationDetail)
     implicit val conversationFeed = jsonFormat1(Feed)
+
+    implicit object JodaDateTimeFormat extends JsonFormat[DateTime] {
+
+      val formatter = ISODateTimeFormat.basicDateTimeNoMillis
+
+      def write(obj : DateTime) : JsValue = JsString(formatter.print(obj.toDateTime(DateTimeZone.UTC)))
+
+      def read(json : JsValue) : DateTime = json match {
+        case JsString(x) => formatter.parseDateTime(x).toDateTime(DateTimeZone.UTC)
+        case _           => deserializationError("Expected String value for DateTime")
+      }
+    }
+
+    implicit object JodaLocalDateFormat extends JsonFormat[LocalDate] {
+
+      val formatter = ISODateTimeFormat.basicDate()
+
+      def write(obj : LocalDate) : JsValue = JsString(formatter.print(obj))
+
+      def read(json : JsValue) : LocalDate = json match {
+        case JsString(x) => formatter.parseLocalDate(x)
+        case _           => deserializationError("Expected String value for LocalDate")
+      }
+    }
 
     //implicit def payloadFormat[T](implicit tag : ClassManifest[T]) : RootJsonFormat[Payload[T]] = jsonFormat1(Payload[T])
   }
@@ -51,8 +73,8 @@ package object httpx {
   class PhantomResponse[T](implicit ec : ExecutionContext, format : JF[T]) extends ToResponseMarshaller[Future[T]] with PhantomJsonProtocol {
 
     import com.phantom.ds.framework.exception.Errors
-
     private def payload = "payload"
+
     private def defaultCode = 500
 
     def apply(value : Future[T], ctx : ToResponseMarshallingContext) : Unit = {

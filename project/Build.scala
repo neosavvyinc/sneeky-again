@@ -2,7 +2,7 @@ import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import sbt._
 import Keys._
-import sbtassembly.Plugin.{PathList, MergeStrategy, AssemblyKeys}
+import sbtassembly.Plugin.{MergeStrategy, AssemblyKeys}
 import sbtrelease.ReleasePlugin._
 import spray.revolver.RevolverPlugin.Revolver
 import scalariform.formatter.preferences._
@@ -22,6 +22,7 @@ object Build extends sbt.Build {
           Shared.Spray ++
           Shared.Akka ++
           Shared.Logging ++
+          Shared.Joda ++
           Shared.Other) ++ Revolver.settings ++ sbtassembly.Plugin.assemblySettings ++ Assembly.prefs
     )
 
@@ -47,7 +48,8 @@ object Shared {
   val AkkaVersion = "2.2.3"
   val SprayVersion = "1.2.0"
   val LogbackVersion = "1.0.13"
-  
+  val JodaVersion = "2.3"
+
   val Spray = Seq(
     "io.spray" % "spray-can" % SprayVersion,
     "io.spray" % "spray-routing" % SprayVersion,
@@ -64,6 +66,11 @@ object Shared {
     "ch.qos.logback" % "logback-classic" % LogbackVersion,
     "ch.qos.logback" % "logback-core" % LogbackVersion,
     "org.slf4j" % "slf4j-api" % "1.7.5"
+  )
+
+  val Joda = Seq(
+    "joda-time" % "joda-time" % JodaVersion,
+    "org.joda" % "joda-convert" % "1.2"
   )
 
   val testDeps = Seq(

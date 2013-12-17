@@ -26,6 +26,7 @@ trait PhantomEndpointSpec extends PhantomJsonProtocol {
 
   def assertFailure(code : Int) : MatchResult[Int] = {
     status == OK
+    println(responseAs[String])
     val response = responseAs[Failure]
     response.errorCode must be equalTo code
   }
