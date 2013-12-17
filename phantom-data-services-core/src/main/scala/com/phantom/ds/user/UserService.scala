@@ -9,12 +9,16 @@ import com.phantom.ds.framework.exception.PhantomException
 import scala.collection.mutable.{ Map => MMap }
 import com.phantom.ds.framework.Logging
 import org.joda.time.LocalDate
+import com.phantom.model.UserLogin
+import com.phantom.model.User
+import com.phantom.model.UserRegistration
+import com.phantom.model.ClientSafeUserResponse
 
 trait UserService {
 
-  def registerUser(registrationRequest : UserRegistration) : Future[UserResponse]
-  def loginUser(loginRequest : UserLogin) : Future[UserResponse]
-  def findUser(id : Long) : Future[UserResponse]
+  def registerUser(registrationRequest : UserRegistration) : Future[ClientSafeUserResponse]
+  def loginUser(loginRequest : UserLogin) : Future[ClientSafeUserResponse]
+  def findUser(id : Long) : Future[ClientSafeUserResponse]
   def findContactsForUser(id : Long) : Future[UserResponse]
 }
 
@@ -37,33 +41,38 @@ object MapbackedUserService extends UserService with Logging with PhantomJsonPro
   val map : MMap[Int, UserLogin] = MMap.empty
   var contactList = List[String]()
 
-  def registerUser(registrationRequest : UserRegistration) : Future[UserResponse] = {
+  def registerUser(registrationRequest : UserRegistration) : Future[ClientSafeUserResponse] = {
     log.info(s"registering $registrationRequest")
     map.values.collectFirst {
       case u : UserLogin if u.email == registrationRequest.email => Future.failed(new DuplicateUserException())
     }.getOrElse {
       map(map.size + 1) = UserLogin(registrationRequest.email, registrationRequest.password)
       log.info("added user to map")
-      Future.successful(UserResponse(200, registrationRequest.email))
+      Future.successful(ClientSafeUserResponse(registrationRequest.email, "", registrationRequest.birthday, true, false))
     }
 
   }
 
-  def loginUser(loginRequest : UserLogin) : Future[UserResponse] = {
+  def loginUser(loginRequest : UserLogin) : Future[ClientSafeUserResponse] = {
     log.info(s"logging in $loginRequest")
     map.values.collectFirst {
       case u : UserLogin if u.email == loginRequest.email && u.password == loginRequest.password =>
-        Future.successful(UserResponse(200, "logged in!"))
+        Future.successful(ClientSafeUserResponse(u.email, "", LocalDate.parse("2001-01-01"), true, false))
     }.getOrElse(Future.failed(new NonexistantUserException()))
   }
 
-  def findUser(id : Long) : Future[UserResponse] = {
+  def findUser(id : Long) : Future[ClientSafeUserResponse] = {
     log.info(s"finding contacts for user with id => $id")
     map.get(id.toInt)
-      .map(u => Future.successful(UserResponse(200, User(id, u.email, LocalDate.parse("2001-01-01"), true).toJson.toString)))
+      .map(u => Future.successful(ClientSafeUserResponse(u.email, "", LocalDate.parse("2001-01-01"), true, false)))
       .getOrElse(Future.failed(new NonexistantUserException()))
   }
 
+  /**
+   * TODO: This needs to return a list of ClientSafeUserResponse
+   * @param id
+   * @return
+   */
   def findContactsForUser(id : Long) : Future[UserResponse] = {
     log.info(s"finding contacts for user with id => $id")
     map.get(id.toInt)

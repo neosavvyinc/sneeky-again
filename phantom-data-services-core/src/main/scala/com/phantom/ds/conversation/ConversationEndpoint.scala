@@ -39,17 +39,16 @@ trait ConversationEndpoint extends DataHttpService {
       import spray.httpx.encoding.{ NoEncoding, Gzip }
 
       pathPrefix(conversation) {
-        path("startOrUpdate") {
+        path("start") {
           post {
-            formFields('image.as[Array[Byte]], 'imageText, 'userid, 'toUsers, 'convId.as[Int]?) { (image, imageText, userid, toUsers, convId) =>
+            formFields('image.as[Array[Byte]], 'imageText, 'userid, 'toUsers) { (image, imageText, userid, toUsers) =>
 
               println("imageText> " + imageText)
               println("userid> " + userid)
               println("toUsers> " + toUsers)
-              println("convId> " + convId)
-              //TODO Make sure this file is saved outside classpath
-              //TODO Make sure this file is unique to each conversation so that we can clean it later
-              val fos : FileOutputStream = new FileOutputStream("testAdam.png");
+
+              val fos : FileOutputStream = new FileOutputStream("testAdam.png")
+
               try {
                 fos.write(image);
               } finally {
@@ -68,14 +67,18 @@ trait ConversationEndpoint extends DataHttpService {
       import spray.httpx.encoding.{ NoEncoding, Gzip }
 
       pathPrefix(conversation) {
-        path("upload") {
+        path("respond") {
           post {
-            formField('imageupload.as[Array[Byte]]) { file =>
+            formFields('image.as[Array[Byte]], 'imageText, 'convId.as[Int]?) { (image, imageText, convId) =>
+
+              println("imageText> " + imageText)
+              println("convId> " + convId)
+
               //TODO Make sure this file is saved outside classpath
               //TODO Make sure this file is unique to each conversation so that we can clean it later
-              val fos : FileOutputStream = new FileOutputStream("test.png");
+              val fos : FileOutputStream = new FileOutputStream("testAdam.png");
               try {
-                fos.write(file);
+                fos.write(image);
               } finally {
                 fos.close();
               }

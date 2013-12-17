@@ -11,6 +11,12 @@ case class UserLogin(email : String,
 
 case class UserResponse(code : Int, message : String) //total dummy class
 
+case class ClientSafeUserResponse(email : String,
+                                  phoneNumber : String,
+                                  birthday : LocalDate,
+                                  newPictureReceivedNotification : Boolean,
+                                  soundsNotification : Boolean)
+
 case class UserInsert(email : String,
                       birthday : LocalDate,
                       saltyHash : String,
