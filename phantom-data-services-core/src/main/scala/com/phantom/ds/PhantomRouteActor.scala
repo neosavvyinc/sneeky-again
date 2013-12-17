@@ -2,6 +2,7 @@ package com.phantom.ds
 
 import akka.actor.{ Props, Actor }
 import com.phantom.ds.user.UserEndpoint
+import com.phantom.ds.conversation.ConversationEndpoint
 
 /**
  * Created by Neosavvy
@@ -11,7 +12,7 @@ import com.phantom.ds.user.UserEndpoint
  * Time: 4:53 PM
  */
 
-class PhantomRouteActor() extends Actor with UserEndpoint {
+class PhantomRouteActor() extends Actor with UserEndpoint with ConversationEndpoint {
 
   // the HttpService trait defines only one abstract member, which
   // connects the services environment to the enclosing actor or test
@@ -21,6 +22,6 @@ class PhantomRouteActor() extends Actor with UserEndpoint {
   // other things here, like request stream processing
   // or timeout handling
   def receive = runRoute(
-    userRoute
+    userRoute ~ conversationRoute
   )
 }
