@@ -26,6 +26,8 @@ class UserEndpointSpec extends Specification
     with PhantomJsonProtocol
     with UserEndpoint {
 
+  sequential
+
   def actorRefFactory = system
 
   val birthday = LocalDate.parse("1981-08-10")

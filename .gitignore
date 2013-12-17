@@ -11,3 +11,4 @@ test-output/
 logback.properties
 *.log
 tags
+currantOut.log
