@@ -54,9 +54,9 @@ trait PhantomAuthenticator extends Authenticator with DSConfiguration {
   }
 
   private def validateTime(date : String) : Option[DateTime] = {
-    val date = Try(dateFormat.parseDateTime(date)).toOption
+    val parsed = Try(dateFormat.parseDateTime(date)).toOption
     val now = DateTime.now(DateTimeZone.UTC).getMillis
-    date.filter(now - _.getMillis <= AuthConfiguration.requestTimeout)
+    parsed.filter(now - _.getMillis <= AuthConfiguration.requestTimeout)
   }
 
   private def validateSession(sessionId : String) : Option[User] = {

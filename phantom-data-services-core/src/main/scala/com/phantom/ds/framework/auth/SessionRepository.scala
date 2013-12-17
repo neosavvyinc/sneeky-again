@@ -2,6 +2,7 @@ package com.phantom.ds.framework.auth
 
 import com.phantom.model.User
 import scala.concurrent.{ ExecutionContext, Future }
+import org.joda.time.{ DateTimeZone, LocalDate }
 
 trait SessionRepository {
 
@@ -17,6 +18,6 @@ object SessionRepository {
 
 trait MockSessionRepository extends SessionRepository {
 
-  def getUser(sessionId : String) : Option[User] = Some(User(1L, "nsauro@sauron.com", "birfday", "gross", true))
+  def getUser(sessionId : String) : Option[User] = Some(User(1L, "nsauro@sauron.com", LocalDate.now(DateTimeZone.UTC), true))
 
 }
