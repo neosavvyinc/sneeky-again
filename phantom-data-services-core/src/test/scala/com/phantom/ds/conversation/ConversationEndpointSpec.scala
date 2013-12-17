@@ -9,6 +9,7 @@ import com.phantom.ds.framework.Logging
 import com.phantom.ds.PhantomEndpointSpec
 import spray.http.{ BodyPart, MultipartFormData }
 import java.io.{ FileInputStream, FileOutputStream }
+import com.phantom.model.{ BlockUserByConversationResponse, UserResponse }
 
 /**
  * Created by Neosavvy
@@ -85,6 +86,16 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
       }
 
     }
+
+    "support blocking a user by providing a conversation id" in {
+
+      Post("/conversation/block/1") ~> conversationRoute ~> check {
+        assertPayload[BlockUserByConversationResponse] { response =>
+          response.id must be equalTo 1L
+        }
+      }
+
+    }.pendingUntilFixed("fixing?")
 
   }
 

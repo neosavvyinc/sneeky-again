@@ -2,7 +2,7 @@ package com.phantom.ds.conversation
 
 import spray.http.MediaTypes._
 import com.phantom.ds.DataHttpService
-import com.phantom.model.{ Feed, ConversationItem, ConversationSummary }
+import com.phantom.model.{ BlockUserByConversationResponse, Feed, ConversationItem, ConversationSummary }
 
 import scala.Some
 import spray.http.MultipartFormData
@@ -107,6 +107,20 @@ trait ConversationEndpoint extends DataHttpService {
           }
         }
       }
+    } ~ {
+      pathPrefix(conversation) {
+        path("block" / IntNumber) {
+          id =>
+            post {
+              respondWithMediaType(`application/json`) {
+                complete {
+                  BlockUserByConversationResponse(conversationService.blockUserByConversationId(id), "test")
+                }
+              }
+            }
+        }
+      }
+
     }
 
 }
