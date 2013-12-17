@@ -1,7 +1,7 @@
 package com.phantom.ds.framework.auth
 
 import spray.routing.authentication.Authentication
-import spray.routing.{AuthenticationFailedRejection, RequestContext}
+import spray.routing.{ AuthenticationFailedRejection, RequestContext }
 import scala.concurrent.{ ExecutionContext, Future, future }
 import com.phantom.model.User
 import com.phantom.ds.DSConfiguration
@@ -14,7 +14,11 @@ import spray.routing.AuthenticationFailedRejection.CredentialsRejected
 //For now this authenticator does a bit of both authentication and authorziation
 //since we have no real roles or permissioning yet..just being a user opens up all doors
 //hence, for every request, we opted for just one authenticator which we could use to identify a user
-trait PhantomAuthenticator extends DSConfiguration {
+trait Authenticator {
+  def phantom(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[User]]
+}
+
+trait PhantomAuthenticator extends Authenticator with DSConfiguration {
   sessionRepo : SessionRepository =>
 
   val hashedP = "hashed"
@@ -26,18 +30,18 @@ trait PhantomAuthenticator extends DSConfiguration {
 
   def rejected = AuthenticationFailedRejection(CredentialsRejected, Nil)
 
-  def authenticate(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[User]] = {
+  def phantom(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[User]] = {
 
     future {
       val result = for {
-        h    <- ctx.request.uri.query.get(hashedP)
-        d    <- ctx.request.uri.query.get(dateP)
-        s    <- ctx.request.uri.query.get(sessionIdP)
-        _    <- validateHash(h, d, s)
-        dt   <- validateTime(d)
+        h <- ctx.request.uri.query.get(hashedP)
+        d <- ctx.request.uri.query.get(dateP)
+        s <- ctx.request.uri.query.get(sessionIdP)
+        _ <- validateHash(h, d, s)
+        dt <- validateTime(d)
         user <- validateSession(s)
       } yield user
-     result.toRight(rejected)
+      result.toRight(rejected)
     }
   }
 

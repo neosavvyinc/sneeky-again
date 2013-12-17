@@ -11,12 +11,12 @@ trait SessionRepository {
 
 object SessionRepository {
   def apply() = new SessionRepository {
-    def getUser(sessionId: String): Option[User] = ???
+    def getUser(sessionId : String) : Option[User] = ???
   }
 }
 
-object MockSessionRepository {
-  def apply() = new SessionRepository {
-    def getUser(sessionId: String): Option[User] = Some(User(1L, "nsauro@sauron.com", "birfday", "gross", true))
-  }
+trait MockSessionRepository extends SessionRepository {
+
+  def getUser(sessionId : String) : Option[User] = Some(User(1L, "nsauro@sauron.com", "birfday", "gross", true))
+
 }
