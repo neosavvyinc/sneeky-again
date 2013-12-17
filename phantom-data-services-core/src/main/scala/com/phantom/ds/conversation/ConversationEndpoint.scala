@@ -2,7 +2,7 @@ package com.phantom.ds.conversation
 
 import spray.http.MediaTypes._
 import com.phantom.ds.DataHttpService
-import com.phantom.model.{ ConversationItem, ConversationSummary }
+import com.phantom.model.{ Feed, ConversationItem, ConversationSummary }
 
 import scala.Some
 import spray.http.MultipartFormData
@@ -55,7 +55,16 @@ trait ConversationEndpoint extends DataHttpService {
                 fos.close();
               }
               complete {
-                "0"
+                Feed(
+                  List(
+                    ConversationSummary(
+                      ConversationItem(1, 1, 1L, 2L, imageText, "/path/to/image")
+                    ),
+                    ConversationSummary(
+                      ConversationItem(1, 1, 1L, 2L, imageText, "/path/to/image")
+                    )
+                  )
+                )
               }
             }
           }
@@ -83,7 +92,16 @@ trait ConversationEndpoint extends DataHttpService {
                 fos.close();
               }
               complete {
-                "0"
+                Feed(
+                  List(
+                    ConversationSummary(
+                      ConversationItem(1, 1, 1L, 2L, imageText, "/path/to/image")
+                    ),
+                    ConversationSummary(
+                      ConversationItem(1, 1, 1L, 2L, imageText, "/path/to/image")
+                    )
+                  )
+                )
               }
             }
           }
