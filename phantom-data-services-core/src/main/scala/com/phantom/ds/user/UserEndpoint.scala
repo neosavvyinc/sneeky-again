@@ -5,9 +5,11 @@ import com.phantom.model._
 import com.phantom.ds.framework.httpx._
 import spray.json._
 import com.phantom.ds.DataHttpService
+import com.phantom.ds.framework.auth.Authenticator
 
 trait UserEndpoint extends DataHttpService
     with PhantomJsonProtocol {
+  this : Authenticator =>
 
   val userService = UserService()
 
@@ -33,25 +35,29 @@ trait UserEndpoint extends DataHttpService
         }
       } ~
       pathPrefix("users" / LongNumber / "contacts") { id =>
-        get {
-          respondWithMediaType(`application/json`) {
-            complete(userService.findContactsForUser(id))
-          }
-        } ~
-          post {
+        authenticate(phantom _) { user =>
+          get {
             respondWithMediaType(`application/json`) {
-              entity(as[List[String]]) { contacts /* list of phone numbers */ =>
-                complete {
-                  userService.updateContactsForUser(id, contacts)
+              complete(userService.findContactsForUser(id))
+            }
+          } ~
+            post {
+              respondWithMediaType(`application/json`) {
+                entity(as[List[String]]) { contacts /* list of phone numbers */ =>
+                  complete {
+                    userService.updateContactsForUser(id, contacts)
+                  }
                 }
               }
             }
-          }
+        }
       } ~
       pathPrefix("users" / LongNumber) { id =>
-        get {
-          respondWithMediaType(`application/json`) {
-            complete(userService.findUser(id))
+        authenticate(phantom _) { user =>
+          get {
+            respondWithMediaType(`application/json`) {
+              complete(userService.findUser(id))
+            }
           }
         }
       }

@@ -1,6 +1,6 @@
 package com.phantom.ds
 
-import akka.actor.{ Props, Actor }
+import akka.actor.Actor
 import com.phantom.ds.user.UserEndpoint
 import com.phantom.ds.framework.auth.Authenticator
 

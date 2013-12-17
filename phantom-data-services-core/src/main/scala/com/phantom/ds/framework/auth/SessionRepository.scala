@@ -10,10 +10,10 @@ trait SessionRepository {
 
 }
 
-object SessionRepository {
-  def apply() = new SessionRepository {
-    def getUser(sessionId : String) : Option[User] = ???
-  }
+trait SqlSessionRepository extends SessionRepository {
+
+  def getUser(sessionId : String) : Option[User] = ???
+
 }
 
 trait MockSessionRepository extends SessionRepository {

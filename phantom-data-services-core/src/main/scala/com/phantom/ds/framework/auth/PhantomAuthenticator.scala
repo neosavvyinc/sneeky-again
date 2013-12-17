@@ -64,3 +64,11 @@ trait PhantomAuthenticator extends Authenticator with DSConfiguration {
   }
 
 }
+
+trait PassThroughAuthenticator extends PhantomAuthenticator with MockSessionRepository {
+
+  override def phantom(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[User]] = {
+    Future.successful(getUser("").toRight(AuthenticationFailedRejection(CredentialsRejected, Nil)))
+  }
+
+}
