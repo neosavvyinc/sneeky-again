@@ -3,7 +3,7 @@ package com.phantom.ds
 import akka.actor.{ Props, ActorSystem }
 import akka.io.IO
 import spray.can.Http
-import com.phantom.ds.framework.auth.{ PassThroughAuthenticator, SqlSessionRepository, PhantomAuthenticator, MockSessionRepository }
+import com.phantom.ds.framework.auth._
 
 object Boot extends App with DSConfiguration {
 
@@ -19,9 +19,9 @@ object Boot extends App with DSConfiguration {
 
   private def getActor = {
     if (AuthConfiguration.authEnabled) {
-      system.actorOf(Props(new PhantomRouteActor() with MockSessionRepository with PhantomAuthenticator), "service")
+      system.actorOf(Props(new PhantomRouteActor() with MockSessionRepository with PhantomRequestAuthenticator with PhantomEntryPointAuthenticator), "service")
     } else {
-      system.actorOf(Props(new PhantomRouteActor() with PassThroughAuthenticator), "service")
+      system.actorOf(Props(new PhantomRouteActor() with PassThroughRequestAuthenticator with PassThroughEntryPointAuthenticator), "service")
     }
   }
 }

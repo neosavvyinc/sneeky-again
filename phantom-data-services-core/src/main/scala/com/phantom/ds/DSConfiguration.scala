@@ -8,7 +8,7 @@ trait DSConfiguration {
 
   object AuthConfiguration {
 
-    val key = authCfg.getString("secret")
+    val secret = authCfg.getString("secret")
     val requestTimeout = authCfg.getLong("requestTimeout")
     val authEnabled = authCfg.getBoolean("enabled")
 

@@ -10,7 +10,7 @@ import spray.testkit.Specs2RouteTest
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.PhantomEndpointSpec
 import org.joda.time.LocalDate
-import com.phantom.ds.framework.auth.PassThroughAuthenticator
+import com.phantom.ds.framework.auth.{ PassThroughEntryPointAuthenticator, PassThroughRequestAuthenticator }
 
 object clearMap extends Before {
   def before {
@@ -25,7 +25,8 @@ class UserEndpointSpec extends Specification
     with Specs2RouteTest
     with Logging
     with PhantomJsonProtocol
-    with PassThroughAuthenticator
+    with PassThroughRequestAuthenticator
+    with PassThroughEntryPointAuthenticator
     with UserEndpoint {
 
   def actorRefFactory = system

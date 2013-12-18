@@ -2,7 +2,7 @@ package com.phantom.ds
 
 import akka.actor.Actor
 import com.phantom.ds.user.UserEndpoint
-import com.phantom.ds.framework.auth.Authenticator
+import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 
 /**
  * Created by Neosavvy
@@ -13,7 +13,7 @@ import com.phantom.ds.framework.auth.Authenticator
  */
 
 class PhantomRouteActor() extends Actor with UserEndpoint {
-  this : Authenticator =>
+  this : RequestAuthenticator with EntryPointAuthenticator =>
 
   // the HttpService trait defines only one abstract member, which
   // connects the services environment to the enclosing actor or test
