@@ -2,8 +2,11 @@ package com.phantom.ds.conversation
 
 import spray.http.MediaTypes._
 import com.phantom.ds.DataHttpService
-import com.phantom.model.{ ConversationSummary }
-import spray.http.StatusCodes
+import com.phantom.model.{ ConversationItem, ConversationSummary }
+
+import scala.Some
+import spray.http.MultipartFormData
+import java.io.FileOutputStream
 
 /**
  * Created by Neosavvy
@@ -29,6 +32,59 @@ trait ConversationEndpoint extends DataHttpService {
               }
             }
           }
+      }
+    } ~ {
+      val ByteJsonFormat = null
+
+      import spray.httpx.encoding.{ NoEncoding, Gzip }
+
+      pathPrefix(conversation) {
+        path("startOrUpdate") {
+          post {
+            formFields('image.as[Array[Byte]], 'imageText, 'userid, 'toUsers, 'convId.as[Int]?) { (image, imageText, userid, toUsers, convId) =>
+
+              println("imageText> " + imageText)
+              println("userid> " + userid)
+              println("toUsers> " + toUsers)
+              println("convId> " + convId)
+              //TODO Make sure this file is saved outside classpath
+              //TODO Make sure this file is unique to each conversation so that we can clean it later
+              val fos : FileOutputStream = new FileOutputStream("testAdam.png");
+              try {
+                fos.write(image);
+              } finally {
+                fos.close();
+              }
+              complete {
+                "0"
+              }
+            }
+          }
+        }
+      }
+    } ~ {
+      val ByteJsonFormat = null
+
+      import spray.httpx.encoding.{ NoEncoding, Gzip }
+
+      pathPrefix(conversation) {
+        path("upload") {
+          post {
+            formField('imageupload.as[Array[Byte]]) { file =>
+              //TODO Make sure this file is saved outside classpath
+              //TODO Make sure this file is unique to each conversation so that we can clean it later
+              val fos : FileOutputStream = new FileOutputStream("test.png");
+              try {
+                fos.write(file);
+              } finally {
+                fos.close();
+              }
+              complete {
+                "0"
+              }
+            }
+          }
+        }
       }
     }
 
