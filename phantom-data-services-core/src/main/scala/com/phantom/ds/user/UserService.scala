@@ -19,7 +19,9 @@ trait UserService {
   def registerUser(registrationRequest : UserRegistration) : Future[ClientSafeUserResponse]
   def loginUser(loginRequest : UserLogin) : Future[ClientSafeUserResponse]
   def findUser(id : Long) : Future[ClientSafeUserResponse]
-  def findContactsForUser(id : Long) : Future[UserResponse]
+  def findContactsForUser(id : Long) : Future[List[PhantomUser]]
+  def updateContactsForUser(id : Long, contacts : List[String]) : Future[List[PhantomUser]]
+  def clearBlockList(id : Long) : Future[String]
 }
 
 class DuplicateUserException extends Exception with PhantomException {
@@ -68,24 +70,29 @@ object MapbackedUserService extends UserService with Logging with PhantomJsonPro
       .getOrElse(Future.failed(new NonexistantUserException()))
   }
 
-  /**
-   * TODO: This needs to return a list of ClientSafeUserResponse
-   * @param id
-   * @return
-   */
-  def findContactsForUser(id : Long) : Future[UserResponse] = {
+  def findContactsForUser(id : Long) : Future[List[PhantomUser]] = {
     log.info(s"finding contacts for user with id => $id")
     map.get(id.toInt)
-      .map(u => Future.successful(UserResponse(200, contactList.toJson.toString)))
+      .map(u => Future.successful(contactList.map(PhantomUser(_))))
       .getOrElse(Future.failed(new NonexistantUserException()))
   }
 
-  def updateContactsForUser(id : Long, contacts : List[String]) : Future[UserResponse] = {
-    log.info(s"updating contacts for use with id => $id")
+  def updateContactsForUser(id : Long, contacts : List[String]) : Future[List[PhantomUser]] = {
+    log.info(s"updating contacts for user with id => $id")
+    map.get(id.toInt)
+      .map { u =>
+        contactList = contacts
+        Future.successful(contactList.map(PhantomUser(_)))
+      }
+      .getOrElse(Future.failed(new NonexistantUserException()))
+  }
+
+  def clearBlockList(id : Long) : Future[String] = {
+    log.info(s"clearing block list for use with id => $id")
     map.get(id.toInt)
       .map(u => Future.successful {
-        contactList = contacts
-        UserResponse(200, contactList.toJson.toString)
+        contactList = List[String]()
+        "OK"
       })
       .getOrElse(Future.failed(new NonexistantUserException()))
   }

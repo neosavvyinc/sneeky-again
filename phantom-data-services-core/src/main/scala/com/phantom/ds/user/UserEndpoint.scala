@@ -43,10 +43,18 @@ trait UserEndpoint extends DataHttpService
               entity(as[List[String]]) { contacts /* list of phone numbers */ =>
                 complete {
                   userService.updateContactsForUser(id, contacts)
+                  //spray.http.StatusCodes.OK
                 }
               }
             }
           }
+      } ~
+      pathPrefix("users" / LongNumber / "clearblocklist") { id =>
+        post {
+          respondWithMediaType(`application/json`) {
+            complete(userService.clearBlockList(id))
+          }
+        }
       } ~
       pathPrefix("users" / LongNumber) { id =>
         get {
