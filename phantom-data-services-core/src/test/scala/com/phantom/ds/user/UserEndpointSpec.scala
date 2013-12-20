@@ -5,11 +5,12 @@ import com.phantom.ds.framework.httpx._
 import spray.http.StatusCodes._
 import org.specs2._
 import mutable.Specification
-import specification.{ Before, After }
+import specification.Before
 import spray.testkit.Specs2RouteTest
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.PhantomEndpointSpec
 import org.joda.time.LocalDate
+import com.phantom.ds.framework.auth.{ PassThroughEntryPointAuthenticator, PassThroughRequestAuthenticator }
 
 object clearMap extends Before {
   def before {
@@ -24,6 +25,8 @@ class UserEndpointSpec extends Specification
     with Specs2RouteTest
     with Logging
     with PhantomJsonProtocol
+    with PassThroughRequestAuthenticator
+    with PassThroughEntryPointAuthenticator
     with UserEndpoint {
 
   sequential
