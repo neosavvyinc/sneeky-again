@@ -22,4 +22,4 @@ case class Feed(conversations : List[ConversationSummary])
 
 case class ConversationInsertResponse(id : Long)
 
-case class BlockUserByConversationResponse(id : Long, anotherVal : String)
+case class BlockUserByConversationResponse(id : Long)

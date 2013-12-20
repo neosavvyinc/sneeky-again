@@ -114,7 +114,7 @@ trait ConversationEndpoint extends DataHttpService {
             post {
               respondWithMediaType(`application/json`) {
                 complete {
-                  BlockUserByConversationResponse(conversationService.blockUserByConversationId(id), "test")
+                  BlockUserByConversationResponse(conversationService.blockUserByConversationId(id))
                 }
               }
             }
