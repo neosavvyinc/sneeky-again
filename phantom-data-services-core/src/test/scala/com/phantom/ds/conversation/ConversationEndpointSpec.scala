@@ -9,7 +9,7 @@ import com.phantom.ds.framework.Logging
 import com.phantom.ds.PhantomEndpointSpec
 import spray.http.{ BodyPart, MultipartFormData }
 import java.io.{ FileInputStream, FileOutputStream }
-import com.phantom.model.{ BlockUserByConversationResponse, UserResponse }
+import com.phantom.model.{ BlockUserByConversationResponse }
 
 /**
  * Created by Neosavvy
