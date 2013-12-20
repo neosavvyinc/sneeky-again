@@ -43,7 +43,6 @@ trait UserEndpoint extends DataHttpService
               entity(as[List[String]]) { contacts /* list of phone numbers */ =>
                 complete {
                   userService.updateContactsForUser(id, contacts)
-                  //spray.http.StatusCodes.OK
                 }
               }
             }
