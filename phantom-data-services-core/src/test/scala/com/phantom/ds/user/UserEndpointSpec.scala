@@ -34,6 +34,12 @@ class UserEndpointSpec extends Specification
   def actorRefFactory = system
 
   val birthday = LocalDate.parse("1981-08-10")
+  def registerUser(newUser : UserRegistration) = {
+    Post("/users/register", newUser) ~> userRoute ~> check {
+      status == OK
+    }
+  }
+
   sequential
 
   "User Service" should {
@@ -41,18 +47,16 @@ class UserEndpointSpec extends Specification
     "be able to register a user" in clearMap {
       val newUser = UserRegistration("adamparrish@something.com", birthday, "mypassword")
       Post("/users/register", newUser) ~> userRoute ~> check {
-        assertPayload[UserResponse] { response =>
-          response.code must be equalTo 200
-          response.message must be equalTo newUser.email
+        assertPayload[ClientSafeUserResponse] { response =>
+          response.email must be equalTo "adamparrish@something.com"
+          response.birthday must be equalTo birthday
         }
       }
     }
 
     "fail if registering a user with a duplicate email" in clearMap {
       val newUser = UserRegistration("adamparrish@something.com", birthday, "somethingelse")
-      Post("/users/register", newUser) ~> userRoute ~> check {
-        status == OK
-      }
+      registerUser(newUser)
 
       Post("/users/register", newUser) ~> userRoute ~> check {
         assertFailure(101)
@@ -68,29 +72,11 @@ class UserEndpointSpec extends Specification
 
     "log in if a user exists" in clearMap {
       val newUser = UserRegistration("adamparrish@something.com", birthday, "mypassword")
-      Post("/users/register", newUser) ~> userRoute ~> check {
-        status == OK
-      }
+      registerUser(newUser)
 
       Post("/users/login", UserLogin("adamparrish@something.com", "mypassword")) ~> userRoute ~> check {
-        assertPayload[UserResponse] { response =>
-          response.code must be equalTo 200
-          response.message must be equalTo "logged in!"
-        }(userResponseFormat)
-      }
-    }
-
-    "return an empty list of contacts if a user does not have any" in clearMap {
-      val newUser = UserRegistration("ccaplinger@neosavvy.com", birthday, "mypassword")
-      Post("/users/register", newUser) ~> userRoute ~> check {
-        status == OK
-      }
-
-      Get("/users/1/contacts") ~> userRoute ~> check {
-        status == OK
-        assertPayload[UserResponse] { response =>
-          response.code must be equalTo 200
-          response.message must be equalTo """[]"""
+        assertPayload[ClientSafeUserResponse] { response =>
+          response.email must be equalTo "adamparrish@something.com"
         }
       }
     }
@@ -104,35 +90,28 @@ class UserEndpointSpec extends Specification
 
     "be able to update your contacts with a list of phone numbers" in clearMap {
       val newUser = UserRegistration("adamparrish@something.com", birthday, "somethingelse")
-      Post("/users/register", newUser) ~> userRoute ~> check {
-        status == OK
-      }
+      registerUser(newUser)
 
-      val phoneNumbers = List("(614)499-3676", "(614)519-2050", "(614)206-1266")
+      val phoneNumbers = List("6144993676", "6145192050", "6142061266")
       Post("/users/1/contacts", phoneNumbers) ~> userRoute ~> check {
-        assertPayload[UserResponse] { response =>
-          response.code must be equalTo 200
-          response.message must be equalTo """["(614)499-3676","(614)519-2050","(614)206-1266"]"""
+        assertPayload[List[PhantomUser]] { response =>
+          response.head.id must be equalTo "6144993676"
         }
       }
     }
 
     "be able to get a user's contacts" in clearMap {
       val newUser = UserRegistration("ccaplinger@neosavvy.com", birthday, "mypassword")
-      Post("/users/register", newUser) ~> userRoute ~> check {
-        status == OK
-      }
+      registerUser(newUser)
 
-      val phoneNumbers = List("614-499-3676", "614-519-2050")
+      val phoneNumbers = List("6144993676", "6145192050")
       Post("/users/1/contacts", phoneNumbers) ~> userRoute ~> check {
         status == OK
       }
 
       Get("/users/1/contacts") ~> userRoute ~> check {
-        status == OK
-        assertPayload[UserResponse] { response =>
-          response.code must be equalTo 200
-          response.message must be equalTo """["614-499-3676","614-519-2050"]"""
+        assertPayload[List[PhantomUser]] { response =>
+          response.head.id must be equalTo "6144993676"
         }
       }
     }
@@ -145,14 +124,22 @@ class UserEndpointSpec extends Specification
 
     "be able to get a registered user" in clearMap {
       val newUser = UserRegistration("ccaplinger@neosavvy.com", birthday, "mypassword")
-      Post("/users/register", newUser) ~> userRoute ~> check {
-        status == OK
-      }
+      registerUser(newUser)
 
       Get("/users/1") ~> userRoute ~> check {
-        assertPayload[UserResponse] { response =>
-          response.code must be equalTo 200
-          response.message must be equalTo """{"id":1,"email":"ccaplinger@neosavvy.com","birthday":"20010101","active":true}"""
+        assertPayload[ClientSafeUserResponse] { response =>
+          response.email must be equalTo "ccaplinger@neosavvy.com"
+        }
+      }
+    }
+
+    "be able to clear the list of blocked users for a given user" in clearMap {
+      val newUser = UserRegistration("adamparrish@something.com", birthday, "somethingelse")
+      registerUser(newUser)
+
+      Get("/users/1") ~> userRoute ~> check {
+        assertPayload[ClientSafeUserResponse] { response =>
+          response.email must be equalTo "adamparrish@something.com"
         }
       }
     }

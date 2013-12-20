@@ -9,7 +9,13 @@ case class UserRegistration(email : String,
 case class UserLogin(email : String,
                      password : String)
 
-case class UserResponse(code : Int, message : String) //total dummy class
+case class ClientSafeUserResponse(email : String,
+                                  phoneNumber : String,
+                                  birthday : LocalDate,
+                                  newPictureReceivedNotification : Boolean,
+                                  soundsNotification : Boolean)
+
+case class PhantomUser(id : String)
 
 case class UserInsert(email : String,
                       birthday : LocalDate,

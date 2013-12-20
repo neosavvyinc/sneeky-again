@@ -9,6 +9,7 @@ import com.phantom.ds.framework.Logging
 import com.phantom.ds.PhantomEndpointSpec
 import spray.http.{ BodyPart, MultipartFormData }
 import java.io.{ FileInputStream, FileOutputStream }
+import com.phantom.model.{ BlockUserByConversationResponse }
 
 /**
  * Created by Neosavvy
@@ -39,7 +40,7 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
         )
       }
 
-      Post("/conversation/startOrUpdate", multipartForm) ~> conversationRoute ~> check {
+      Post("/conversation/start", multipartForm) ~> conversationRoute ~> check {
         handled === false
       }
 
@@ -60,7 +61,7 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
         )
       }
 
-      Post("/conversation/startOrUpdate", multipartFormWithData) ~> conversationRoute ~> check {
+      Post("/conversation/start", multipartFormWithData) ~> conversationRoute ~> check {
         status === OK
       }
 
@@ -76,32 +77,22 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
         Map(
           "convId" -> BodyPart("1"),
           "imageText" -> BodyPart("This is the image text"),
-          "userid" -> BodyPart("adamparrish"),
-          "image" -> BodyPart(byteArray),
-          "toUsers" -> BodyPart("user1,user2,user3")
+          "image" -> BodyPart(byteArray)
         )
       }
 
-      Post("/conversation/startOrUpdate", multipartFormWithData) ~> conversationRoute ~> check {
+      Post("/conversation/respond", multipartFormWithData) ~> conversationRoute ~> check {
         status === OK
       }
 
     }.pendingUntilFixed("Apparently the fromInputStream is failing on some machines")
 
-    "support a simple image upload to prove that it works" in {
+    "support blocking a user by providing a conversation id" in {
 
-      val source = scala.io.Source.fromInputStream(getClass.getResourceAsStream("/testFile.png"))
-      val byteArray = source.map(_.toByte).toArray
-      source.close()
-
-      val multipartFormWithData = MultipartFormData {
-        Map(
-          "imageupload" -> BodyPart(byteArray)
-        )
-      }
-
-      Post("/conversation/upload", multipartFormWithData) ~> conversationRoute ~> check {
-        status === OK
+      Post("/conversation/block/1") ~> conversationRoute ~> check {
+        assertPayload[BlockUserByConversationResponse] { response =>
+          response.id must be equalTo 1L
+        }
       }
 
     }.pendingUntilFixed("Apparently the fromInputStream is failing on some machines")

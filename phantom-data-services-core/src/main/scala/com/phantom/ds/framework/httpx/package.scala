@@ -29,8 +29,9 @@ package object httpx {
     implicit val userInsertFormat = jsonFormat4(UserInsert)
 
     implicit val userFormat = jsonFormat4(User)
+    implicit val phantomUserFormat = jsonFormat1(PhantomUser)
     implicit val userLoginFormat = jsonFormat2(UserLogin)
-    implicit val userResponseFormat = jsonFormat2(UserResponse)
+    implicit val clientSafeUserResponse = jsonFormat5(ClientSafeUserResponse)
 
     implicit val conversationStarterFormat = jsonFormat4(ConversationStarter)
     implicit val conversationItemFormat = jsonFormat6(ConversationItem)
@@ -38,6 +39,7 @@ package object httpx {
     implicit val conversationDetail = jsonFormat2(ConversationDetail)
     implicit val conversationFeed = jsonFormat1(Feed)
     implicit val conversationResponse = jsonFormat1(ConversationInsertResponse)
+    implicit val blockUserByConversationId = jsonFormat1(BlockUserByConversationResponse)
 
     implicit object JodaDateTimeFormat extends JsonFormat[DateTime] {
 
