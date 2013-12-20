@@ -5,48 +5,59 @@ import com.phantom.model._
 import com.phantom.ds.framework.httpx._
 import spray.json._
 import com.phantom.ds.DataHttpService
+import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 
 trait UserEndpoint extends DataHttpService
     with PhantomJsonProtocol {
+  this : RequestAuthenticator with EntryPointAuthenticator =>
 
   val userService = UserService()
 
   val userRoute =
     pathPrefix("users" / "register") {
-      post {
-        respondWithMediaType(`application/json`)
-        entity(as[UserRegistration]) {
-          reg =>
-            complete {
-              userService.registerUser(reg)
+      authenticate(enter _) {
+        bool =>
+          post {
+            respondWithMediaType(`application/json`)
+            entity(as[UserRegistration]) {
+              reg =>
+                complete {
+                  userService.registerUser(reg)
+                }
             }
-        }
+          }
       }
+
     } ~
       pathPrefix("users" / "login") {
-        post {
-          respondWithMediaType(`application/json`)
-          entity(as[UserLogin]) {
-            reg =>
-              complete(userService.loginUser(reg))
-          }
+        authenticate(enter _) {
+          bool =>
+            post {
+              respondWithMediaType(`application/json`)
+              entity(as[UserLogin]) {
+                reg =>
+                  complete(userService.loginUser(reg))
+              }
+            }
         }
       } ~
       pathPrefix("users" / LongNumber / "contacts") { id =>
-        get {
-          respondWithMediaType(`application/json`) {
-            complete(userService.findContactsForUser(id))
-          }
-        } ~
-          post {
+        authenticate(request _) { user =>
+          get {
             respondWithMediaType(`application/json`) {
-              entity(as[List[String]]) { contacts /* list of phone numbers */ =>
-                complete {
-                  userService.updateContactsForUser(id, contacts)
+              complete(userService.findContactsForUser(id))
+            }
+          } ~
+            post {
+              respondWithMediaType(`application/json`) {
+                entity(as[List[String]]) { contacts /* list of phone numbers */ =>
+                  complete {
+                    userService.updateContactsForUser(id, contacts)
+                  }
                 }
               }
             }
-          }
+        }
       } ~
       pathPrefix("users" / LongNumber / "clearblocklist") { id =>
         post {
@@ -56,9 +67,11 @@ trait UserEndpoint extends DataHttpService
         }
       } ~
       pathPrefix("users" / LongNumber) { id =>
-        get {
-          respondWithMediaType(`application/json`) {
-            complete(userService.findUser(id))
+        authenticate(request _) { user =>
+          get {
+            respondWithMediaType(`application/json`) {
+              complete(userService.findUser(id))
+            }
           }
         }
       }

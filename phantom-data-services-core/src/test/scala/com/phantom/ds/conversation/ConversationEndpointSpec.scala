@@ -65,7 +65,7 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
         status === OK
       }
 
-    }.pendingUntilFixed("something is bein wack here, setting to pending...")
+    }.pendingUntilFixed("Apparently the fromInputStream is failing on some machines")
 
     "support receiving a multi-part form post to update a conversation with image" in {
 
@@ -85,7 +85,7 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
         status === OK
       }
 
-    }.pendingUntilFixed("something is bein wack here, setting to pending...")
+    }.pendingUntilFixed("Apparently the fromInputStream is failing on some machines")
 
     "support blocking a user by providing a conversation id" in {
 
@@ -95,8 +95,7 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
         }
       }
 
-    }.pendingUntilFixed("fixing?")
-
+    }.pendingUntilFixed("Apparently the fromInputStream is failing on some machines")
   }
 
 }
