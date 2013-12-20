@@ -14,7 +14,7 @@ trait PhantomEndpointSpec extends PhantomJsonProtocol {
   def fromPayload[T](implicit format : JsonFormat[T]) : T = {
 
     val raw = responseAs[JsObject]
-    val jsVal = raw.fields.getOrElse("payload", throw new Exception("malformed response, no payload detected")).asJsObject
+    var jsVal = t.fields.getOrElse("payload", throw new Exception("malformed response, no payload detected"))
     format.read(jsVal)
   }
 
