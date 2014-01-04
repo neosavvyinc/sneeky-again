@@ -23,7 +23,8 @@ object Build extends sbt.Build {
           Shared.Akka ++
           Shared.Logging ++
           Shared.Joda ++
-          Shared.Other) ++ Revolver.settings ++ sbtassembly.Plugin.assemblySettings ++ Assembly.prefs
+          Shared.Other ++
+          Shared.Slick) ++ Revolver.settings ++ sbtassembly.Plugin.assemblySettings ++ Assembly.prefs
     )
 
   def project(id: String, base: File, settings: Seq[Def.Setting[_]] = Nil) =
@@ -49,6 +50,7 @@ object Shared {
   val SprayVersion = "1.2.0"
   val LogbackVersion = "1.0.13"
   val JodaVersion = "2.3"
+  val SlickVersion = "1.0.0"
 
   val Spray = Seq(
     "io.spray" % "spray-can" % SprayVersion,
@@ -80,6 +82,12 @@ object Shared {
 
   val Other = Seq(
     "commons-codec" % "commons-codec" % "1.8"
+  )
+
+  val Slick = Seq(
+    "com.typesafe.slick" %% "slick" % SlickVersion,
+    "mysql" % "mysql-connector-java" % "5.1.18"
+
   )
 
   val settings = Seq(

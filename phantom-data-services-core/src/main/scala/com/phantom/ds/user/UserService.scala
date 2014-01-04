@@ -10,17 +10,18 @@ import scala.collection.mutable.{ Map => MMap }
 import com.phantom.ds.framework.Logging
 import org.joda.time.LocalDate
 import com.phantom.model.UserLogin
-import com.phantom.model.User
+import com.phantom.model.PhantomUser
 import com.phantom.model.UserRegistration
 import com.phantom.model.ClientSafeUserResponse
+import com.phantom.dataAccess.DBConfig
 
 trait UserService {
 
   def registerUser(registrationRequest : UserRegistration) : Future[ClientSafeUserResponse]
   def loginUser(loginRequest : UserLogin) : Future[ClientSafeUserResponse]
   def findUser(id : Long) : Future[ClientSafeUserResponse]
-  def findContactsForUser(id : Long) : Future[List[PhantomUser]]
-  def updateContactsForUser(id : Long, contacts : List[String]) : Future[List[PhantomUser]]
+  def findContactsForUser(id : Long) : Future[List[PhantomUserDeleteMe]]
+  def updateContactsForUser(id : Long, contacts : List[String]) : Future[List[PhantomUserDeleteMe]]
   def clearBlockList(id : Long) : Future[String]
 }
 
@@ -70,19 +71,19 @@ object MapbackedUserService extends UserService with Logging with PhantomJsonPro
       .getOrElse(Future.failed(new NonexistantUserException()))
   }
 
-  def findContactsForUser(id : Long) : Future[List[PhantomUser]] = {
+  def findContactsForUser(id : Long) : Future[List[PhantomUserDeleteMe]] = {
     log.info(s"finding contacts for user with id => $id")
     map.get(id.toInt)
-      .map(u => Future.successful(contactList.map(PhantomUser(_))))
+      .map(u => Future.successful(contactList.map(PhantomUserDeleteMe(_))))
       .getOrElse(Future.failed(new NonexistantUserException()))
   }
 
-  def updateContactsForUser(id : Long, contacts : List[String]) : Future[List[PhantomUser]] = {
+  def updateContactsForUser(id : Long, contacts : List[String]) : Future[List[PhantomUserDeleteMe]] = {
     log.info(s"updating contacts for user with id => $id")
     map.get(id.toInt)
       .map { u =>
         contactList = contacts
-        Future.successful(contactList.map(PhantomUser(_)))
+        Future.successful(contactList.map(PhantomUserDeleteMe(_)))
       }
       .getOrElse(Future.failed(new NonexistantUserException()))
   }
