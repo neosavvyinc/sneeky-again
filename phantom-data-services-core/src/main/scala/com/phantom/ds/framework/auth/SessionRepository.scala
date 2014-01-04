@@ -1,6 +1,6 @@
 package com.phantom.ds.framework.auth
 
-import com.phantom.model.{ PhantomUser, User }
+import com.phantom.model.PhantomUser
 import scala.concurrent.{ ExecutionContext, Future }
 import org.joda.time.{ DateTimeZone, LocalDate }
 

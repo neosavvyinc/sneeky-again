@@ -12,7 +12,7 @@ import com.phantom.model.UserInsert
 import spray.http.HttpResponse
 import com.phantom.model.ConversationSummary
 import com.phantom.model.ConversationItem
-import com.phantom.model.User
+//import com.phantom.model.User
 import com.phantom.model.ConversationStarter
 import com.phantom.model.UserRegistration
 import com.phantom.model.ConversationDetail
