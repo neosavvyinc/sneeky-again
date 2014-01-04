@@ -59,6 +59,13 @@ trait UserEndpoint extends DataHttpService
             }
         }
       } ~
+      pathPrefix("users" / LongNumber / "clearblocklist") { id =>
+        post {
+          respondWithMediaType(`application/json`) {
+            complete(userService.clearBlockList(id))
+          }
+        }
+      } ~
       pathPrefix("users" / LongNumber) { id =>
         authenticate(request _) { user =>
           get {

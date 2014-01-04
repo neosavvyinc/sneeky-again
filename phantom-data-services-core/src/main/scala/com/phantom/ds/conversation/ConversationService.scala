@@ -44,4 +44,10 @@ object MConversationService extends ConversationService {
     }
   }
 
+  def blockUserByConversationId(conversationId : Long) = {
+
+    conversationId
+
+  }
+
 }

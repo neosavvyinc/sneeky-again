@@ -2,7 +2,7 @@ package com.phantom.ds.conversation
 
 import spray.http.MediaTypes._
 import com.phantom.ds.DataHttpService
-import com.phantom.model.{ ConversationItem, ConversationSummary }
+import com.phantom.model.{ BlockUserByConversationResponse, Feed, ConversationItem, ConversationSummary }
 
 import scala.Some
 import spray.http.MultipartFormData
@@ -39,24 +39,32 @@ trait ConversationEndpoint extends DataHttpService {
       import spray.httpx.encoding.{ NoEncoding, Gzip }
 
       pathPrefix(conversation) {
-        path("startOrUpdate") {
+        path("start") {
           post {
-            formFields('image.as[Array[Byte]], 'imageText, 'userid, 'toUsers, 'convId.as[Int]?) { (image, imageText, userid, toUsers, convId) =>
+            formFields('image.as[Array[Byte]], 'imageText, 'userid, 'toUsers) { (image, imageText, userid, toUsers) =>
 
               println("imageText> " + imageText)
               println("userid> " + userid)
               println("toUsers> " + toUsers)
-              println("convId> " + convId)
-              //TODO Make sure this file is saved outside classpath
-              //TODO Make sure this file is unique to each conversation so that we can clean it later
-              val fos : FileOutputStream = new FileOutputStream("testAdam.png");
+
+              val fos : FileOutputStream = new FileOutputStream("testAdam.png")
+
               try {
                 fos.write(image);
               } finally {
                 fos.close();
               }
               complete {
-                "0"
+                Feed(
+                  List(
+                    ConversationSummary(
+                      ConversationItem(1, 1, 1L, 2L, imageText, "/path/to/image")
+                    ),
+                    ConversationSummary(
+                      ConversationItem(1, 1, 1L, 2L, imageText, "/path/to/image")
+                    )
+                  )
+                )
               }
             }
           }
@@ -68,24 +76,51 @@ trait ConversationEndpoint extends DataHttpService {
       import spray.httpx.encoding.{ NoEncoding, Gzip }
 
       pathPrefix(conversation) {
-        path("upload") {
+        path("respond") {
           post {
-            formField('imageupload.as[Array[Byte]]) { file =>
+            formFields('image.as[Array[Byte]], 'imageText, 'convId.as[Int]?) { (image, imageText, convId) =>
+
+              println("imageText> " + imageText)
+              println("convId> " + convId)
+
               //TODO Make sure this file is saved outside classpath
               //TODO Make sure this file is unique to each conversation so that we can clean it later
-              val fos : FileOutputStream = new FileOutputStream("test.png");
+              val fos : FileOutputStream = new FileOutputStream("testAdam.png");
               try {
-                fos.write(file);
+                fos.write(image);
               } finally {
                 fos.close();
               }
               complete {
-                "0"
+                Feed(
+                  List(
+                    ConversationSummary(
+                      ConversationItem(1, 1, 1L, 2L, imageText, "/path/to/image")
+                    ),
+                    ConversationSummary(
+                      ConversationItem(1, 1, 1L, 2L, imageText, "/path/to/image")
+                    )
+                  )
+                )
               }
             }
           }
         }
       }
+    } ~ {
+      pathPrefix(conversation) {
+        path("block" / IntNumber) {
+          id =>
+            post {
+              respondWithMediaType(`application/json`) {
+                complete {
+                  BlockUserByConversationResponse(conversationService.blockUserByConversationId(id))
+                }
+              }
+            }
+        }
+      }
+
     }
 
 }
