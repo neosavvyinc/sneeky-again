@@ -1,13 +1,12 @@
 package com.phantom.model
 
+import com.phantom.dataAccess.Profile
 import org.joda.time.LocalDate
-import scala.slick.direct.AnnotationMapper.column
-import scala.slick.driver.BasicDriver.Table
 import java.sql.Date
 import scala.slick.lifted.ColumnOption.DBType
 
 case class UserRegistration(email : String,
-                            birthday : LocalDate,
+                            birthday : String,
                             password : String)
 
 case class UserLogin(email : String,
@@ -15,14 +14,14 @@ case class UserLogin(email : String,
 
 case class ClientSafeUserResponse(email : String,
                                   phoneNumber : String,
-                                  birthday : LocalDate,
+                                  birthday : String,
                                   newPictureReceivedNotification : Boolean,
                                   soundsNotification : Boolean)
 
 case class PhantomUserDeleteMe(id : String)
 
 case class UserInsert(email : String,
-                      birthday : LocalDate,
+                      birthday : String,
                       saltyHash : String,
                       active : Boolean)
 
@@ -34,10 +33,12 @@ case class PhantomUser(id : Option[Long],
                        active : Boolean,
                        phoneNumber : String)
 
-trait UserComponent {
+trait UserComponent { this : Profile =>
+
+  import profile.simple._
 
   object UserTable extends Table[PhantomUser]("USERS") {
-    def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
     def email = column[String]("EMAIL", DBType("VARCHAR(256)"))
     def birthday = column[String]("BIRTHDAY")
     def active = column[Boolean]("ACTIVE")

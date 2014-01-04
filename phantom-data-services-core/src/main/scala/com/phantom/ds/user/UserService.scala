@@ -60,14 +60,14 @@ object MapbackedUserService extends UserService with Logging with PhantomJsonPro
     log.info(s"logging in $loginRequest")
     map.values.collectFirst {
       case u : UserLogin if u.email == loginRequest.email && u.password == loginRequest.password =>
-        Future.successful(ClientSafeUserResponse(u.email, "", LocalDate.parse("2001-01-01"), true, false))
+        Future.successful(ClientSafeUserResponse(u.email, "", "2001-01-01", true, false))
     }.getOrElse(Future.failed(new NonexistantUserException()))
   }
 
   def findUser(id : Long) : Future[ClientSafeUserResponse] = {
     log.info(s"finding contacts for user with id => $id")
     map.get(id.toInt)
-      .map(u => Future.successful(ClientSafeUserResponse(u.email, "", LocalDate.parse("2001-01-01"), true, false)))
+      .map(u => Future.successful(ClientSafeUserResponse(u.email, "", "2001-01-01", true, false)))
       .getOrElse(Future.failed(new NonexistantUserException()))
   }
 

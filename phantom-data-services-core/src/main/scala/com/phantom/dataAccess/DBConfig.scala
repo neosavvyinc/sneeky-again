@@ -10,7 +10,7 @@ trait DBConfig {
 trait TestDB extends DBConfig {
   // We could pull this out into a properties/conf file like Nick did
   val db = Database.forURL(
-    "jdbc:mysql://localhost/phantom_test?user=root",
+    "jdbc:mysql://localhost/phantom_test?user=root&password=risCh1105",
     driver = "com.mysql.jdbc.Driver")
 
   // creating a DAL requires a Profile, which in this case is the MySQLDriver
@@ -22,7 +22,7 @@ trait ProductionDB extends DBConfig {
 
   // We could pull this out into a properties/conf file like Nick did
   val db = Database.forURL(
-    "jdbc:mysql://localhost/phantom?user=root",
+    "jdbc:mysql://localhost/phantom?user=root&password=risCh1105",
     driver = "com.mysql.jdbc.Driver")
 
   // again, creating a DAL requires a Profile, which in this case is the MySQLDriver
@@ -30,5 +30,5 @@ trait ProductionDB extends DBConfig {
 
   //users.purgeDB
   users.createDB
-
+  //users.createSampleUsers
 }
