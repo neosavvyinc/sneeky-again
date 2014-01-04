@@ -14,7 +14,7 @@ trait TestDB extends DBConfig {
     driver = "com.mysql.jdbc.Driver")
 
   // creating a DAL requires a Profile, which in this case is the MySQLDriver
-  val users = new PhantomUserDAO("MySQL Dev", new DAL(MySQLDriver), db)
+  val users = new PhantomUserDAO("MySQL Dev", new DataAccessLayer(MySQLDriver), db)
 
 }
 
@@ -26,7 +26,7 @@ trait ProductionDB extends DBConfig {
     driver = "com.mysql.jdbc.Driver")
 
   // again, creating a DAL requires a Profile, which in this case is the MySQLDriver
-  val users = new PhantomUserDAO("MySQL Dev", new DAL(MySQLDriver), db)
+  val users = new PhantomUserDAO("MySQL Dev", new DataAccessLayer(MySQLDriver), db)
 
   //users.purgeDB
   users.createDB

@@ -11,7 +11,7 @@ trait Profile {
   val profile : ExtendedProfile
 }
 
-class DAL(override val profile : ExtendedProfile) extends Profile with UserComponent {
+class DataAccessLayer(override val profile : ExtendedProfile) extends Profile with UserComponent {
   import profile.simple._
 
   def ddl = UserTable.ddl

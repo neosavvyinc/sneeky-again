@@ -2,7 +2,7 @@ package com.phantom.dataAccess
 
 import scala.slick.session.Database
 
-class PhantomUserDAO(name : String, dal : DAL, db : Database) extends BaseDAO(name, dal, db) {
+class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extends BaseDAO(name, dal, db) {
   import dal._
   import dal.profile.simple._
 
