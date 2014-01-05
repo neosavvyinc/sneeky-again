@@ -12,10 +12,20 @@ class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extend
   def purgeDB = dal.purge
 
   def createSampleUsers = {
-    UserTable.insertAll(
-      PhantomUser(None, "chris@test.com", "123", true, "1234567"),
-      PhantomUser(None, "adam@test.com", "123", true, "1234567")
-    )
+
+    implicitSession.withTransaction {
+      println("in a transaction...")
+
+      UserTable.insertAll(
+        PhantomUser(None, "chris@test.com", "123", true, "1234567"),
+        PhantomUser(None, "adam@test.com", "123", true, "1234567")
+      )
+
+      // uncomment this, the transaction will fail and no users
+      // will be inserted
+      // val dumbComputation : Int = 1 / 0
+    }
+
   }
 }
 
