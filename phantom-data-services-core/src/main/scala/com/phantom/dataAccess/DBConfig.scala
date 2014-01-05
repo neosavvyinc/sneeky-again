@@ -30,5 +30,5 @@ trait ProductionDB extends DBConfig {
 
   //users.purgeDB
   users.createDB
-  //users.createSampleUsers
+  users.createSampleUsers
 }

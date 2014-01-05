@@ -12,10 +12,10 @@ class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extend
   def purgeDB = dal.purge
 
   def createSampleUsers = {
-    //    UserTable.insertAll(
-    //      PhantomUser(None, "chris@test.com", "123", true, "1234567"),
-    //      PhantomUser(None, "adam@test.com", "123", true, "1234567")
-    //    )
+    UserTable.insertAll(
+      PhantomUser(None, "chris@test.com", "123", true, "1234567"),
+      PhantomUser(None, "adam@test.com", "123", true, "1234567")
+    )
   }
 }
 
