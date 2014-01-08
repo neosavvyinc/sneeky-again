@@ -1,20 +1,24 @@
 package com.phantom.dataAccess
 
+import com.phantom.model.{ PhantomUser, ConversationComponent, ConversationItemComponent, UserComponent }
+
 import scala.slick.driver.ExtendedProfile
 import scala.slick.session.{ Session, Database }
 
-import com.phantom.model.UserComponent
-
 import scala._
+import org.joda.time.LocalDate
 
 trait Profile {
   val profile : ExtendedProfile
 }
 
-class DataAccessLayer(override val profile : ExtendedProfile) extends Profile with UserComponent {
+class DataAccessLayer(override val profile : ExtendedProfile) extends Profile
+    with UserComponent
+    with ConversationComponent
+    with ConversationItemComponent {
   import profile.simple._
 
-  def ddl = UserTable.ddl
+  def ddl = ConversationItemTable.ddl ++ ConversationTable.ddl ++ UserTable.ddl
 
   ddl.createStatements.foreach(println)
 

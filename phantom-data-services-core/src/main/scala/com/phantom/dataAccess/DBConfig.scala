@@ -6,6 +6,7 @@ import com.phantom.ds.DSConfiguration
 
 trait DBConfig {
   def users : PhantomUserDAO
+  def conversations : ConversationDAO
 }
 
 trait DatabaseSupport extends DBConfig with DSConfiguration {
@@ -19,9 +20,11 @@ trait DatabaseSupport extends DBConfig with DSConfiguration {
   )
 
   // again, creating a DAL requires a Profile, which in this case is the MySQLDriver
-  val users = new PhantomUserDAO("MySQL Dev", new DataAccessLayer(MySQLDriver), db)
+  val dataAccessLayer = new DataAccessLayer(MySQLDriver);
+  val users = new PhantomUserDAO("MySQL Dev", dataAccessLayer, db)
+  val conversations = new ConversationDAO("MySQL Dev", dataAccessLayer, db)
 
   //users.purgeDB
-  users.createDB
+  dataAccessLayer.create(db.createSession())
   users.createSampleUsers
 }
