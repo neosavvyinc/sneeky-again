@@ -5,7 +5,7 @@ import scala.slick.session.{ Database, Session }
 import com.phantom.ds.DSConfiguration
 
 trait DBConfig {
-  def users : PhantomUserDAO
+  def userServiceDB : PhantomUserDAO
 }
 
 trait TestDB extends DBConfig with DSConfiguration {
@@ -18,7 +18,7 @@ trait TestDB extends DBConfig with DSConfiguration {
     TestDBConfiguration.driver)
 
   // creating a DAL requires a Profile, which in this case is the MySQLDriver
-  val users = new PhantomUserDAO("MySQL Dev", new DataAccessLayer(MySQLDriver), db)
+  val userServiceDB = new PhantomUserDAO("MySQL Dev", new DataAccessLayer(MySQLDriver), db)
 
 }
 
@@ -33,9 +33,9 @@ trait ProductionDB extends DBConfig with DSConfiguration {
   )
 
   // again, creating a DAL requires a Profile, which in this case is the MySQLDriver
-  val users = new PhantomUserDAO("MySQL Dev", new DataAccessLayer(MySQLDriver), db)
+  val userServiceDB = new PhantomUserDAO("MySQL Dev", new DataAccessLayer(MySQLDriver), db)
 
   //users.purgeDB
-  users.createDB
-  users.createSampleUsers
+  userServiceDB.createDB
+  userServiceDB.createSampleUsers
 }
