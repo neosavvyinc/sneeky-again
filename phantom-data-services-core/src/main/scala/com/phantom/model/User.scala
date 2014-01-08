@@ -49,4 +49,3 @@ trait UserComponent { this : Profile =>
 
   }
 }
-

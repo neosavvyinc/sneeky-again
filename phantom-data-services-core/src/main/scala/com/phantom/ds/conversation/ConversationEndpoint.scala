@@ -58,10 +58,10 @@ trait ConversationEndpoint extends DataHttpService {
                 Feed(
                   List(
                     ConversationSummary(
-                      ConversationItem(1, 1, 1L, 2L, imageText, "/path/to/image")
+                      ConversationItem(Some(1), 1, imageText, "/path/to/image")
                     ),
                     ConversationSummary(
-                      ConversationItem(1, 1, 1L, 2L, imageText, "/path/to/image")
+                      ConversationItem(Some(1), 1, imageText, "/path/to/image")
                     )
                   )
                 )
@@ -95,10 +95,10 @@ trait ConversationEndpoint extends DataHttpService {
                 Feed(
                   List(
                     ConversationSummary(
-                      ConversationItem(1, 1, 1L, 2L, imageText, "/path/to/image")
+                      ConversationItem(Some(1), 1, imageText, "/path/to/image")
                     ),
                     ConversationSummary(
-                      ConversationItem(1, 1, 1L, 2L, imageText, "/path/to/image")
+                      ConversationItem(Some(1), 1, imageText, "/path/to/image")
                     )
                   )
                 )
