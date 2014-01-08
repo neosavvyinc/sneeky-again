@@ -4,7 +4,7 @@ import akka.actor.Actor
 import com.phantom.ds.user.UserEndpoint
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 import com.phantom.ds.conversation.ConversationEndpoint
-import com.phantom.dataAccess.ProductionDB
+import com.phantom.dataAccess.DatabaseSupport
 
 /**
  * Created by Neosavvy
@@ -17,7 +17,7 @@ import com.phantom.dataAccess.ProductionDB
 class PhantomRouteActor() extends Actor
     with UserEndpoint
     with ConversationEndpoint
-    with ProductionDB {
+    with DatabaseSupport {
   this : RequestAuthenticator with EntryPointAuthenticator =>
 
   // the HttpService trait defines only one abstract member, which

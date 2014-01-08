@@ -13,17 +13,7 @@ trait DSConfiguration {
     val user = dbCfg.getString("user")
     val pass = dbCfg.getString("password")
 
-    private def dbCfg = cfg.getConfig("db.prod")
-  }
-
-  object TestDBConfiguration {
-
-    val driver = dbCfg.getString("driver")
-    val url = dbCfg.getString("url")
-    val user = dbCfg.getString("user")
-    val pass = dbCfg.getString("password")
-
-    private def dbCfg = cfg.getConfig("db.test")
+    private def dbCfg = cfg.getConfig("db")
   }
 
   object AuthConfiguration {
