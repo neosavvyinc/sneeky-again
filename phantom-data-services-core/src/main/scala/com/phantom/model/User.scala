@@ -29,18 +29,19 @@ case class UserInsert(email : String,
 // secret client-facing/obfuscated user id?
 case class PhantomUser(id : Option[Long],
                        email : String,
-                       birthday : String,
+                       birthday : LocalDate,
                        active : Boolean,
                        phoneNumber : String)
 
 trait UserComponent { this : Profile =>
 
   import profile.simple._
+  import com.github.tototoshi.slick.JodaSupport._
 
   object UserTable extends Table[PhantomUser]("USERS") {
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
     def email = column[String]("EMAIL", DBType("VARCHAR(256)"))
-    def birthday = column[String]("BIRTHDAY")
+    def birthday = column[LocalDate]("BIRTHDAY")
     def active = column[Boolean]("ACTIVE")
     def phoneNumber = column[String]("PHONE_NUMBER")
 
@@ -48,4 +49,3 @@ trait UserComponent { this : Profile =>
 
   }
 }
-

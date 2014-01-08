@@ -1,7 +1,7 @@
 import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import sbt._
-import Keys._
+import sbt.Keys._
 import sbtassembly.Plugin.{MergeStrategy, AssemblyKeys}
 import sbtrelease.ReleasePlugin._
 import spray.revolver.RevolverPlugin.Revolver
@@ -86,8 +86,8 @@ object Shared {
 
   val Slick = Seq(
     "com.typesafe.slick" %% "slick" % SlickVersion,
-    "mysql" % "mysql-connector-java" % "5.1.22"
-
+    "mysql" % "mysql-connector-java" % "5.1.22",
+    "com.github.tototoshi" %% "slick-joda-mapper" % "0.4.0"
   )
 
   val settings = Seq(

@@ -18,6 +18,6 @@ trait SqlSessionRepository extends SessionRepository {
 
 trait MockSessionRepository extends SessionRepository {
 
-  def getUser(sessionId : String) : Option[PhantomUser] = Some(PhantomUser(None, "nsauro@sauron.com", "12/21/2003", true, ""))
+  def getUser(sessionId : String) : Option[PhantomUser] = Some(PhantomUser(None, "nsauro@sauron.com", new LocalDate(2003, 12, 21), true, ""))
 
 }

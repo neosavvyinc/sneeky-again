@@ -2,6 +2,7 @@ package com.phantom.dataAccess
 
 import scala.slick.session.Database
 import spray.http.{ StatusCode, StatusCodes }
+import org.joda.time.LocalDate
 import com.phantom.ds.framework.Logging
 import com.phantom.model.{ PhantomUser, UserRegistration, ClientSafeUserResponse, UserLogin }
 import scala.concurrent.{ ExecutionContext, Future }
@@ -58,8 +59,8 @@ class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extend
       println("in a transaction...")
 
       UserTable.insertAll(
-        PhantomUser(None, "chris@test.com", "123", true, "1234567"),
-        PhantomUser(None, "adam@test.com", "123", true, "1234567")
+        PhantomUser(None, "chris@test.com", new LocalDate(2003, 12, 21), true, "1234567"),
+        PhantomUser(None, "adam@test.com", new LocalDate(2003, 12, 21), true, "1234567")
       )
 
       // uncomment this, the transaction will fail and no users

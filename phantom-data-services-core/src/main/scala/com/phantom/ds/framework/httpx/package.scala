@@ -34,7 +34,7 @@ package object httpx {
     implicit val clientSafeUserResponse = jsonFormat5(ClientSafeUserResponse)
 
     implicit val conversationStarterFormat = jsonFormat4(ConversationStarter)
-    implicit val conversationItemFormat = jsonFormat6(ConversationItem)
+    implicit val conversationItemFormat = jsonFormat4(ConversationItem)
     implicit val conversationSummaryFormat = jsonFormat1(ConversationSummary)
     implicit val conversationDetail = jsonFormat2(ConversationDetail)
     implicit val conversationFeed = jsonFormat1(Feed)
