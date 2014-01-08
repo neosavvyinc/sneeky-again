@@ -2,6 +2,7 @@ package com.phantom.dataAccess
 
 import scala.slick.session.Database
 import com.phantom.model.PhantomUser
+import org.joda.time.LocalDate
 
 class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extends BaseDAO(name, dal, db) {
   import dal._
@@ -17,8 +18,8 @@ class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extend
       println("in a transaction...")
 
       UserTable.insertAll(
-        PhantomUser(None, "chris@test.com", "123", true, "1234567"),
-        PhantomUser(None, "adam@test.com", "123", true, "1234567")
+        PhantomUser(None, "chris@test.com", new LocalDate(2003, 12, 21), true, "1234567"),
+        PhantomUser(None, "adam@test.com", new LocalDate(2003, 12, 21), true, "1234567")
       )
 
       // uncomment this, the transaction will fail and no users
