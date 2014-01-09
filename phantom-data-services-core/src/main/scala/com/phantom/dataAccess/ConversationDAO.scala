@@ -9,6 +9,7 @@ package com.phantom.dataAccess
  */
 
 import scala.slick.session.Database
+import com.phantom.model.Conversation
 
 class ConversationDAO(name : String, dal : DataAccessLayer, db : Database) extends BaseDAO(name, dal, db) {
   import dal._
@@ -17,6 +18,21 @@ class ConversationDAO(name : String, dal : DataAccessLayer, db : Database) exten
   def createDB = dal.create
   def dropDB = dal.drop
   def purgeDB = dal.purge
+
+  def insert = { conversationItem : Conversation =>
+    ConversationTable.insert(conversationItem)
+  }
+  def deleteById = { convId : Long =>
+    val dbid = ConversationTable filter { _.id === convId }
+    println(dbid.selectStatement)
+    dbid delete
+  }
+  def findByOwnerId = { ownerId : Long =>
+    Query(ConversationTable).list()
+  }
+  def findById = ???
+
+  def update = ???
 
 }
 
