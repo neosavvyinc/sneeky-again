@@ -23,24 +23,22 @@ class ConversationDAO(name : String, dal : DataAccessLayer, db : Database) exten
     val id = ConversationTable.forInsert.insert(conversationItem)
     new Conversation(Some(id), conversationItem.toUser, conversationItem.fromUser)
   }
-
-  //  def insert = { conversationItem : Conversation =>
-  //    ConversationTable.insert(conversationItem)
-  //  }
-  def deleteById = { convId : Long =>
-    val dbid = ConversationTable filter { _.id === convId }
-    println(dbid.selectStatement)
-    dbid delete
+  def findByFromUserId(fromUserId : Long) : List[Conversation] = {
+    val items = Query(ConversationTable) filter { _.fromUser === fromUserId }
+    items.list()
   }
-  def findByFromUserId = ???
-
-  //  def findByFromUserId : List[Conversation] = { fromUserId : Long =>
-  //    val dbQuery = ConversationTable filter { _.fromUser === fromUserId }
-  //    dbQuery.list()
-  //  }
-  def findById = ???
-
-  def update = ???
+  def deleteById(conversationId : Long) : Int = {
+    val deleteQuery = Query(ConversationTable) filter { _.id === conversationId }
+    deleteQuery delete
+  }
+  def findById(conversationId : Long) : Conversation = {
+    val items = Query(ConversationTable) filter { _.id === conversationId }
+    items.first
+  }
+  def updateById(conversation : Conversation) : Int = {
+    val updateQuery = Query(ConversationTable) filter { _.id === conversation.id }
+    updateQuery.update(conversation)
+  }
 
 }
 
