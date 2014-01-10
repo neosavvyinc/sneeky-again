@@ -19,17 +19,25 @@ class ConversationDAO(name : String, dal : DataAccessLayer, db : Database) exten
   def dropDB = dal.drop
   def purgeDB = dal.purge
 
-  def insert = { conversationItem : Conversation =>
-    ConversationTable.insert(conversationItem)
+  def insert(conversationItem : Conversation) : Conversation = {
+    val id = ConversationTable.forInsert.insert(conversationItem)
+    new Conversation(Some(id), conversationItem.toUser, conversationItem.fromUser)
   }
+
+  //  def insert = { conversationItem : Conversation =>
+  //    ConversationTable.insert(conversationItem)
+  //  }
   def deleteById = { convId : Long =>
     val dbid = ConversationTable filter { _.id === convId }
     println(dbid.selectStatement)
     dbid delete
   }
-  def findByOwnerId = { ownerId : Long =>
-    Query(ConversationTable).list()
-  }
+  def findByFromUserId = ???
+
+  //  def findByFromUserId : List[Conversation] = { fromUserId : Long =>
+  //    val dbQuery = ConversationTable filter { _.fromUser === fromUserId }
+  //    dbQuery.list()
+  //  }
   def findById = ???
 
   def update = ???
