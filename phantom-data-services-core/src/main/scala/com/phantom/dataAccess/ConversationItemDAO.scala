@@ -27,18 +27,18 @@ class ConversationItemDAO(name : String, dal : DataAccessLayer, db : Database) e
   //    val items = Query(ConversationItemTable) filter { _.fromUser === fromUserId }
   //    items.list()
   //  }
-  def deleteById(ConversationItemId : Long) : Int = {
-    val deleteQuery = Query(ConversationItemTable) filter { _.id === ConversationItemId }
-    deleteQuery delete
-  }
-  def findById(ConversationItemId : Long) : ConversationItem = {
-    val items = Query(ConversationItemTable) filter { _.id === ConversationItemId }
-    items.first
-  }
-  def updateById(ConversationItem : ConversationItem) : Int = {
-    val updateQuery = Query(ConversationItemTable) filter { _.id === ConversationItem.id }
-    updateQuery.update(ConversationItem)
-  }
+  //  def deleteById(ConversationItemId : Long) : Int = {
+  //    val deleteQuery = Query(ConversationItemTable) filter { _.id === ConversationItemId }
+  //    deleteQuery delete
+  //  }
+  //  def findById(ConversationItemId : Long) : ConversationItem = {
+  //    val items = Query(ConversationItemTable) filter { _.id === ConversationItemId }
+  //    items.first
+  //  }
+  //  def updateById(ConversationItem : ConversationItem) : Int = {
+  //    val updateQuery = Query(ConversationItemTable) filter { _.id === ConversationItem.id }
+  //    updateQuery.update(ConversationItem)
+  //  }
 
 }
 

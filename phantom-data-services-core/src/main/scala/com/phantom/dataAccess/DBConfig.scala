@@ -23,8 +23,11 @@ trait DatabaseSupport extends DBConfig with DSConfiguration {
   val dataAccessLayer = new DataAccessLayer(MySQLDriver);
   val userServiceDB = new PhantomUserDAO("MySQL Dev", dataAccessLayer, db)
   val conversations = new ConversationDAO("MySQL Dev", dataAccessLayer, db)
+  val conversationItems = new ConversationItemDAO("MySQL Dev", dataAccessLayer, db)
 
   //users.purgeDB
   dataAccessLayer.create(db.createSession())
+
+  //TODO: Remove this - I think this is kind of test code
   userServiceDB.createSampleUsers
 }
