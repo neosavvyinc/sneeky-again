@@ -40,13 +40,7 @@ trait ConversationComponent { this : Profile =>
     def fromUser = column[Long]("FROM_USER")
 
     def * = id.? ~ toUser ~ fromUser <> (Conversation, Conversation.unapply _)
-    def forInsert = id.? ~ toUser ~ fromUser <> (
-      { t =>
-        Conversation(t._1, t._2, t._3)
-      },
-      { (c : Conversation) =>
-        Some((c.id, c.toUser, c.fromUser))
-      }) returning id
+    def forInsert = id.? ~ toUser ~ fromUser <> (Conversation, Conversation.unapply _) returning id
 
   }
 
@@ -64,7 +58,7 @@ trait ConversationItemComponent { this : Profile =>
     def imageText = column[String]("IMAGE_TEXT")
 
     def * = id.? ~ conversationId ~ imageUrl ~ imageText <> (ConversationItem, ConversationItem.unapply _)
-
+    def forInsert = id.? ~ conversationId ~ imageUrl ~ imageText <> (ConversationItem, ConversationItem.unapply _) returning id
   }
 
 }
