@@ -19,26 +19,32 @@ class ConversationItemDAO(name : String, dal : DataAccessLayer, db : Database) e
   def dropDB = dal.drop
   def purgeDB = dal.purge
 
-  def insert(ConversationItem : ConversationItem) : ConversationItem = {
-    val id = ConversationItemTable.forInsert.insert(ConversationItem)
-    new ConversationItem(Some(id), ConversationItem.conversationId, ConversationItem.imageUrl, ConversationItem.imageText)
+  def insert(conversationItem : ConversationItem) : ConversationItem = {
+    val id = ConversationItemTable.forInsert.insert(conversationItem)
+    new ConversationItem(Some(id), conversationItem.conversationId, conversationItem.imageUrl, conversationItem.imageText)
   }
-  //  def findByConversationItem(fromUserId : Long) : List[ConversationItem] = {
-  //    val items = Query(ConversationItemTable) filter { _.fromUser === fromUserId }
-  //    items.list()
-  //  }
-  def deleteById(ConversationItemId : Long) : Int = {
-    val deleteQuery = Query(ConversationItemTable) filter { _.id === ConversationItemId }
+
+  def insertAll(conversationItems : List[ConversationItem]) : Unit = {
+    conversationItems.foreach(insert(_))
+  }
+
+  def findByConversationId(conversationId : Long) : List[ConversationItem] = {
+    val items = Query(ConversationItemTable) filter { _.conversationId === conversationId }
+    items.list()
+  }
+
+  def deleteByConversationId(conversationId : Long) : Int = {
+    val deleteQuery = Query(ConversationItemTable) filter { _.conversationId === conversationId }
     deleteQuery delete
   }
-  def findById(ConversationItemId : Long) : ConversationItem = {
-    val items = Query(ConversationItemTable) filter { _.id === ConversationItemId }
-    items.first
-  }
-  def updateById(ConversationItem : ConversationItem) : Int = {
-    val updateQuery = Query(ConversationItemTable) filter { _.id === ConversationItem.id }
-    updateQuery.update(ConversationItem)
-  }
+  //  def findById(ConversationItemId : Long) : ConversationItem = {
+  //    val items = Query(ConversationItemTable) filter { _.id === ConversationItemId }
+  //    items.first
+  //  }
+  //  def updateById(ConversationItem : ConversationItem) : Int = {
+  //    val updateQuery = Query(ConversationItemTable) filter { _.id === ConversationItem.id }
+  //    updateQuery.update(ConversationItem)
+  //  }
 
 }
 

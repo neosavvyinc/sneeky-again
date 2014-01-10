@@ -12,21 +12,7 @@ import org.specs2.specification.BeforeAfter
  * Time: 8:23 AM
  * To change this template use File | Settings | File Templates.
  */
-class ConversationDAOSpec extends Specification with DatabaseSupport {
-
-  object withSetupTeardown extends BeforeAfter {
-    def before {
-      println("Executing before stuff...")
-      conversations.dropDB
-      conversations.createDB
-
-    }
-
-    def after {
-      println("Executing after astuff...")
-      conversations.dropDB
-    }
-  }
+class ConversationDAOSpec extends BaseDAOSpec {
 
   sequential
 
