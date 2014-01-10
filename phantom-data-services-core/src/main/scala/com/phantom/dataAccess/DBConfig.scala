@@ -7,6 +7,7 @@ import com.phantom.ds.DSConfiguration
 trait DBConfig {
   def userServiceDB : PhantomUserDAO
   def conversations : ConversationDAO
+  def contacts : ContactDAO
 }
 
 trait DatabaseSupport extends DBConfig with DSConfiguration {
@@ -23,8 +24,10 @@ trait DatabaseSupport extends DBConfig with DSConfiguration {
   val dataAccessLayer = new DataAccessLayer(MySQLDriver);
   val userServiceDB = new PhantomUserDAO("MySQL Dev", dataAccessLayer, db)
   val conversations = new ConversationDAO("MySQL Dev", dataAccessLayer, db)
+  val contacts = new ContactDAO("MySQL", dataAccessLayer, db)
 
   //users.purgeDB
+  dataAccessLayer.drop(db.createSession())
   dataAccessLayer.create(db.createSession())
   userServiceDB.createSampleUsers
 }

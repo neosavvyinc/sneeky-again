@@ -18,35 +18,38 @@ class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extend
   def registerUser(registrationRequest : UserRegistration) : Future[ClientSafeUserResponse] = {
     //log.info(s"registering $registrationRequest")
 
-    var users = for {
-      u <- UserTable
-    } yield u
-
-    println(users.filter(_.email === registrationRequest.email).firstOption)
-
-    Future.successful {
-      ClientSafeUserResponse(registrationRequest.email, "6148551499", registrationRequest.birthday, false, false)
-    }
-    // TO DO : return Future.failed if insert fails
-    //    Future.successful {
-    //      //      UserTable.insert(
-    //      //        PhantomUser(None, registrationRequest.email, registrationRequest.birthday, true, "6148551499")
-    //      //      )
-    //
-    //      ClientSafeUserResponse(registrationRequest.email, "6148551499", registrationRequest.birthday, false, false)
-    //    }
+    Query(UserTable).filter(_.email === registrationRequest.email)
+      .firstOption.map { u : PhantomUser =>
+        Future.failed(new Exception())
+      }.getOrElse {
+        //
+        // confirm / enter confirmation code service ?
+        //
+        UserTable.insert(PhantomUser(None, registrationRequest.email, new LocalDate(12345678), true, "6148551499"))
+        Future.successful(ClientSafeUserResponse(registrationRequest.email, "6148551499", registrationRequest.birthday, false, false))
+      }
   }
 
-  def login(loginRequest : UserLogin) : Future[StatusCode] = {
+  def login(loginRequest : UserLogin) : Future[ClientSafeUserResponse] = {
     //log.info(s"logging in $loginRequest")
-    Future.successful {
-      val user = for {
-        u <- UserTable if loginRequest.email == u.email
-      } yield u
 
-      //println(user.list)
-      StatusCodes.OK
-    }
+    Query(UserTable).filter(_.email is loginRequest.email)
+      .firstOption.map { u : PhantomUser =>
+        // check hashed password vs. loginRequest.password
+        Future.successful(
+          ClientSafeUserResponse(u.email, "6148551499", "1234", false, false)
+        )
+        //case _ => 
+      }.getOrElse {
+        Future.failed(new Exception())
+      }
+  }
+
+  def findUser(id : Long) : Future[ClientSafeUserResponse] = {
+    //log.info(s"finding contacts for user with id => $id")
+    Query(UserTable).filter(_.id is id)
+      .firstOption.map { u : PhantomUser => Future.successful(ClientSafeUserResponse(u.email, "6144993676", "1234", false, false)) }
+      .getOrElse(Future.failed(new Exception()))
   }
 
   def findContactsForUser(id : Long) : Future[StatusCode] = {

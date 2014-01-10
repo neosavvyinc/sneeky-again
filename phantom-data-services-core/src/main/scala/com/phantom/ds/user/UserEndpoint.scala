@@ -68,7 +68,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
         authenticate(request _) { user =>
           get {
             respondWithMediaType(`application/json`) {
-              complete(userService.findUser(id))
+              complete(userServiceDB.findUser(id))
             }
           }
         }
