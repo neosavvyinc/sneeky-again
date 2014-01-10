@@ -4,7 +4,7 @@ import scala.slick.session.Database
 import spray.http.{ StatusCode, StatusCodes }
 import org.joda.time.LocalDate
 import com.phantom.ds.framework.Logging
-//import com.phantom.model.{ PhantomUser, UserRegistration, ClientSafeUserResponse, UserLogin }
+import com.phantom.model.Contact
 import scala.concurrent.{ ExecutionContext, Future }
 
 class ContactDAO(name : String, dal : DataAccessLayer, db : Database) extends BaseDAO(name, dal, db) {
@@ -14,6 +14,14 @@ class ContactDAO(name : String, dal : DataAccessLayer, db : Database) extends Ba
   def createDB = dal.create
   def dropDB = dal.drop
   def purgeDB = dal.purge
+
+  def createSampleContacts = {
+    ContactTable.insertAll(
+      Contact(None, 1, 2, "friend"),
+      Contact(None, 1, 3, "friend"),
+      Contact(None, 3, 2, "friend")
+    )
+  }
 
   //  def registerUser(registrationRequest : UserRegistration) : Future[ClientSafeUserResponse] = {
   //    //log.info(s"registering $registrationRequest")

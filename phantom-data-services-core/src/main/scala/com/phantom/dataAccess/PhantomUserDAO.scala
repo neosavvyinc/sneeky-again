@@ -52,8 +52,13 @@ class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extend
       .getOrElse(Future.failed(new Exception()))
   }
 
-  def findContactsForUser(id : Long) : Future[StatusCode] = {
-    Future.successful(StatusCodes.OK)
+  def findContactsForUser(id : Long) : Future[List[PhantomUser]] = {
+    var q = for {
+      u <- UserTable
+      c <- ContactTable if u.id === c.contactId && c.ownerId === id
+    } yield u
+
+    Future.successful(q.list)
   }
 
   def createSampleUsers = {
@@ -63,7 +68,8 @@ class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extend
 
       UserTable.insertAll(
         PhantomUser(None, "chris@test.com", new LocalDate(2003, 12, 21), true, "1234567"),
-        PhantomUser(None, "adam@test.com", new LocalDate(2003, 12, 21), true, "1234567")
+        PhantomUser(None, "adam@test.com", new LocalDate(2003, 12, 21), true, "1234567"),
+        PhantomUser(None, "trevor@test.com", new LocalDate(2003, 12, 21), true, "1234567")
       )
 
       // uncomment this, the transaction will fail and no users

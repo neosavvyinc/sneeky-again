@@ -27,7 +27,8 @@ trait DatabaseSupport extends DBConfig with DSConfiguration {
   val contacts = new ContactDAO("MySQL", dataAccessLayer, db)
 
   //users.purgeDB
-  dataAccessLayer.drop(db.createSession())
+  //dataAccessLayer.drop(db.createSession())
   dataAccessLayer.create(db.createSession())
   userServiceDB.createSampleUsers
+  contacts.createSampleContacts
 }

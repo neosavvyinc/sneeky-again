@@ -5,18 +5,31 @@ import org.joda.time.LocalDate
 import java.sql.Date
 
 case class Contact(id : Option[Long],
-                   name : String)
+                   ownerId : Long,
+                   contactId : Long,
+                   contactType : String)
 
-trait ContactComponent { this : Profile =>
+trait ContactComponent { this : Profile with UserComponent =>
 
   import profile.simple._
   import com.github.tototoshi.slick.JodaSupport._
 
   object ContactTable extends Table[Contact]("CONTACTS") {
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
-    def name = column[String]("NAME")
 
-    def * = id.? ~ name <> (Contact, Contact.unapply _)
+    // * UNIQUE * //
+    def ownerId = column[Long]("OWNER_ID")
+
+    // * UNIQUE * //
+    def contactId = column[Long]("CONTACT_ID")
+    def contactType = column[String]("TYPE")
+    def * = id.? ~ ownerId ~ contactId ~ contactType <> (Contact, Contact.unapply _)
+
+    def owner = foreignKey("OWNER_FK", ownerId, UserTable)(_.id)
+    def contact = foreignKey("CONTACT_FK", contactId, UserTable)(_.id)
+
+    //def idx_a = index("idx_a", (contactId, contactType), unique = true)
+    //def idx_b = index("idx_b", (contactType, contactId), unique = true)
   }
 
 }
