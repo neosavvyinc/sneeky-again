@@ -5,6 +5,10 @@ import org.joda.time.LocalDate
 import java.sql.Date
 import scala.slick.lifted.ColumnOption.DBType
 
+package object UserTypes {
+  type PhoneNumber = String
+}
+
 case class UserRegistration(email : String,
                             birthday : String,
                             password : String)
@@ -37,6 +41,7 @@ trait UserComponent { this : Profile =>
 
   import profile.simple._
   import com.github.tototoshi.slick.JodaSupport._
+  import UserTypes._
 
   object UserTable extends Table[PhantomUser]("USERS") {
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)

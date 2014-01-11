@@ -4,7 +4,7 @@ import scala.slick.session.Database
 import spray.http.{ StatusCode, StatusCodes }
 import org.joda.time.LocalDate
 import com.phantom.ds.framework.Logging
-import com.phantom.model.{ PhantomUser, UserRegistration, ClientSafeUserResponse, UserLogin }
+import com.phantom.model.{ PhantomUser, UserRegistration, ClientSafeUserResponse, UserLogin, Contact }
 import scala.concurrent.{ ExecutionContext, Future }
 
 class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extends BaseDAO(name, dal, db) {
@@ -15,10 +15,10 @@ class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extend
   def dropDB = dal.drop
   def purgeDB = dal.purge
 
-  def registerUser(registrationRequest : UserRegistration) : Future[ClientSafeUserResponse] = {
+  def register(registrationRequest : UserRegistration) : Future[ClientSafeUserResponse] = {
     //log.info(s"registering $registrationRequest")
 
-    Query(UserTable).filter(_.email === registrationRequest.email)
+    Query(UserTable).filter(_.email is registrationRequest.email)
       .firstOption.map { u : PhantomUser =>
         Future.failed(new Exception())
       }.getOrElse {
@@ -45,20 +45,50 @@ class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extend
       }
   }
 
-  def findUser(id : Long) : Future[ClientSafeUserResponse] = {
+  def findById(id : Long) : Future[ClientSafeUserResponse] = {
     //log.info(s"finding contacts for user with id => $id")
     Query(UserTable).filter(_.id is id)
       .firstOption.map { u : PhantomUser => Future.successful(ClientSafeUserResponse(u.email, "6144993676", "1234", false, false)) }
       .getOrElse(Future.failed(new Exception()))
   }
 
-  def findContactsForUser(id : Long) : Future[List[PhantomUser]] = {
-    var q = for {
+  def findContactsById(id : Long) : Future[List[PhantomUser]] = {
+    val q = for {
       u <- UserTable
       c <- ContactTable if u.id === c.contactId && c.ownerId === id
     } yield u
 
-    Future.successful(q.list)
+    q.list match {
+      case u : List[PhantomUser] => Future.successful(u)
+      case _                     => Future.failed(new Exception())
+    }
+  }
+
+  def findContactsByPhone : Unit = {
+
+  }
+
+  def updateContacts(id : Long, contacts : List[String]) : Future[StatusCode] = {
+
+    // in transaction?
+    val q = Query(ContactTable).filter(_.ownerId is id)
+
+    val contactIds = for {
+      c <- ContactTable if c.ownerId === id
+    } yield c.contactId
+
+    Future.successful(StatusCodes.OK)
+  }
+
+  def clearBlockList(id : Long) : Future[StatusCode] = {
+
+    val q = for {
+      c <- ContactTable if c.contactType === "block" && c.ownerId === id
+    } yield c.contactType
+    q.update("friend")
+
+    // error handling / how to return something else if update fails?
+    Future.successful(StatusCodes.OK)
   }
 
   def createSampleUsers = {

@@ -18,7 +18,7 @@ class ContactDAO(name : String, dal : DataAccessLayer, db : Database) extends Ba
   def createSampleContacts = {
     ContactTable.insertAll(
       Contact(None, 1, 2, "friend"),
-      Contact(None, 1, 3, "friend"),
+      Contact(None, 1, 3, "block"),
       Contact(None, 3, 2, "friend")
     )
   }

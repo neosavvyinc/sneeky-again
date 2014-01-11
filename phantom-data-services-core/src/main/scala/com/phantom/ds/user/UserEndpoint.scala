@@ -21,7 +21,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
             respondWithMediaType(`application/json`)
             entity(as[UserRegistration]) {
               reg =>
-                complete(userServiceDB.registerUser(reg))
+                complete(userServiceDB.register(reg))
             }
           }
       }
@@ -43,14 +43,14 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
         authenticate(request _) { user =>
           get {
             respondWithMediaType(`application/json`) {
-              complete(userServiceDB.findContactsForUser(id))
+              complete(userServiceDB.findContactsById(id))
             }
           } ~
             post {
               respondWithMediaType(`application/json`) {
                 entity(as[List[String]]) { contacts /* list of phone numbers */ =>
                   complete {
-                    userService.updateContactsForUser(id, contacts)
+                    userServiceDB.updateContacts(id, contacts)
                   }
                 }
               }
@@ -60,7 +60,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
       pathPrefix("users" / LongNumber / "clearblocklist") { id =>
         post {
           respondWithMediaType(`application/json`) {
-            complete(userService.clearBlockList(id))
+            complete(userServiceDB.clearBlockList(id))
           }
         }
       } ~
@@ -68,7 +68,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
         authenticate(request _) { user =>
           get {
             respondWithMediaType(`application/json`) {
-              complete(userServiceDB.findUser(id))
+              complete(userServiceDB.findById(id))
             }
           }
         }
