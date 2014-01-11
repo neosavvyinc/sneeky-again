@@ -48,7 +48,7 @@ trait UserComponent { this : Profile =>
     def email = column[String]("EMAIL", DBType("VARCHAR(256)"))
     def birthday = column[LocalDate]("BIRTHDAY")
     def active = column[Boolean]("ACTIVE")
-    def phoneNumber = column[PhoneNumber]("PHONE_NUMBER")
+    def phoneNumber = column[String]("PHONE_NUMBER")
 
     def * = id.? ~ email ~ birthday ~ active ~ phoneNumber <> (PhantomUser, PhantomUser.unapply _)
     def forInsert = * returning id
