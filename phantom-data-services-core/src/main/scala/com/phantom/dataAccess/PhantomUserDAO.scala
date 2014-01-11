@@ -4,12 +4,22 @@ import scala.slick.session.Database
 import spray.http.{ StatusCode, StatusCodes }
 import org.joda.time.LocalDate
 import com.phantom.ds.framework.Logging
+import com.phantom.ds.framework.exception.PhantomException
 import com.phantom.model.{ PhantomUser, UserRegistration, ClientSafeUserResponse, UserLogin, Contact }
 import scala.concurrent.{ ExecutionContext, Future }
+
+class DuplicateUserException extends Exception with PhantomException {
+  val code = 101
+}
+
+class NonexistantUserException extends Exception with PhantomException {
+  val code = 103
+}
 
 class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extends BaseDAO(name, dal, db) {
   import dal._
   import dal.profile.simple._
+  import com.phantom.model.PhantomUserTypes._
 
   def createDB = dal.create
   def dropDB = dal.drop
@@ -25,40 +35,40 @@ class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extend
 
     Query(UserTable).filter(_.email is registrationRequest.email)
       .firstOption.map { u : PhantomUser =>
-        Future.failed(new Exception())
+        Future.failed(new DuplicateUserException())
       }.getOrElse {
         //
         // confirm / enter confirmation code service ?
         //
         Future.successful {
-          insert(PhantomUser(None, registrationRequest.email, new LocalDate(12345678), true, "6148551499"))
+          insert(PhantomUser(None, registrationRequest.email, registrationRequest.birthday, true, ""))
         }
       }
   }
 
-  def login(loginRequest : UserLogin) : Future[ClientSafeUserResponse] = {
+  def login(loginRequest : UserLogin) : Future[PhantomUser] = {
     //log.info(s"logging in $loginRequest")
 
     Query(UserTable).filter(_.email is loginRequest.email)
       .firstOption.map { u : PhantomUser =>
         // check hashed password vs. loginRequest.password
         Future.successful(
-          ClientSafeUserResponse(u.email, "6148551499", "1234", false, false)
+          PhantomUser(None, u.email, u.birthday, true, u.phoneNumber)
         )
         //case _ => 
       }.getOrElse {
-        Future.failed(new Exception())
+        Future.failed(new NonexistantUserException())
       }
   }
 
-  def findById(id : Long) : Future[ClientSafeUserResponse] = {
+  def find(id : Long) : Future[PhantomUser] = {
     //log.info(s"finding contacts for user with id => $id")
     Query(UserTable).filter(_.id is id)
-      .firstOption.map { u : PhantomUser => Future.successful(ClientSafeUserResponse(u.email, "6144993676", "1234", false, false)) }
-      .getOrElse(Future.failed(new Exception()))
+      .firstOption.map { u : PhantomUser => Future.successful(u) }
+      .getOrElse(Future.failed(new NonexistantUserException()))
   }
 
-  def findContactsById(id : Long) : Future[List[PhantomUser]] = {
+  def findContacts(id : Long) : Future[List[PhantomUser]] = {
     val q = for {
       u <- UserTable
       c <- ContactTable if u.id === c.contactId && c.ownerId === id
@@ -70,11 +80,13 @@ class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extend
     }
   }
 
-  def findContactsByPhone : Unit = {
-
+  def findBlockedContacts(id : Long) = {
+    for {
+      c <- ContactTable if c.contactType === "block" && c.ownerId === id
+    } yield c.contactType
   }
 
-  def updateContacts(id : Long, contacts : List[String]) : Future[StatusCode] = {
+  def updateContacts(id : Long, contacts : List[PhoneNumber]) : Future[StatusCode] = {
 
     // in transaction?
     val q = Query(ContactTable).filter(_.ownerId is id)
@@ -88,13 +100,10 @@ class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extend
 
   def clearBlockList(id : Long) : Future[StatusCode] = {
 
-    val q = for {
-      c <- ContactTable if c.contactType === "block" && c.ownerId === id
-    } yield c.contactType
-    q.update("friend")
-
-    // error handling / how to return something else if update fails?
-    Future.successful(StatusCodes.OK)
+    findBlockedContacts(id).update("friend") match {
+      case 0 => Future.successful(StatusCodes.NotModified)
+      case _ => Future.successful(StatusCodes.OK)
+    }
   }
 
   def createSampleUsers = {
