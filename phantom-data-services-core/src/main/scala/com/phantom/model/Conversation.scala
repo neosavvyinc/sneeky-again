@@ -23,7 +23,7 @@ case class ConversationSummary(mostRecent : ConversationItem)
 case class ConversationDetail(id : Long,
                               conversationItems : List[ConversationItem])
 
-case class Feed(conversations : List[ConversationSummary])
+//case class Feed(conversations : List[Conversation])
 
 case class ConversationInsertResponse(id : Long)
 

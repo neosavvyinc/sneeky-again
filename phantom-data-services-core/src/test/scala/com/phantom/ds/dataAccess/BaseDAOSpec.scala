@@ -5,6 +5,7 @@ import com.phantom.dataAccess.DatabaseSupport
 import org.specs2.specification.BeforeAfter
 import com.phantom.model.{ Conversation, PhantomUser, ConversationItem }
 import org.joda.time.LocalDate
+import com.phantom.model.UserComponent.UserTable
 
 /**
  * Created with IntelliJ IDEA.
@@ -72,4 +73,5 @@ class BaseDAOSpec extends Specification with DatabaseSupport {
     insertTestUsers
     insertTestConversations
   }
+
 }
