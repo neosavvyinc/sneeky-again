@@ -51,25 +51,26 @@ trait ConversationEndpoint extends DataHttpService {
       pathPrefix(conversation) {
         path("start") {
           post {
-            formFields('image.as[Array[Byte]], 'imageText, 'userid, 'toUsers) { (image, imageText, userid, toUsers) =>
-
-              println("imageText> " + imageText)
-              println("userid> " + userid)
-              println("toUsers> " + toUsers)
+            //            formFields('image.as[Array[Byte]], 'imageText, 'userid.as[Long], 'toUsers.as[List[Long]]) { (image, imageText, userid, toUsers) =>
+            formFields('image.as[Array[Byte]], 'imageText, 'userid.as[Long], 'toUsers.as[String]) { (image, imageText, userid, toUsers) =>
+              val userIdsAsString : List[Long] = for (toUserId <- toUsers.split(",").toList) yield toUserId.toLong
 
               val fos : FileOutputStream = new FileOutputStream("testAdam.png")
+              val imageUrl = "/path/to/image";
 
               try {
                 fos.write(image);
               } finally {
                 fos.close();
               }
+
               complete {
 
-                List(
-                  Conversation(Some(1), 1, 1),
-                  Conversation(Some(1), 1, 1)
-                )
+                conversationService.startConversation(
+                  userid,
+                  userIdsAsString,
+                  imageUrl,
+                  imageText)
 
               }
             }
