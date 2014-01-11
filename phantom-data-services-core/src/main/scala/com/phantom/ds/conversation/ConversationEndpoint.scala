@@ -38,11 +38,7 @@ trait ConversationEndpoint extends DataHttpService {
           get {
             respondWithMediaType(`application/json`) {
               complete(
-                //                conversationService.findFeed(id)
-                List(
-                  Conversation(Some(1), 1, 1),
-                  Conversation(Some(1), 1, 1)
-                )
+                conversationService.findFeed(id)
               )
             }
           }
