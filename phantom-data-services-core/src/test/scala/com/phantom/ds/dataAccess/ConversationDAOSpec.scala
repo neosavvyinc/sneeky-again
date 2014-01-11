@@ -85,18 +85,4 @@ class ConversationDAOSpec extends BaseDAOSpec {
 
   }
 
-  def insertTestUsers {
-    val user1 = new PhantomUser(None, "aparrish@neosavvy.com", new LocalDate(1981, 8, 10), true, "1234567")
-    val user2 = new PhantomUser(None, "ccaplinger@neosavvy.com", new LocalDate(1986, 10, 12), true, "1234567")
-    val user3 = new PhantomUser(None, "tewen@neosavvy.com", new LocalDate(1987, 8, 16), true, "1234567")
-    val user4 = new PhantomUser(None, "dhamlettneosavvy.com", new LocalDate(1985, 5, 17), true, "1234567")
-    val user5 = new PhantomUser(None, "nick.sauro@gmail.com", new LocalDate(1987, 8, 16), true, "1234567")
-    val user6 = new PhantomUser(None, "pablo.alonso@gmail.com", new LocalDate(1987, 8, 16), true, "1234567")
-    userServiceDB.insert(user1)
-    userServiceDB.insert(user2)
-    userServiceDB.insert(user3)
-    userServiceDB.insert(user4)
-    userServiceDB.insert(user5)
-    userServiceDB.insert(user6)
-  }
 }

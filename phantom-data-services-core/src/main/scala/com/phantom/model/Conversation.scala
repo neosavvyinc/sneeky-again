@@ -48,7 +48,7 @@ trait ConversationComponent { this : Profile with UserComponent =>
 
 }
 
-trait ConversationItemComponent { this : Profile =>
+trait ConversationItemComponent { this : Profile with ConversationComponent =>
 
   import profile.simple._
   import com.github.tototoshi.slick.JodaSupport._
@@ -58,6 +58,7 @@ trait ConversationItemComponent { this : Profile =>
     def conversationId = column[Long]("CONVERSATION_ID")
     def imageUrl = column[String]("IMAGE_URL")
     def imageText = column[String]("IMAGE_TEXT")
+    def conversationFK = foreignKey("CONVERSATION_FK", conversationId, ConversationTable)(_.id)
 
     def * = id.? ~ conversationId ~ imageUrl ~ imageText <> (ConversationItem, ConversationItem.unapply _)
     def forInsert = id.? ~ conversationId ~ imageUrl ~ imageText <> (ConversationItem, ConversationItem.unapply _) returning id
