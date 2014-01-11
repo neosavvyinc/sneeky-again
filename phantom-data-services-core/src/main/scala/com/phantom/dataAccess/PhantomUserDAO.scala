@@ -15,6 +15,11 @@ class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extend
   def dropDB = dal.drop
   def purgeDB = dal.purge
 
+  def insert(user : PhantomUser) : PhantomUser = {
+    val id = UserTable.forInsert.insert(user)
+    new PhantomUser(Some(id), user.email, user.birthday, user.active, user.phoneNumber)
+  }
+
   def registerUser(registrationRequest : UserRegistration) : Future[ClientSafeUserResponse] = {
     //log.info(s"registering $registrationRequest")
 

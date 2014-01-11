@@ -29,7 +29,7 @@ case class ConversationInsertResponse(id : Long)
 
 case class BlockUserByConversationResponse(id : Long)
 
-trait ConversationComponent { this : Profile =>
+trait ConversationComponent { this : Profile with UserComponent =>
 
   import profile.simple._
   import com.github.tototoshi.slick.JodaSupport._
@@ -38,9 +38,11 @@ trait ConversationComponent { this : Profile =>
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
     def toUser = column[Long]("TO_USER")
     def fromUser = column[Long]("FROM_USER")
+    def toUserFK = foreignKey("TO_USER_FK", toUser, UserTable)(_.id)
+    def fromUserFK = foreignKey("FROM_USER_FK", fromUser, UserTable)(_.id)
 
     def * = id.? ~ toUser ~ fromUser <> (Conversation, Conversation.unapply _)
-    def forInsert = id.? ~ toUser ~ fromUser <> (Conversation, Conversation.unapply _) returning id
+    def forInsert = * returning id
 
   }
 
