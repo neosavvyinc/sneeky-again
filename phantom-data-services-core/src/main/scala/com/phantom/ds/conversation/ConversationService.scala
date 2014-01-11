@@ -1,9 +1,10 @@
 package com.phantom.ds.conversation
 
 import scala.concurrent.{ Future, ExecutionContext }
-import com.phantom.model.Feed
+import com.phantom.model.{ Conversation, ConversationInsertResponse, ConversationItem }
 import scala.collection.mutable.{ Map => MMap }
 import com.phantom.ds.framework.exception.PhantomException
+import spray.http.StatusCodes
 
 /**
  * Created by Neosavvy
@@ -19,7 +20,11 @@ trait ConversationService {
   //    * UserId
   //    * Response
   //    * List of conversations
-  def findFeed(userId : Long) : Future[Feed]
+  def findFeed(userId : Long) : Future[List[Conversation]]
+
+  def startConversation(fromUserId : Long,
+                        toUserIds : List[Long],
+                        conversationItem : ConversationItem) : Future[ConversationInsertResponse]
 
 }
 
@@ -29,25 +34,16 @@ class NoFeedFoundException extends Exception with PhantomException {
 
 object ConversationService {
 
-  def apply()(implicit ec : ExecutionContext) = MConversationService
-
-}
-
-object MConversationService extends ConversationService {
-
-  val feedMap : MMap[Long, Feed] = MMap.empty
-
-  def findFeed(userId : Long) : Future[Feed] = {
-    feedMap.get(userId) match {
-      case Some(x) => Future.successful { x }
-      case None    => Future.failed(new NoFeedFoundException())
+  def apply()(implicit ec : ExecutionContext) = new ConversationService {
+    def findFeed(userId : Long) : Future[List[Conversation]] = {
+      Future.successful(List(new Conversation(Some(1), 1, 1)))
     }
-  }
 
-  def blockUserByConversationId(conversationId : Long) = {
-
-    conversationId
-
+    def startConversation(fromUserId : Long,
+                          toUserIds : List[Long],
+                          conversationItem : ConversationItem) : Future[ConversationInsertResponse] = {
+      Future.successful(new ConversationInsertResponse(1))
+    }
   }
 
 }

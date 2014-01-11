@@ -9,7 +9,7 @@ import com.phantom.ds.framework.Logging
 import com.phantom.ds.PhantomEndpointSpec
 import spray.http.{ BodyPart, MultipartFormData }
 import java.io.{ FileInputStream, FileOutputStream }
-import com.phantom.model.{ BlockUserByConversationResponse }
+import com.phantom.model.{ BlockUserByConversationResponse, Conversation }
 
 /**
  * Created by Neosavvy
@@ -25,9 +25,13 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
   def actorRefFactory = system
 
   "Conversation Service" should {
-    "return a 102 NoFeedFoundException if there is no data for a user" in {
+    "return just one conversation with all 1's" in {
       Get("/conversation/1") ~> conversationRoute ~> check {
-        assertFailure(102)
+        assertPayload[List[Conversation]] { response =>
+          response(0).id must be equalTo Some(1)
+          response(0).fromUser must be equalTo 1
+          response(0).toUser must be equalTo 1
+        }
       }
     }
 
