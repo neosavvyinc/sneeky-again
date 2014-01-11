@@ -5,7 +5,7 @@ import scala.slick.session.{ Database, Session }
 import com.phantom.ds.DSConfiguration
 
 trait DBConfig {
-  def userServiceDB : PhantomUserDAO
+  def phantomUsers : PhantomUserDAO
   def conversations : ConversationDAO
   def contacts : ContactDAO
 }
@@ -22,7 +22,7 @@ trait DatabaseSupport extends DBConfig with DSConfiguration {
 
   // again, creating a DAL requires a Profile, which in this case is the MySQLDriver
   val dataAccessLayer = new DataAccessLayer(MySQLDriver);
-  val userServiceDB = new PhantomUserDAO("MySQL Dev", dataAccessLayer, db)
+  val phantomUsers = new PhantomUserDAO("MySQL Dev", dataAccessLayer, db)
   val conversations = new ConversationDAO("MySQL Dev", dataAccessLayer, db)
   val conversationItems = new ConversationItemDAO("MySQL Dev", dataAccessLayer, db)
   val contacts = new ContactDAO("MySQL", dataAccessLayer, db)
@@ -32,6 +32,6 @@ trait DatabaseSupport extends DBConfig with DSConfiguration {
   dataAccessLayer.create(db.createSession())
 
   //TODO: Remove this - I think this is kind of test code
-  userServiceDB.createSampleUsers
+  phantomUsers.createSampleUsers
   contacts.createSampleContacts
 }
