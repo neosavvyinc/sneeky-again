@@ -86,14 +86,22 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, 
     } yield c.contactType
   }
 
-  def updateContacts(id : Long, contacts : List[PhoneNumber]) : Future[StatusCode] = {
+  def updateContacts(id : Long, contacts : String) : Future[StatusCode] = {
 
-    // in transaction?
-    val q = Query(ContactTable).filter(_.ownerId is id)
+    import scala.slick.jdbc.StaticQuery
+    //val q = Query(ContactTable).filter(_.ownerId is id)
 
-    val contactIds = for {
-      c <- ContactTable if c.ownerId === id
-    } yield c.contactId
+    //val users = Query(UserTable).filter(_.phoneNumber === contacts)
+    //select x2.`id`, x2.`EMAIL`, x2.`BIRTHDAY`, x2.`ACTIVE`, x2.`PHONE_NUMBER` from `USERS` x2 where x2.`PHONE_NUMBER` = '\"6148551499\"'
+    val users = StaticQuery.queryNA[Long]("""select x2.`id` from `USERS` x2 where x2.`PHONE_NUMBER` = '""" + contacts + """'""")
+
+    println(">>>> UPDATE CONTACTS")
+    println(users.list)
+
+    //    users.foreach { u : PhantomUser =>
+    //      //println(u)
+    //      ContactTable.insert(Contact(None, id, u.id.get, "friend"))
+    //    }
 
     Future.successful(StatusCodes.OK)
   }
@@ -112,9 +120,10 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, 
       println("in a transaction...")
 
       UserTable.insertAll(
-        PhantomUser(None, "chris@test.com", new LocalDate(2003, 12, 21), true, "1234567"),
-        PhantomUser(None, "adam@test.com", new LocalDate(2003, 12, 21), true, "1234567"),
-        PhantomUser(None, "trevor@test.com", new LocalDate(2003, 12, 21), true, "1234567")
+        PhantomUser(None, "chris@test.com", new LocalDate(2003, 12, 21), true, "6144993676"),
+        PhantomUser(None, "adam@test.com", new LocalDate(2003, 12, 21), true, "6141234567"),
+        PhantomUser(None, "trevor@test.com", new LocalDate(2003, 12, 21), true, "6148911787"),
+        PhantomUser(None, "bob@test.com", new LocalDate(2003, 12, 21), true, "6148551499")
       )
 
       // uncomment this, the transaction will fail and no users

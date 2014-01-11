@@ -20,7 +20,7 @@ trait UserService {
   def login(loginRequest : UserLogin) : Future[PhantomUser]
   def findById(id : Long) : Future[PhantomUser]
   def findContactsById(id : Long) : Future[List[PhantomUser]]
-  def updateContacts(id : Long, contacts : List[PhoneNumber]) : Future[StatusCode]
+  def updateContacts(id : Long, contacts : String) : Future[StatusCode]
   def clearBlockList(id : Long) : Future[StatusCode]
 }
 
@@ -43,11 +43,10 @@ object UserService extends DatabaseSupport {
     }
 
     def findContactsById(id : Long) : Future[List[PhantomUser]] = {
-      //Future.successful(List(PhantomUser(None, "", new LocalDate("12345678"), true, "")))
       phantomUsers.findContacts(id)
     }
 
-    def updateContacts(id : Long, contacts : List[PhoneNumber]) : Future[StatusCode] = {
+    def updateContacts(id : Long, contacts : String) : Future[StatusCode] = {
       phantomUsers.updateContacts(id, contacts)
     }
 
