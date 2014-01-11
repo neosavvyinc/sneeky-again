@@ -4,13 +4,7 @@ import scala.slick.driver.MySQLDriver
 import scala.slick.session.{ Database, Session }
 import com.phantom.ds.DSConfiguration
 
-trait DBConfig {
-  def phantomUsers : PhantomUserDAO
-  def conversations : ConversationDAO
-  def contacts : ContactDAO
-}
-
-trait DatabaseSupport extends DBConfig with DSConfiguration {
+trait DatabaseSupport extends DSConfiguration {
 
   val db = Database.forURL(
     DBConfiguration.url,

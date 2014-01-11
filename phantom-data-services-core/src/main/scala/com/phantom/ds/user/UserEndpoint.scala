@@ -5,11 +5,11 @@ import com.phantom.model._
 import com.phantom.ds.framework.httpx._
 import spray.json._
 import com.phantom.ds.DataHttpService
-import com.phantom.dataAccess.DBConfig
+import com.phantom.dataAccess.{ DatabaseSupport }
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 
 trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
-  this : RequestAuthenticator with EntryPointAuthenticator with DBConfig =>
+  this : RequestAuthenticator with EntryPointAuthenticator with DatabaseSupport =>
 
   val userService = UserService()
 
