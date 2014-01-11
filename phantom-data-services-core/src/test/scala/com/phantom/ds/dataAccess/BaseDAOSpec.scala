@@ -72,4 +72,5 @@ class BaseDAOSpec extends Specification with DatabaseSupport {
     insertTestUsers
     insertTestConversations
   }
+
 }
