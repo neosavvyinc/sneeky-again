@@ -4,11 +4,11 @@ import spray.testkit.Specs2RouteTest
 import spray.json._
 import spray.httpx.SprayJsonSupport._
 import spray.http.StatusCodes._
-import org.specs2.mutable.Specification
+import org.specs2.mutable.{ After, Specification }
 import org.specs2.matcher.MatchResult
 import com.phantom.ds.framework.httpx.{ Failure, PhantomJsonProtocol }
 
-trait PhantomEndpointSpec extends PhantomJsonProtocol {
+trait PhantomEndpointSpec extends PhantomJsonProtocol with After {
   this : Specification with Specs2RouteTest =>
 
   def fromPayload[T](implicit format : JsonFormat[T]) : T = {
@@ -31,4 +31,5 @@ trait PhantomEndpointSpec extends PhantomJsonProtocol {
     response.errorCode must be equalTo code
   }
 
+  def after : Any = system.shutdown _
 }

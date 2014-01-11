@@ -1,9 +1,10 @@
 package com.phantom.ds
 
-import akka.actor.Actor
+import akka.actor.{ ActorRef, Actor }
 import com.phantom.ds.user.UserEndpoint
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 import com.phantom.ds.conversation.ConversationEndpoint
+import com.phantom.ds.integration.twilio.TwilioEndpoint
 
 /**
  * Created by Neosavvy
@@ -13,7 +14,10 @@ import com.phantom.ds.conversation.ConversationEndpoint
  * Time: 4:53 PM
  */
 
-class PhantomRouteActor() extends Actor with UserEndpoint with ConversationEndpoint {
+class PhantomRouteActor(val twilioActor : ActorRef) extends Actor
+    with UserEndpoint
+    with ConversationEndpoint
+    with TwilioEndpoint {
   this : RequestAuthenticator with EntryPointAuthenticator =>
 
   // the HttpService trait defines only one abstract member, which
@@ -24,6 +28,6 @@ class PhantomRouteActor() extends Actor with UserEndpoint with ConversationEndpo
   // other things here, like request stream processing
   // or timeout handling
   def receive = runRoute(
-    userRoute ~ conversationRoute
+    userRoute ~ conversationRoute ~ twilioRoute
   )
 }

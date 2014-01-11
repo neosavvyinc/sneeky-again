@@ -15,4 +15,13 @@ trait DSConfiguration {
     private def authCfg = cfg.getConfig("auth")
   }
 
+  object TwilioConfiguration {
+
+    val accountSid = twilioCfg.getString("accountSid")
+    val authToken = twilioCfg.getString("authToken")
+
+    private def twilioCfg = cfg.getConfig("twilio")
+
+  }
+
 }

@@ -13,6 +13,7 @@ import com.phantom.model.UserLogin
 import com.phantom.model.User
 import com.phantom.model.UserRegistration
 import com.phantom.model.ClientSafeUserResponse
+import com.phantom.ds.integration.twilio.RegistrationVerification
 
 trait UserService {
 
@@ -52,7 +53,6 @@ object MapbackedUserService extends UserService with Logging with PhantomJsonPro
       log.info("added user to map")
       Future.successful(ClientSafeUserResponse(registrationRequest.email, "", registrationRequest.birthday, true, false))
     }
-
   }
 
   def loginUser(loginRequest : UserLogin) : Future[ClientSafeUserResponse] = {

@@ -18,6 +18,7 @@ import com.phantom.model.UserRegistration
 import com.phantom.model.ConversationDetail
 import org.joda.time.{ LocalDate, DateTimeZone, DateTime }
 import org.joda.time.format.ISODateTimeFormat
+import com.phantom.ds.integration.twilio.{ InviteMessageStatus, RegistrationVerification }
 
 package object httpx {
 
@@ -32,6 +33,8 @@ package object httpx {
     implicit val phantomUserFormat = jsonFormat1(PhantomUser)
     implicit val userLoginFormat = jsonFormat2(UserLogin)
     implicit val clientSafeUserResponse = jsonFormat5(ClientSafeUserResponse)
+    implicit val registrationVerificationFormat = jsonFormat6(RegistrationVerification)
+    implicit val inviteMessageStatusFormat = jsonFormat2(InviteMessageStatus)
 
     implicit val conversationStarterFormat = jsonFormat4(ConversationStarter)
     implicit val conversationItemFormat = jsonFormat6(ConversationItem)
