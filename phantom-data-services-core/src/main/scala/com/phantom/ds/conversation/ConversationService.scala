@@ -48,6 +48,7 @@ object ConversationService {
                           imageUrl : String) : Future[ConversationInsertResponse] = {
 
       val session : Session = db.createSession
+      var count = 0
 
       session.withTransaction {
         val startedConversations : List[Conversation] = for (toUserId <- toUserIds) yield Conversation(None, toUserId, fromUserId)
@@ -59,12 +60,12 @@ object ConversationService {
           conversation => conversationItems.insert(ConversationItem(None, conversation.id.get, imageUrl, imageText))
         }
 
-
+        count = startedConversations.size
       }
 
       session.close()
 
-      Future.successful(ConversationInsertResponse(startedConversations))
+      Future.successful(ConversationInsertResponse(count))
     }
   }
 
