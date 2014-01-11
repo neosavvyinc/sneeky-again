@@ -17,7 +17,7 @@
         </encoder>
     </appender>
 
-    <logger name="scala.slick.session" level="DEBUG"/>
+    <logger name="scala.slick.session" level="TRACE"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

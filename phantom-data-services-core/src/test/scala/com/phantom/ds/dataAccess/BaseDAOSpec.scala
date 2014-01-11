@@ -23,7 +23,7 @@ class BaseDAOSpec extends Specification with DatabaseSupport {
 
     def after {
       println("Executing after astuff...")
-      conversations.dropDB
+      //      conversations.dropDB
     }
   }
 

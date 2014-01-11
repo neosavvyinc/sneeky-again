@@ -15,6 +15,11 @@ class ContactDAO(name : String, dal : DataAccessLayer, db : Database) extends Ba
   def dropDB = dal.drop
   def purgeDB = dal.purge
 
+  def insert(contact : Contact) = {
+    val id = ContactTable.forInsert.insert(contact)
+    Contact(Some(id), contact.ownerId, contact.contactId, contact.contactType)
+  }
+
   def createSampleContacts = {
     ContactTable.insertAll(
       Contact(None, 1, 2, "friend"),

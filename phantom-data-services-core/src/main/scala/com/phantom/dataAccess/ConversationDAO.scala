@@ -21,7 +21,7 @@ class ConversationDAO(name : String, dal : DataAccessLayer, db : Database) exten
 
   def insert(conversationItem : Conversation) : Conversation = {
     val id = ConversationTable.forInsert.insert(conversationItem)
-    new Conversation(Some(id), conversationItem.toUser, conversationItem.fromUser)
+    Conversation(Some(id), conversationItem.toUser, conversationItem.fromUser)
   }
   def findByFromUserId(fromUserId : Long) : List[Conversation] = {
     val items = Query(ConversationTable) filter { _.fromUser === fromUserId }

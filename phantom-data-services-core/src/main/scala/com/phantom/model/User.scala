@@ -51,6 +51,7 @@ trait UserComponent { this : Profile =>
     def phoneNumber = column[String]("PHONE_NUMBER")
 
     def * = id.? ~ email ~ birthday ~ active ~ phoneNumber <> (PhantomUser, PhantomUser.unapply _)
+    def forInsert = * returning id
 
   }
 }

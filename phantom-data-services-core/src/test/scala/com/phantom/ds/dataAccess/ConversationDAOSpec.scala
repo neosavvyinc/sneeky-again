@@ -2,8 +2,9 @@ package com.phantom.ds.dataAccess
 
 import org.specs2.mutable._
 import com.phantom.dataAccess.DatabaseSupport
-import com.phantom.model.Conversation
+import com.phantom.model.{ PhantomUser, Conversation }
 import org.specs2.specification.BeforeAfter
+import org.joda.time.LocalDate
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,9 +18,9 @@ class ConversationDAOSpec extends BaseDAOSpec {
   sequential
 
   "ConversationDAO" should {
-    "support inserting users" in {
+    "support inserting conversations for users" in withSetupTeardown {
 
-      withSetupTeardown.before
+      insertTestUsers
 
       val conv1 = conversations.insert(new Conversation(
         None, 1, 2
@@ -33,8 +34,9 @@ class ConversationDAOSpec extends BaseDAOSpec {
 
     }
 
-    "support searching for a conversation by owner id" in {
-      withSetupTeardown.before
+    "support searching for a conversation by owner id" in withSetupTeardown {
+      insertTestUsers
+
       conversations.insert(new Conversation(None, 3, 2))
       conversations.insert(new Conversation(None, 3, 4))
       val c = conversations.findByFromUserId(2)
@@ -42,8 +44,9 @@ class ConversationDAOSpec extends BaseDAOSpec {
       (c(0).fromUser must equalTo(2)) and (c1(0).fromUser must equalTo(4))
     }
 
-    "support deleting users" in {
-      withSetupTeardown.before
+    "support deleting conversations" in withSetupTeardown {
+      insertTestUsers
+
       conversations.insert(new Conversation(None, 1, 2))
       conversations.insert(new Conversation(None, 3, 4))
       conversations.insert(new Conversation(None, 5, 6))
@@ -53,8 +56,9 @@ class ConversationDAOSpec extends BaseDAOSpec {
         (conversations.deleteById(4) must equalTo(0))
     }
 
-    "support finding one conversation by id" in {
-      withSetupTeardown.before
+    "support finding one conversation by id" in withSetupTeardown {
+      insertTestUsers
+
       conversations.insert(new Conversation(None, 1, 2))
       conversations.insert(new Conversation(None, 3, 4))
       conversations.insert(new Conversation(None, 5, 6))
@@ -64,8 +68,8 @@ class ConversationDAOSpec extends BaseDAOSpec {
         (conversations.findById(1).fromUser must equalTo(2))
     }
 
-    "support inserting then updating a row" in {
-      withSetupTeardown.before
+    "support inserting then updating a row" in withSetupTeardown {
+      insertTestUsers
 
       val inserted : Conversation = conversations.insert(new Conversation(None, 1, 2))
 
@@ -81,4 +85,18 @@ class ConversationDAOSpec extends BaseDAOSpec {
 
   }
 
+  def insertTestUsers {
+    val user1 = new PhantomUser(None, "aparrish@neosavvy.com", new LocalDate(1981, 8, 10), true, "1234567")
+    val user2 = new PhantomUser(None, "ccaplinger@neosavvy.com", new LocalDate(1986, 10, 12), true, "1234567")
+    val user3 = new PhantomUser(None, "tewen@neosavvy.com", new LocalDate(1987, 8, 16), true, "1234567")
+    val user4 = new PhantomUser(None, "dhamlettneosavvy.com", new LocalDate(1985, 5, 17), true, "1234567")
+    val user5 = new PhantomUser(None, "nick.sauro@gmail.com", new LocalDate(1987, 8, 16), true, "1234567")
+    val user6 = new PhantomUser(None, "pablo.alonso@gmail.com", new LocalDate(1987, 8, 16), true, "1234567")
+    userServiceDB.insert(user1)
+    userServiceDB.insert(user2)
+    userServiceDB.insert(user3)
+    userServiceDB.insert(user4)
+    userServiceDB.insert(user5)
+    userServiceDB.insert(user6)
+  }
 }

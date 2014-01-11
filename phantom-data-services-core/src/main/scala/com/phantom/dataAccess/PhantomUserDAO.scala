@@ -15,7 +15,12 @@ class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extend
   def dropDB = dal.drop
   def purgeDB = dal.purge
 
-  def register(registrationRequest : UserRegistration) : Future[ClientSafeUserResponse] = {
+  def insert(user : PhantomUser) : PhantomUser = {
+    val id = UserTable.forInsert.insert(user)
+    PhantomUser(Some(id), user.email, user.birthday, user.active, user.phoneNumber)
+  }
+
+  def register(registrationRequest : UserRegistration) : Future[PhantomUser] = {
     //log.info(s"registering $registrationRequest")
 
     Query(UserTable).filter(_.email is registrationRequest.email)
@@ -25,8 +30,9 @@ class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extend
         //
         // confirm / enter confirmation code service ?
         //
-        UserTable.insert(PhantomUser(None, registrationRequest.email, new LocalDate(12345678), true, "6148551499"))
-        Future.successful(ClientSafeUserResponse(registrationRequest.email, "6148551499", registrationRequest.birthday, false, false))
+        Future.successful {
+          insert(PhantomUser(None, registrationRequest.email, new LocalDate(12345678), true, "6148551499"))
+        }
       }
   }
 

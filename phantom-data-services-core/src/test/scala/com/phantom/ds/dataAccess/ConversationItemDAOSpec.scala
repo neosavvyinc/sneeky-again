@@ -17,9 +17,7 @@ class ConversationItemDAOSpec extends BaseDAOSpec {
   sequential
 
   "ConversationItemDAO" should {
-    "support inserting one conversation item" in {
-
-      withSetupTeardown.before
+    "support inserting one conversation item" in withSetupTeardown {
 
       val item = new ConversationItem(
         None, 1, "imageUrl", "imageText"
@@ -34,9 +32,7 @@ class ConversationItemDAOSpec extends BaseDAOSpec {
 
     }
 
-    "support inserting a collection of conversation items and finding them by conversation id" in {
-
-      withSetupTeardown.before
+    "support inserting a collection of conversation items and finding them by conversation id" in withSetupTeardown {
 
       val list = setupItems(1)
 
@@ -48,9 +44,7 @@ class ConversationItemDAOSpec extends BaseDAOSpec {
 
     }
 
-    "support inserting 3 records for one conv then 3 for another then delete by conv id" in {
-
-      withSetupTeardown.before
+    "support inserting 3 records for one conv then 3 for another then delete by conv id" in withSetupTeardown {
 
       val conv1 = setupItems(1)
       val conv2 = setupItems(2)
