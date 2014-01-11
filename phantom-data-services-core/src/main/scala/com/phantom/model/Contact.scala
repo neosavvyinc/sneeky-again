@@ -24,6 +24,7 @@ trait ContactComponent { this : Profile with UserComponent =>
     def contactId = column[Long]("CONTACT_ID")
     def contactType = column[String]("TYPE")
     def * = id.? ~ ownerId ~ contactId ~ contactType <> (Contact, Contact.unapply _)
+    def forInsert = * returning id
 
     def owner = foreignKey("OWNER_FK", ownerId, UserTable)(_.id)
     def contact = foreignKey("CONTACT_FK", contactId, UserTable)(_.id)
