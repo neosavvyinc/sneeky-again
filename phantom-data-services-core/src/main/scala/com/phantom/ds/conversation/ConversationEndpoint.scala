@@ -5,14 +5,15 @@ import com.phantom.ds.DataHttpService
 import com.phantom.model._
 import com.phantom.ds.framework.httpx._
 
-import scala.Some
+import scala._
 import spray.http.MultipartFormData
 import java.io.FileOutputStream
-import scala.Some
 import scala.concurrent.{ Future, ExecutionContext }
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 import com.phantom.dataAccess.DatabaseSupport
 import scala.concurrent.ExecutionContext.Implicits._
+import com.phantom.model.Conversation
+import com.phantom.model.BlockUserByConversationResponse
 import com.phantom.model.Conversation
 import com.phantom.model.BlockUserByConversationResponse
 import scala.Some
@@ -36,7 +37,13 @@ trait ConversationEndpoint extends DataHttpService {
         id =>
           get {
             respondWithMediaType(`application/json`) {
-              complete(conversationService.findFeed(id))
+              complete(
+                //                conversationService.findFeed(id)
+                List(
+                  Conversation(Some(1), 1, 1),
+                  Conversation(Some(1), 1, 1)
+                )
+              )
             }
           }
       }
@@ -62,12 +69,12 @@ trait ConversationEndpoint extends DataHttpService {
                 fos.close();
               }
               complete {
-                Feed(
-                  List(
-                    Conversation(Some(1), 1, 1),
-                    Conversation(Some(1), 1, 1)
-                  )
+
+                List(
+                  Conversation(Some(1), 1, 1),
+                  Conversation(Some(1), 1, 1)
                 )
+
               }
             }
           }
@@ -95,12 +102,12 @@ trait ConversationEndpoint extends DataHttpService {
                 fos.close();
               }
               complete {
-                Feed(
-                  List(
-                    Conversation(Some(1), 1, 1),
-                    Conversation(Some(1), 1, 1)
-                  )
+
+                List(
+                  Conversation(Some(1), 1, 1),
+                  Conversation(Some(1), 1, 1)
                 )
+
               }
             }
           }
