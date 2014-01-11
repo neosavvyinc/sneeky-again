@@ -7,7 +7,7 @@ import com.phantom.ds.framework.Logging
 import com.phantom.model.{ PhantomUser, UserRegistration, ClientSafeUserResponse, UserLogin, Contact }
 import scala.concurrent.{ ExecutionContext, Future }
 
-class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extends BaseDAO(name, dal, db) {
+class PhantomUserDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, db) {
   import dal._
   import dal.profile.simple._
 

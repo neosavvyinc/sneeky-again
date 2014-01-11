@@ -21,11 +21,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
             respondWithMediaType(`application/json`)
             entity(as[UserRegistration]) {
               reg =>
-<<<<<<< HEAD
-                complete(phantomUsers.registerUser(reg))
-=======
-                complete(userServiceDB.register(reg))
->>>>>>> 090318ba1c37d31acb790fc78ee15b9947d7e0d9
+                complete(phantomUsers.register(reg))
             }
           }
       }
@@ -47,18 +43,14 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
         authenticate(request _) { user =>
           get {
             respondWithMediaType(`application/json`) {
-<<<<<<< HEAD
-              complete(phantomUsers.findContactsForUser(id))
-=======
-              complete(userServiceDB.findContactsById(id))
->>>>>>> 090318ba1c37d31acb790fc78ee15b9947d7e0d9
+              complete(phantomUsers.findContactsById(id))
             }
           } ~
             post {
               respondWithMediaType(`application/json`) {
                 entity(as[List[String]]) { contacts /* list of phone numbers */ =>
                   complete {
-                    userServiceDB.updateContacts(id, contacts)
+                    phantomUsers.updateContacts(id, contacts)
                   }
                 }
               }
@@ -68,7 +60,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
       pathPrefix("users" / LongNumber / "clearblocklist") { id =>
         post {
           respondWithMediaType(`application/json`) {
-            complete(userServiceDB.clearBlockList(id))
+            complete(phantomUsers.clearBlockList(id))
           }
         }
       } ~
@@ -76,11 +68,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
         authenticate(request _) { user =>
           get {
             respondWithMediaType(`application/json`) {
-<<<<<<< HEAD
-              complete(phantomUsers.findUser(id))
-=======
-              complete(userServiceDB.findById(id))
->>>>>>> 090318ba1c37d31acb790fc78ee15b9947d7e0d9
+              complete(phantomUsers.findById(id))
             }
           }
         }

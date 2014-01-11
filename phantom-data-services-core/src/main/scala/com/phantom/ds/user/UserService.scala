@@ -13,7 +13,6 @@ import com.phantom.model.UserLogin
 import com.phantom.model.PhantomUser
 import com.phantom.model.UserRegistration
 import com.phantom.model.ClientSafeUserResponse
-import com.phantom.dataAccess.DBConfig
 
 trait UserService {
 

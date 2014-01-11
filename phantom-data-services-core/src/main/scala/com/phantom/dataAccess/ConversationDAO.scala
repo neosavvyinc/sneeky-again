@@ -11,7 +11,7 @@ package com.phantom.dataAccess
 import scala.slick.session.Database
 import com.phantom.model.Conversation
 
-class ConversationDAO(name : String, dal : DataAccessLayer, db : Database) extends BaseDAO(name, dal, db) {
+class ConversationDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, db) {
   import dal._
   import dal.profile.simple._
 
