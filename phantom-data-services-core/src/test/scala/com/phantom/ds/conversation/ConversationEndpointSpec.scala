@@ -59,9 +59,9 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
       val multipartFormWithData = MultipartFormData {
         Map(
           "imageText" -> BodyPart("This is the image text"),
-          "userid" -> BodyPart("adamparrish"),
+          "userid" -> BodyPart("1"),
           "image" -> BodyPart(byteArray),
-          "toUsers" -> BodyPart("user1,user2,user3")
+          "toUsers" -> BodyPart("1,2,3")
         )
       }
 
@@ -69,7 +69,7 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
         status === OK
       }
 
-    }.pendingUntilFixed("Apparently the fromInputStream is failing on some machines")
+    }.pendingUntilFixed("This is broken because of fromInputStream()")
 
     "support receiving a multi-part form post to update a conversation with image" in {
 

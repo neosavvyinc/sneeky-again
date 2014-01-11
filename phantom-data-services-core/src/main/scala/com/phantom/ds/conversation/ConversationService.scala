@@ -5,6 +5,8 @@ import com.phantom.model.{ Conversation, ConversationInsertResponse, Conversatio
 import scala.collection.mutable.{ Map => MMap }
 import com.phantom.ds.framework.exception.PhantomException
 import spray.http.StatusCodes
+import com.phantom.dataAccess.DatabaseSupport
+import scala.slick.session.Session
 
 /**
  * Created by Neosavvy
@@ -24,7 +26,8 @@ trait ConversationService {
 
   def startConversation(fromUserId : Long,
                         toUserIds : List[Long],
-                        conversationItem : ConversationItem) : Future[ConversationInsertResponse]
+                        imageText : String,
+                        imageUrl : String) : Future[ConversationInsertResponse]
 
 }
 
@@ -34,15 +37,34 @@ class NoFeedFoundException extends Exception with PhantomException {
 
 object ConversationService {
 
-  def apply()(implicit ec : ExecutionContext) = new ConversationService {
+  def apply()(implicit ec : ExecutionContext) = new ConversationService with DatabaseSupport {
     def findFeed(userId : Long) : Future[List[Conversation]] = {
       Future.successful(List(new Conversation(Some(1), 1, 1)))
     }
 
     def startConversation(fromUserId : Long,
                           toUserIds : List[Long],
-                          conversationItem : ConversationItem) : Future[ConversationInsertResponse] = {
-      Future.successful(new ConversationInsertResponse(1))
+                          imageText : String,
+                          imageUrl : String) : Future[ConversationInsertResponse] = {
+
+      val session : Session = db.createSession
+
+      session.withTransaction {
+        val startedConversations : List[Conversation] = for (toUserId <- toUserIds) yield Conversation(None, toUserId, fromUserId)
+        val conversationsFromDB : List[Conversation] = startedConversations.map {
+          conversation => conversations.insert(conversation)
+        }
+
+        conversationsFromDB.foreach {
+          conversation => conversationItems.insert(ConversationItem(None, conversation.id.get, imageUrl, imageText))
+        }
+
+
+      }
+
+      session.close()
+
+      Future.successful(ConversationInsertResponse(startedConversations))
     }
   }
 
