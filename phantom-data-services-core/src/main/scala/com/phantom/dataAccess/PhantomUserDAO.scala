@@ -16,7 +16,7 @@ class NonexistantUserException extends Exception with PhantomException {
   val code = 103
 }
 
-class PhantomUserDAO(name : String, dal : DataAccessLayer, db : Database) extends BaseDAO(name, dal, db) {
+class PhantomUserDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, db) {
   import dal._
   import dal.profile.simple._
   import com.phantom.model.PhantomUserTypes._

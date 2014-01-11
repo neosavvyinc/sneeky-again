@@ -49,12 +49,12 @@ class BaseDAOSpec extends Specification with DatabaseSupport {
     val user4 = new PhantomUser(None, "dhamlettneosavvy.com", new LocalDate(1985, 5, 17), true, "1234567")
     val user5 = new PhantomUser(None, "nick.sauro@gmail.com", new LocalDate(1987, 8, 16), true, "1234567")
     val user6 = new PhantomUser(None, "pablo.alonso@gmail.com", new LocalDate(1987, 8, 16), true, "1234567")
-    users.insert(user1)
-    users.insert(user2)
-    users.insert(user3)
-    users.insert(user4)
-    users.insert(user5)
-    users.insert(user6)
+    phantomUsers.insert(user1)
+    phantomUsers.insert(user2)
+    phantomUsers.insert(user3)
+    phantomUsers.insert(user4)
+    phantomUsers.insert(user5)
+    phantomUsers.insert(user6)
   }
 
   def insertTestConversations {

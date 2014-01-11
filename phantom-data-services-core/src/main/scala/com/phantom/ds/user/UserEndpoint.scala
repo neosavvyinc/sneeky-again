@@ -5,7 +5,7 @@ import com.phantom.model._
 import com.phantom.ds.framework.httpx._
 import spray.json._
 import com.phantom.ds.DataHttpService
-import com.phantom.dataAccess.DBConfig
+import com.phantom.dataAccess.{ DatabaseSupport }
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 
 trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
@@ -21,7 +21,6 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
             respondWithMediaType(`application/json`)
             entity(as[UserRegistration]) {
               reg =>
-                //complete(userServiceDB.register(reg))
                 complete(userService.register(reg))
             }
           }

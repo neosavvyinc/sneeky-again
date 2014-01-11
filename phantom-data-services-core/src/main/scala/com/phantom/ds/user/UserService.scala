@@ -31,28 +31,28 @@ object UserService extends DatabaseSupport {
 
     //def register(registrationRequest : UserRegistration) : Future[PhantomUser] = Unit
     def register(registrationRequest : UserRegistration) : Future[PhantomUser] = {
-      users.register(registrationRequest)
+      phantomUsers.register(registrationRequest)
     }
 
     def login(loginRequest : UserLogin) : Future[PhantomUser] = {
-      users.login(loginRequest)
+      phantomUsers.login(loginRequest)
     }
 
     def findById(id : Long) : Future[PhantomUser] = {
-      users.find(id)
+      phantomUsers.find(id)
     }
 
     def findContactsById(id : Long) : Future[List[PhantomUser]] = {
       //Future.successful(List(PhantomUser(None, "", new LocalDate("12345678"), true, "")))
-      users.findContacts(id)
+      phantomUsers.findContacts(id)
     }
 
     def updateContacts(id : Long, contacts : List[PhoneNumber]) : Future[StatusCode] = {
-      users.updateContacts(id, contacts)
+      phantomUsers.updateContacts(id, contacts)
     }
 
     def clearBlockList(id : Long) : Future[StatusCode] = {
-      users.clearBlockList(id)
+      phantomUsers.clearBlockList(id)
     }
   }
 
