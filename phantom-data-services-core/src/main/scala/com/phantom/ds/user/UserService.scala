@@ -1,6 +1,7 @@
 package com.phantom.ds.user
 
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Success, Failure }
 import spray.http.{ StatusCode, StatusCodes }
 import spray.json._
 import com.phantom.ds.framework.httpx._
@@ -46,8 +47,24 @@ object UserService extends DatabaseSupport {
       phantomUsers.findContacts(id)
     }
 
-    def updateContacts(id : Long, contacts : String) : Future[StatusCode] = {
-      phantomUsers.updateContacts(id, contacts)
+    def updateContacts(id : Long, contactList : String) : Future[StatusCode] = {
+      val session = db.createSession
+
+      session.withTransaction {
+        contacts.deleteAll(id)(session)
+        //          .onComplete {
+        //          //case Success(_) => Future.successful(phantomUsers.updateContacts(id, contactList))
+        //          case Success(_) => {
+        //            Future.failed(new Exception())
+        //          }
+        //          case Failure(ex) => {
+        //            session.rollback()
+        //            Future.failed(new Exception())
+        //          }
+        //        }
+        session.rollback()
+      }
+      Future.successful(StatusCodes.OK)
     }
 
     def clearBlockList(id : Long) : Future[StatusCode] = {

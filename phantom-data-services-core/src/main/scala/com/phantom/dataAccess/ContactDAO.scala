@@ -20,6 +20,14 @@ class ContactDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, db) 
     Contact(Some(id), contact.ownerId, contact.contactId, contact.contactType)
   }
 
+  def deleteAll(id : Long)(session : scala.slick.session.Session) : StatusCode = {
+    Query(ContactTable).filter(_.ownerId === id).delete(session) match {
+      case 0 =>
+        new Exception("nothing deleted"); StatusCodes.NotFound
+      case _ => StatusCodes.OK
+    }
+  }
+
   def createSampleContacts = {
     ContactTable.insertAll(
       Contact(None, 1, 2, "friend"),
@@ -27,21 +35,5 @@ class ContactDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, db) 
       Contact(None, 3, 2, "friend")
     )
   }
-
-  //  def registerUser(registrationRequest : UserRegistration) : Future[ClientSafeUserResponse] = {
-  //    //log.info(s"registering $registrationRequest")
-  //
-  //    Query(UserTable).filter(_.email === registrationRequest.email)
-  //      .firstOption.map { u : PhantomUser =>
-  //        Future.failed(new Exception())
-  //      }.getOrElse {
-  //        //
-  //        // confirm / enter confirmation code service ?
-  //        //
-  //        UserTable.insert(PhantomUser(None, registrationRequest.email, new LocalDate(12345678), true, "6148551499"))
-  //        Future.successful(ClientSafeUserResponse(registrationRequest.email, "6148551499", registrationRequest.birthday, false, false))
-  //      }
-  //  }
-
 }
 

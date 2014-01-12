@@ -89,19 +89,24 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, 
   def updateContacts(id : Long, contacts : String) : Future[StatusCode] = {
 
     import scala.slick.jdbc.StaticQuery
+    import java.lang.StringBuilder
     //val q = Query(ContactTable).filter(_.ownerId is id)
 
     //val users = Query(UserTable).filter(_.phoneNumber === contacts)
     //select x2.`id`, x2.`EMAIL`, x2.`BIRTHDAY`, x2.`ACTIVE`, x2.`PHONE_NUMBER` from `USERS` x2 where x2.`PHONE_NUMBER` = '\"6148551499\"'
-    val users = StaticQuery.queryNA[Long]("""select x2.`id` from `USERS` x2 where x2.`PHONE_NUMBER` = '""" + contacts + """'""")
 
-    println(">>>> UPDATE CONTACTS")
-    println(users.list)
+    // oh man, this is dumb...
+    var sb = new StringBuilder
+    sb.append("""select x2.`id` from `USERS` x2 where x2.`PHONE_NUMBER` = '""")
+    sb.append(contacts)
+    sb.append("""'""")
+    val q = sb.toString.replace(""""""", """""")
 
-    //    users.foreach { u : PhantomUser =>
-    //      //println(u)
-    //      ContactTable.insert(Contact(None, id, u.id.get, "friend"))
-    //    }
+    val users = StaticQuery.queryNA[Long](q)
+
+    users.list.foreach { uid : Long =>
+      ContactTable.insert(Contact(None, id, uid, "friend"))
+    }
 
     Future.successful(StatusCodes.OK)
   }
@@ -128,7 +133,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, 
 
       // uncomment this, the transaction will fail and no users
       // will be inserted
-      // val dumbComputation : Int = 1 / 0
+      //val dumbComputation : Int = 1 / 0
     }
 
   }
