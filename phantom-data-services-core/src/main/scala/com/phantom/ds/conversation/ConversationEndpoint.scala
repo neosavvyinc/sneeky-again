@@ -85,7 +85,7 @@ trait ConversationEndpoint extends DataHttpService {
       pathPrefix(conversation) {
         path("respond") {
           post {
-            formFields('image.as[Array[Byte]], 'imageText, 'convId.as[Int]?) { (image, imageText, convId) =>
+            formFields('image.as[Array[Byte]], 'imageText, 'convId.as[Long]) { (image, imageText, convId) =>
 
               println("imageText> " + imageText)
               println("convId> " + convId)
@@ -93,6 +93,8 @@ trait ConversationEndpoint extends DataHttpService {
               //TODO Make sure this file is saved outside classpath
               //TODO Make sure this file is unique to each conversation so that we can clean it later
               val fos : FileOutputStream = new FileOutputStream("testAdam.png");
+              val imageUrl = "/path/to/image"
+
               try {
                 fos.write(image);
               } finally {
@@ -100,10 +102,10 @@ trait ConversationEndpoint extends DataHttpService {
               }
               complete {
 
-                List(
-                  Conversation(Some(1), 1, 1),
-                  Conversation(Some(1), 1, 1)
-                )
+                conversationService.respondToConversation(
+                  convId,
+                  imageText,
+                  imageUrl)
 
               }
             }
