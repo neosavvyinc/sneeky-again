@@ -62,6 +62,7 @@ object UUIDConversions {
 case class PhantomUser(id : Option[Long],
                        uuid : UUID,
                        email : String,
+                       password : String,
                        birthday : LocalDate,
                        active : Boolean,
                        phoneNumber : String,
@@ -78,15 +79,16 @@ trait UserComponent { this : Profile =>
   implicit val UUIDMapper = MappedTypeMapper.base[UUID, String](UUIDConversions.toStringRep, UUIDConversions.fromStringRep)
 
   object UserTable extends Table[PhantomUser]("USERS") {
-    def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
-    def uuid = column[UUID]("uuid")
+    def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def uuid = column[UUID]("UUID")
     def email = column[String]("EMAIL", DBType("VARCHAR(256)"))
+    def password = column[String]("PASSWORD", DBType("VARCHAR(300)"))
     def birthday = column[LocalDate]("BIRTHDAY")
     def active = column[Boolean]("ACTIVE")
     def phoneNumber = column[String]("PHONE_NUMBER")
     def status = column[UserStatus]("STATUS")
 
-    def * = id.? ~ uuid ~ email ~ birthday ~ active ~ phoneNumber ~ status <> (PhantomUser, PhantomUser.unapply _)
+    def * = id.? ~ uuid ~ email ~ password ~ birthday ~ active ~ phoneNumber ~ status <> (PhantomUser, PhantomUser.unapply _)
     def forInsert = * returning id
 
   }

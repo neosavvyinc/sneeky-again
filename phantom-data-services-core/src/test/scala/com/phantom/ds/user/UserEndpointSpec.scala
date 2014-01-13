@@ -23,12 +23,6 @@ class UserEndpointSpec extends Specification
 
   val birthday = LocalDate.parse("1981-08-10")
 
-  def registerUser(newUser : UserRegistration) = {
-    Post("/users/register", newUser) ~> userRoute ~> check {
-      status == OK
-    }
-  }
-
   sequential
 
   "User Service" should {
@@ -45,9 +39,9 @@ class UserEndpointSpec extends Specification
       }
     }
 
-    /*  "fail if registering a user with a duplicate email" in withSetupTeardown {
+    "fail if registering a user with a duplicate email" in withSetupTeardown {
       val newUser = UserRegistration("adamparrish@something.com", birthday, "somethingelse")
-      registerUser(newUser)
+      createVerifiedUser(newUser.email, newUser.password)
 
       Post("/users/register", newUser) ~> userRoute ~> check {
         assertFailure(101)
@@ -55,24 +49,38 @@ class UserEndpointSpec extends Specification
     }
 
     "fail logging in if a user does not exist" in withSetupTeardown {
-      val newUser = UserLogin("adamparrish@something.com", "mypassword")
+      val newUser = UserLogin("crazy@abc.xyz", "mypassword")
       Post("/users/login", newUser) ~> userRoute ~> check {
         assertFailure(103)
       }
     }
 
-    "log in if a user exists" in withSetupTeardown {
-      val newUser = UserRegistration("adamparrish@something.com", birthday, "mypassword")
-      registerUser(newUser)
+    "fail logging in if a user is not verified" in withSetupTeardown {
+      val login = UserLogin("nsauro@ev.com", "password")
+      createUnverifiedUser("nsauro@ev.com", "password")
+      Post("/users/login", login) ~> userRoute ~> check {
+        assertFailure(104)
+      }
+    }
 
+    "fail logging in if a password is not valid" in withSetupTeardown {
+      val login = UserLogin("nsauro@ev.com", "badpassword")
+      createVerifiedUser("nsauro@ev.com", "password")
+      Post("/users/login", login) ~> userRoute ~> check {
+        assertFailure(103)
+      }
+    }
+
+    "log in if a user exists" in withSetupTeardown {
+      createVerifiedUser("adamparrish@something.com", "mypassword")
       Post("/users/login", UserLogin("adamparrish@something.com", "mypassword")) ~> userRoute ~> check {
-        assertPayload[ClientSafeUserResponse] { response =>
+        assertPayload[PhantomUser] { response =>
           response.email must be equalTo "adamparrish@something.com"
         }
       }
     }
 
-    "return a NonexistantUserException if you try to update contacts for a nonexistant user" in withSetupTeardown {
+    /*"return a NonexistantUserException if you try to update contacts for a nonexistant user" in withSetupTeardown {
       val phoneNumbers = List("(614)499-3676", "(614)519-2050", "(614)206-1266")
       Post("/users/1/contacts", phoneNumbers) ~> userRoute ~> check {
         assertFailure(103)

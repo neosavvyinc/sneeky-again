@@ -3,9 +3,13 @@ package com.phantom.ds.dataAccess
 import org.specs2.mutable.Specification
 import com.phantom.dataAccess.DatabaseSupport
 import org.specs2.specification.BeforeAfter
-import com.phantom.model.{ Conversation, PhantomUser, ConversationItem }
-import org.joda.time.LocalDate
+import com.phantom.model._
+import org.joda.time.{ DateTimeZone, LocalDate }
 import java.util.UUID
+import com.phantom.model.Conversation
+import com.phantom.model.ConversationItem
+import com.phantom.model.PhantomUser
+import com.phantom.ds.user.Passwords
 
 /**
  * Created with IntelliJ IDEA.
@@ -45,13 +49,21 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
     List(item1, item2, item3)
   }
 
+  def createVerifiedUser(email : String, password : String) {
+    phantomUsers.insert(PhantomUser(None, UUID.randomUUID, email, Passwords.getSaltedHash(password), LocalDate.now(DateTimeZone.UTC), true, "", Verified))
+  }
+
+  def createUnverifiedUser(email : String, password : String) {
+    phantomUsers.insert(PhantomUser(None, UUID.randomUUID, email, Passwords.getSaltedHash(password), LocalDate.now(DateTimeZone.UTC), true, "", Unverified))
+  }
+
   def insertTestUsers {
-    val user1 = new PhantomUser(None, UUID.randomUUID(), "aparrish@neosavvy.com", new LocalDate(1981, 8, 10), true, "1234567")
-    val user2 = new PhantomUser(None, UUID.randomUUID(), "ccaplinger@neosavvy.com", new LocalDate(1986, 10, 12), true, "1234567")
-    val user3 = new PhantomUser(None, UUID.randomUUID(), "tewen@neosavvy.com", new LocalDate(1987, 8, 16), true, "1234567")
-    val user4 = new PhantomUser(None, UUID.randomUUID(), "dhamlettneosavvy.com", new LocalDate(1985, 5, 17), true, "1234567")
-    val user5 = new PhantomUser(None, UUID.randomUUID(), "nick.sauro@gmail.com", new LocalDate(1987, 8, 16), true, "1234567")
-    val user6 = new PhantomUser(None, UUID.randomUUID(), "pablo.alonso@gmail.com", new LocalDate(1987, 8, 16), true, "1234567")
+    val user1 = new PhantomUser(None, UUID.randomUUID(), "aparrish@neosavvy.com", "password", new LocalDate(1981, 8, 10), true, "1234567")
+    val user2 = new PhantomUser(None, UUID.randomUUID(), "ccaplinger@neosavvy.com", "password", new LocalDate(1986, 10, 12), true, "1234567")
+    val user3 = new PhantomUser(None, UUID.randomUUID(), "tewen@neosavvy.com", "password", new LocalDate(1987, 8, 16), true, "1234567")
+    val user4 = new PhantomUser(None, UUID.randomUUID(), "dhamlettneosavvy.com", "password", new LocalDate(1985, 5, 17), true, "1234567")
+    val user5 = new PhantomUser(None, UUID.randomUUID(), "nick.sauro@gmail.com", "password", new LocalDate(1987, 8, 16), true, "1234567")
+    val user6 = new PhantomUser(None, UUID.randomUUID(), "pablo.alonso@gmail.com", "password", new LocalDate(1987, 8, 16), true, "1234567")
     phantomUsers.insert(user1)
     phantomUsers.insert(user2)
     phantomUsers.insert(user3)
