@@ -5,8 +5,9 @@ import spray.http.{ StatusCode, StatusCodes }
 import org.joda.time.LocalDate
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.framework.exception.PhantomException
-import com.phantom.model.{ PhantomUser, UserRegistration, ClientSafeUserResponse, UserLogin, Contact }
-import scala.concurrent.{ ExecutionContext, Future }
+import com.phantom.model.{ PhantomUser, UserRegistration, UserLogin, Contact }
+import scala.concurrent.{ ExecutionContext, Future, future }
+import java.util.UUID
 
 class DuplicateUserException extends Exception with PhantomException {
   val code = 101
@@ -16,34 +17,50 @@ class NonexistantUserException extends Exception with PhantomException {
   val code = 103
 }
 
-class PhantomUserDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, db) {
+class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionContext) extends BaseDAO(dal, db) with Logging {
   import dal._
   import dal.profile.simple._
-  import com.phantom.model.PhantomUserTypes._
 
   def createDB = dal.create
   def dropDB = dal.drop
   def purgeDB = dal.purge
 
+  //move me
   def insert(user : PhantomUser) : PhantomUser = {
+    log.trace(s"inserting user: $user")
     val id = UserTable.forInsert.insert(user)
-    PhantomUser(Some(id), user.email, user.birthday, user.active, user.phoneNumber)
+    log.trace(s"id $id")
+    user.copy(id = Some(id))
   }
 
-  def register(registrationRequest : UserRegistration) : Future[PhantomUser] = {
-    //log.info(s"registering $registrationRequest")
+  private val exists = for (email <- Parameters[String]; u <- UserTable if u.email is email) yield u.exists
 
-    Query(UserTable).filter(_.email is registrationRequest.email)
-      .firstOption.map { u : PhantomUser =>
-        Future.failed(new DuplicateUserException())
-      }.getOrElse {
-        //
-        // confirm / enter confirmation code service ?
-        //
-        Future.successful {
-          insert(PhantomUser(None, registrationRequest.email, registrationRequest.birthday, true, ""))
+  def register(registrationRequest : UserRegistration) : Future[PhantomUser] = {
+    log.trace(s"registering $registrationRequest")
+    future {
+      log.trace("checking for existing user")
+      val ex = exists(registrationRequest.email).firstOption
+      log.trace(s"results $ex")
+
+      val mapped = ex.map { e =>
+        log.trace("inside mapppppinggg")
+        if (e) {
+          log.trace(s"duplicate email detected when registering $registrationRequest")
+          throw new DuplicateUserException
+        } else {
+          createUserRecord(registrationRequest)
         }
       }
+
+      mapped.getOrElse(createUserRecord(registrationRequest))
+
+    }
+  }
+
+  private def createUserRecord(reg : UserRegistration) = {
+    log.trace("creating user record")
+    val uuid = UUID.randomUUID()
+    insert(PhantomUser(None, uuid, reg.email, reg.birthday, true, ""))
   }
 
   def login(loginRequest : UserLogin) : Future[PhantomUser] = {
@@ -53,7 +70,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, 
       .firstOption.map { u : PhantomUser =>
         // check hashed password vs. loginRequest.password
         Future.successful(
-          PhantomUser(None, u.email, u.birthday, true, u.phoneNumber)
+          u
         )
         //case _ => 
       }.getOrElse {
@@ -125,10 +142,10 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, 
       println("in a transaction...")
 
       UserTable.insertAll(
-        PhantomUser(None, "chris@test.com", new LocalDate(2003, 12, 21), true, "6144993676"),
-        PhantomUser(None, "adam@test.com", new LocalDate(2003, 12, 21), true, "6141234567"),
-        PhantomUser(None, "trevor@test.com", new LocalDate(2003, 12, 21), true, "6148911787"),
-        PhantomUser(None, "bob@test.com", new LocalDate(2003, 12, 21), true, "6148551499")
+        PhantomUser(None, UUID.randomUUID, "chris@test.com", new LocalDate(2003, 12, 21), true, "6144993676"),
+        PhantomUser(None, UUID.randomUUID, "adam@test.com", new LocalDate(2003, 12, 21), true, "6141234567"),
+        PhantomUser(None, UUID.randomUUID, "trevor@test.com", new LocalDate(2003, 12, 21), true, "6148911787"),
+        PhantomUser(None, UUID.randomUUID, "bob@test.com", new LocalDate(2003, 12, 21), true, "6148551499")
       )
 
       // uncomment this, the transaction will fail and no users

@@ -25,12 +25,10 @@ trait UserService {
   def clearBlockList(id : Long) : Future[StatusCode]
 }
 
-object UserService extends DatabaseSupport {
+object UserService {
 
-  //def apply()(implicit ec : ExecutionContext) = MapbackedUserService
-  def apply()(implicit ec : ExecutionContext) = new UserService {
+  def apply()(implicit ec : ExecutionContext) = new UserService with DatabaseSupport with Logging {
 
-    //def register(registrationRequest : UserRegistration) : Future[PhantomUser] = Unit
     def register(registrationRequest : UserRegistration) : Future[PhantomUser] = {
       phantomUsers.register(registrationRequest)
     }

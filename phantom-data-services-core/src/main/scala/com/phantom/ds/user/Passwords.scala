@@ -12,6 +12,10 @@ object Passwords {
   val saltLen = 32
   val desiredKeyLen = 256
 
+  def validate(password : String) {
+
+  }
+
   def getSaltedHash(password : String) = {
     val salt = SecureRandom.getInstance("SHA1PRNG").generateSeed(saltLen)
     // store the salt with the password

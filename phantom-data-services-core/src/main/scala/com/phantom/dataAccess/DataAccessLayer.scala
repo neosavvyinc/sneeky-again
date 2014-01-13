@@ -12,22 +12,24 @@ import scala.slick.session.{ Session, Database }
 
 import scala._
 import org.joda.time.LocalDate
+import com.phantom.ds.framework.Logging
 
 trait Profile {
   val profile : ExtendedProfile
 }
 
-class DataAccessLayer(override val profile : ExtendedProfile) extends Profile
+class DataAccessLayer(override val profile : ExtendedProfile) extends Profile with Logging
     with UserComponent
     with ConversationComponent
     with ConversationItemComponent
     with ContactComponent {
   import profile.simple._
 
-  def ddl = ConversationItemTable.ddl ++
-    ConversationTable.ddl ++
+  def ddl =
     UserTable.ddl ++
-    ContactTable.ddl
+      ConversationTable.ddl ++
+      ConversationItemTable.ddl ++
+      ContactTable.ddl
 
   ddl.createStatements.foreach(println)
 
