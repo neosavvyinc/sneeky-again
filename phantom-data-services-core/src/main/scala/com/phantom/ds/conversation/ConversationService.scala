@@ -7,6 +7,7 @@ import com.phantom.ds.framework.exception.PhantomException
 import spray.http.StatusCodes
 import com.phantom.dataAccess.DatabaseSupport
 import scala.slick.session.Session
+import java.io.{ File, FileOutputStream }
 
 /**
  * Created by Neosavvy
@@ -79,6 +80,26 @@ object ConversationService {
 
         Future.successful(ConversationUpdateResponse(1))
       }
+
+    }
+
+    def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String = {
+
+      val imageDir = "/tmp/" + conversationId
+      val imageUrl = imageDir + "/image"
+      val dir : File = new File(imageDir)
+      if (!dir.exists())
+        dir.mkdir()
+
+      val fos : FileOutputStream = new FileOutputStream(imageUrl);
+
+      try {
+        fos.write(image);
+      } finally {
+        fos.close();
+      }
+
+      imageUrl
 
     }
   }

@@ -53,25 +53,12 @@ trait ConversationEndpoint extends DataHttpService {
           post {
             //            formFields('image.as[Array[Byte]], 'imageText, 'userid.as[Long], 'toUsers.as[List[Long]]) { (image, imageText, userid, toUsers) =>
             formFields('image.as[Array[Byte]], 'imageText, 'userid.as[Long], 'toUsers.as[String]) { (image, imageText, userid, toUsers) =>
-              val userIdsAsString : List[Long] = for (toUserId <- toUsers.split(",").toList) yield toUserId.toLong
-
-              val fos : FileOutputStream = new FileOutputStream("testAdam.png")
-              val imageUrl = "/path/to/image";
-
-              try {
-                fos.write(image);
-              } finally {
-                fos.close();
-              }
-
               complete {
-
                 conversationService.startConversation(
                   userid,
-                  userIdsAsString,
-                  imageUrl,
+                  for (toUserId <- toUsers.split(",").toList) yield toUserId.toLong,
+                  conversationService.saveFileForConversationId(image, userid),
                   imageText)
-
               }
             }
           }
@@ -87,25 +74,11 @@ trait ConversationEndpoint extends DataHttpService {
           post {
             formFields('image.as[Array[Byte]], 'imageText, 'convId.as[Long]) { (image, imageText, convId) =>
 
-              println("imageText> " + imageText)
-              println("convId> " + convId)
-
-              //TODO Make sure this file is saved outside classpath
-              //TODO Make sure this file is unique to each conversation so that we can clean it later
-              val fos : FileOutputStream = new FileOutputStream("testAdam.png");
-              val imageUrl = "/path/to/image"
-
-              try {
-                fos.write(image);
-              } finally {
-                fos.close();
-              }
               complete {
-
                 conversationService.respondToConversation(
                   convId,
                   imageText,
-                  imageUrl)
+                  conversationService.saveFileForConversationId(image, convId))
 
               }
             }
