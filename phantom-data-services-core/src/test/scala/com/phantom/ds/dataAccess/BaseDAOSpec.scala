@@ -81,6 +81,25 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
 
   }
 
+  def insertTestConverationsWithItems {
+    insertTestUsersAndConversations
+
+    val conv1item1 = new ConversationItem(None, 1, "imageUrl1", "imageText1")
+    val conv1item2 = new ConversationItem(None, 1, "imageUrl2", "imageText2")
+    val conv1item3 = new ConversationItem(None, 1, "imageUrl3", "imageText3")
+
+    val conv2item1 = new ConversationItem(None, 2, "imageUrl1", "imageText1")
+    val conv2item2 = new ConversationItem(None, 2, "imageUrl2", "imageText2")
+    val conv2item3 = new ConversationItem(None, 2, "imageUrl3", "imageText3")
+
+    conversationItems.insert(conv1item1)
+    conversationItems.insert(conv1item2)
+    conversationItems.insert(conv1item3)
+    conversationItems.insert(conv2item1)
+    conversationItems.insert(conv2item2)
+    conversationItems.insert(conv2item3)
+  }
+
   def insertTestUsersAndConversations {
     insertTestUsers
     insertTestConversations

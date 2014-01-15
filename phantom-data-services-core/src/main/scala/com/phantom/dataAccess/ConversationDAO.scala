@@ -9,7 +9,7 @@ package com.phantom.dataAccess
  */
 
 import scala.slick.session.Database
-import com.phantom.model.Conversation
+import com.phantom.model.{ ConversationItem, Conversation }
 
 class ConversationDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, db) {
   import dal._
@@ -38,6 +38,14 @@ class ConversationDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal,
   def updateById(conversation : Conversation) : Int = {
     val updateQuery = Query(ConversationTable) filter { _.id === conversation.id }
     updateQuery.update(conversation)
+  }
+  def findConversationsAndItems(fromUserId : Long) : List[(Conversation, ConversationItem)] = {
+    val q = for {
+      c <- ConversationTable
+      ci <- ConversationItemTable if c.id === ci.conversationId
+    } yield (c, ci)
+
+    q.list
   }
 
 }

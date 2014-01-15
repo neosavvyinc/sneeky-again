@@ -2,7 +2,7 @@ package com.phantom.ds.dataAccess
 
 import org.specs2.mutable._
 import com.phantom.dataAccess.DatabaseSupport
-import com.phantom.model.{ PhantomUser, Conversation }
+import com.phantom.model.{ ConversationItem, PhantomUser, Conversation }
 import org.specs2.specification.BeforeAfter
 import org.joda.time.LocalDate
 
@@ -81,6 +81,27 @@ class ConversationDAOSpec extends BaseDAOSpec {
         (insertedFromDb.id.get must equalTo(1)) and
         (insertedFromDb.fromUser must equalTo(5)) and
         (insertedFromDb.toUser must equalTo(4))
+    }
+
+    "support returning a list of conversations with a collection of their conversation items attached as a tuple" in withSetupTeardown {
+      insertTestConverationsWithItems
+
+      val feed : List[(Conversation, ConversationItem)] = conversations.findConversationsAndItems(1)
+
+      feed.foreach {
+        c =>
+          val (conv, ci) = c
+          println("ConvId: " + conv.id + " " + conv.toUser + " " + conv.fromUser + " " + ci.imageText + " " + ci.imageUrl)
+
+        //          ci.foreach {
+        //            cItem =>
+        //              println(cItem.id + " " + cItem.imageText + " " + cItem.imageUrl)
+        //          }
+
+      }
+
+      true must equalTo(false) //lacks a real assertion
+
     }
 
   }
