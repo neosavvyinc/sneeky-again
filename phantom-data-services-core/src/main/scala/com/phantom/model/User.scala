@@ -1,8 +1,7 @@
 package com.phantom.model
 
 import com.phantom.dataAccess.Profile
-import org.joda.time.LocalDate
-import java.sql.Date
+import org.joda.time.{ DateTime, LocalDate }
 import scala.slick.lifted.ColumnOption.DBType
 import java.util.UUID
 
@@ -17,18 +16,9 @@ case class UserRegistration(email : String,
 case class UserLogin(email : String,
                      password : String)
 
-case class ClientSafeUserResponse(email : String,
-                                  phoneNumber : String,
-                                  birthday : LocalDate,
-                                  newPictureReceivedNotification : Boolean,
-                                  soundsNotification : Boolean)
+case class LoginSuccess(user : PhantomUser, session : UUID)
 
 case class PhantomUserDeleteMe(id : String)
-
-case class UserInsert(email : String,
-                      birthday : LocalDate,
-                      saltyHash : String,
-                      active : Boolean)
 
 sealed trait UserStatus
 
@@ -57,8 +47,6 @@ object UUIDConversions {
 
 }
 
-// TO DO
-// secret client-facing/obfuscated user id?
 case class PhantomUser(id : Option[Long],
                        uuid : UUID,
                        email : String,
@@ -68,11 +56,12 @@ case class PhantomUser(id : Option[Long],
                        phoneNumber : String,
                        status : UserStatus = Unverified)
 
+case class PhantomSession(sessionId : UUID, userId : Long, created : DateTime, lastAccessed : DateTime)
+
 trait UserComponent { this : Profile =>
 
   import profile.simple._
   import com.github.tototoshi.slick.JodaSupport._
-  import PhantomUserTypes._
 
   implicit val UserStatusMapper = MappedTypeMapper.base[UserStatus, String](UserStatus.toStringRep, UserStatus.fromStringRep)
 
@@ -90,6 +79,26 @@ trait UserComponent { this : Profile =>
 
     def * = id.? ~ uuid ~ email ~ password ~ birthday ~ active ~ phoneNumber ~ status <> (PhantomUser, PhantomUser.unapply _)
     def forInsert = * returning id
+    //def emailUnique = index("emailUnique", email, unique = true)
 
   }
 }
+
+trait UserSessionComponent { this : Profile with UserComponent =>
+
+  import profile.simple._
+  import com.github.tototoshi.slick.JodaSupport._
+
+  object SessionTable extends Table[PhantomSession]("SESSIONS") {
+    def sessionId = column[UUID]("SESSIONID")
+    def userId = column[Long]("USERID")
+    def created = column[DateTime]("CREATED")
+    def lastAccessed = column[DateTime]("LASTACCESSED")
+    def * = sessionId ~ userId ~ created ~ lastAccessed <> (PhantomSession, PhantomSession.unapply _)
+
+    def owner = foreignKey("USER_FK", userId, UserTable)(_.id)
+    //def userUnqiue = index("userUnique", userId, unique = true)
+  }
+
+}
+

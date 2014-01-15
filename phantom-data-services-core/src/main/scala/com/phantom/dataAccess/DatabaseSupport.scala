@@ -23,6 +23,7 @@ trait DatabaseSupport extends DSConfiguration {
   val conversations = new ConversationDAO(dataAccessLayer, db)
   val conversationItems = new ConversationItemDAO(dataAccessLayer, db)
   val contacts = new ContactDAO(dataAccessLayer, db)
+  val sessions = new SessionDAO(dataAccessLayer, db)
 
   //users.purgeDB
   //dataAccessLayer.drop(db.createSession())

@@ -2,14 +2,12 @@ package com.phantom.dataAccess
 
 import scala.slick.session.Database
 import spray.http.{ StatusCode, StatusCodes }
-import org.joda.time.LocalDate
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.framework.exception.PhantomException
 import com.phantom.model._
 import scala.concurrent.{ ExecutionContext, Future, future }
 import java.util.UUID
 import com.phantom.ds.user.Passwords
-import scala.Some
 import com.phantom.model.UserLogin
 import com.phantom.model.PhantomUser
 import com.phantom.model.UserRegistration
@@ -42,7 +40,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
   import dal._
   import dal.profile.simple._
 
-  //move me
+  //move me to test layer
   def insert(user : PhantomUser) : PhantomUser = {
     log.trace(s"inserting user: $user")
     val id = UserTable.forInsert.insert(user)
@@ -72,7 +70,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
   }
 
   private def createUserRecord(reg : UserRegistration) = {
-    //TODO: PASSWORD VALIDATION
+    //TODO: PASSWORD COMPLEXITY VALIDATION
     insert(PhantomUser(None, UUID.randomUUID, reg.email, Passwords.getSaltedHash(reg.password), reg.birthday, true, ""))
   }
 

@@ -1,11 +1,6 @@
 package com.phantom.dataAccess
 
-import com.phantom.model.{
-  UserComponent,
-  ConversationComponent,
-  ConversationItemComponent,
-  ContactComponent
-}
+import com.phantom.model._
 
 import scala.slick.driver.ExtendedProfile
 import scala.slick.session.{ Session, Database }
@@ -22,14 +17,17 @@ class DataAccessLayer(override val profile : ExtendedProfile) extends Profile wi
     with UserComponent
     with ConversationComponent
     with ConversationItemComponent
-    with ContactComponent {
+    with ContactComponent
+    with UserSessionComponent {
+
   import profile.simple._
 
   def ddl =
     UserTable.ddl ++
       ConversationTable.ddl ++
       ConversationItemTable.ddl ++
-      ContactTable.ddl
+      ContactTable.ddl ++
+      SessionTable.ddl
 
   ddl.createStatements.foreach(println)
 

@@ -2,7 +2,6 @@ package com.phantom.ds.user
 
 import com.phantom.model._
 import com.phantom.ds.framework.httpx._
-import spray.http.StatusCodes._
 import org.specs2._
 import mutable.Specification
 import spray.testkit.Specs2RouteTest
@@ -74,8 +73,23 @@ class UserEndpointSpec extends Specification
     "log in if a user exists" in withSetupTeardown {
       createVerifiedUser("adamparrish@something.com", "mypassword")
       Post("/users/login", UserLogin("adamparrish@something.com", "mypassword")) ~> userRoute ~> check {
-        assertPayload[PhantomUser] { response =>
-          response.email must be equalTo "adamparrish@something.com"
+        assertPayload[LoginSuccess] { response =>
+          response.user.email must be equalTo "adamparrish@something.com"
+        }
+      }
+    }
+
+    "logging more than once yields the same session" in withSetupTeardown {
+      createVerifiedUser("adamparrish@something.com", "mypassword")
+      Post("/users/login", UserLogin("adamparrish@something.com", "mypassword")) ~> userRoute ~> check {
+        assertPayload[LoginSuccess] { response =>
+          response.user.email must be equalTo "adamparrish@something.com"
+          val uuid = response.session
+          Post("/users/login", UserLogin("adamparrish@something.com", "mypassword")) ~> userRoute ~> check {
+            assertPayload[LoginSuccess] { res =>
+              res.session must be equalTo uuid
+            }
+          }
         }
       }
     }
