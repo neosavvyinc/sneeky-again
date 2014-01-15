@@ -2,16 +2,22 @@ package com.phantom.ds.framework.auth
 
 import org.specs2.mutable.Specification
 import spray.testkit.Specs2RouteTest
-import org.joda.time.{ DateTimeZone, DateTime }
+import org.joda.time.{ LocalDate, DateTimeZone, DateTime }
 import spray.http.StatusCodes._
 import spray.routing.AuthenticationFailedRejection
 import org.apache.commons.codec.binary.Base64
 import java.net.URLEncoder
 import java.security.MessageDigest
+import com.phantom.ds.dataAccess.BaseDAOSpec
+import java.util.UUID
+import com.phantom.model.{ Verified, Unverified, PhantomUser, PhantomSession }
+import scala.concurrent._
+import scala.concurrent.duration._
 
 class PhantomRequestAuthenticatorSpec extends Specification
     with AuthTestPoint
-    with Specs2RouteTest {
+    with Specs2RouteTest
+    with BaseDAOSpec {
 
   def actorRefFactory = system
 
@@ -69,14 +75,41 @@ class PhantomRequestAuthenticatorSpec extends Specification
       assertAuthFailure(url)
     }
 
-    "pass if all values are present and valid" in {
+    "fail if all values are present and valid but there is no session" in withSetupTeardown {
       val d = now
-      val s = "passingSession"
+      val s = UUID.randomUUID().toString
+      val h = hashValues(d, s)
+      val url = s"/test/protected?$hashP=$h&$dateP=$d&$sessionIdP=$s"
+      assertAuthFailure(url)
+    }
+
+    "pass if all values are present and valid and there is a session" in withSetupTeardown {
+
+      val waitPeriod = Duration(1000, MILLISECONDS)
+      val d = now
+      val sessionCreated = DateTime.now(DateTimeZone.UTC)
+      val uuid = UUID.randomUUID()
+      val s = uuid.toString
+      val u = phantomUsers.insert(PhantomUser(None, UUID.randomUUID, "email", "", LocalDate.now, true, "", Verified))
+      Await.result(sessions.createSession(PhantomSession(uuid, u.id.get, sessionCreated, sessionCreated)), waitPeriod)
       val h = hashValues(d, s)
       val url = s"/test/protected?$hashP=$h&$dateP=$d&$sessionIdP=$s"
       Get(url) ~> testRoute ~> check {
         status === OK
       }
+    }
+
+    "fail if all values are present and valid and there is a session but the user is unverified" in withSetupTeardown {
+      val waitPeriod = Duration(1000, MILLISECONDS)
+      val d = now
+      val sessionCreated = DateTime.now(DateTimeZone.UTC)
+      val uuid = UUID.randomUUID()
+      val s = uuid.toString
+      val u = phantomUsers.insert(PhantomUser(None, UUID.randomUUID, "email", "", LocalDate.now, true, "", Unverified))
+      Await.result(sessions.createSession(PhantomSession(uuid, u.id.get, sessionCreated, sessionCreated)), waitPeriod)
+      val h = hashValues(d, s)
+      val url = s"/test/protected?$hashP=$h&$dateP=$d&$sessionIdP=$s"
+      assertAuthFailure(url)
     }
   }
 

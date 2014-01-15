@@ -2,11 +2,16 @@ package com.phantom.dataAccess
 
 import scala.slick.session.Database
 import spray.http.{ StatusCode, StatusCodes }
-import org.joda.time.LocalDate
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.framework.exception.PhantomException
-import com.phantom.model.{ PhantomUser, UserRegistration, ClientSafeUserResponse, UserLogin, Contact }
-import scala.concurrent.{ ExecutionContext, Future }
+import com.phantom.model._
+import scala.concurrent.{ ExecutionContext, Future, future }
+import java.util.UUID
+import com.phantom.ds.user.Passwords
+import com.phantom.model.UserLogin
+import com.phantom.model.PhantomUser
+import com.phantom.model.UserRegistration
+import com.phantom.model.Contact
 
 class DuplicateUserException extends Exception with PhantomException {
   val code = 101
@@ -16,49 +21,70 @@ class NonexistantUserException extends Exception with PhantomException {
   val code = 103
 }
 
-class PhantomUserDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, db) {
+class UnverifiedUserException(msg : String) extends Exception(msg) with PhantomException {
+  val code = 104
+}
+
+/*
+trait PhantomUserDAO {
+
+  def register(registrationRequest : UserRegistration) : Future[PhantomUser]
+
+  def login(loginRequest : UserLogin) : Future[PhantomUser]
+
+}*/
+
+class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionContext) extends BaseDAO(dal, db)
+    with Logging {
+
   import dal._
   import dal.profile.simple._
-  import com.phantom.model.PhantomUserTypes._
 
-  def createDB = dal.create
-  def dropDB = dal.drop
-  def purgeDB = dal.purge
-
+  //move me to test layer
   def insert(user : PhantomUser) : PhantomUser = {
+    log.trace(s"inserting user: $user")
     val id = UserTable.forInsert.insert(user)
-    PhantomUser(Some(id), user.email, user.birthday, user.active, user.phoneNumber)
+    log.trace(s"id $id")
+    user.copy(id = Some(id))
   }
 
-  def register(registrationRequest : UserRegistration) : Future[PhantomUser] = {
-    //log.info(s"registering $registrationRequest")
+  private val byEmail = for (email <- Parameters[String]; u <- UserTable if u.email is email) yield u
 
-    Query(UserTable).filter(_.email is registrationRequest.email)
-      .firstOption.map { u : PhantomUser =>
-        Future.failed(new DuplicateUserException())
-      }.getOrElse {
-        //
-        // confirm / enter confirmation code service ?
-        //
-        Future.successful {
-          insert(PhantomUser(None, registrationRequest.email, registrationRequest.birthday, true, ""))
+  private val exists = for (email <- Parameters[String]; u <- UserTable if u.email is email) yield u.exists
+
+  def register(registrationRequest : UserRegistration) : Future[PhantomUser] = {
+    log.trace(s"registering $registrationRequest")
+    future {
+      log.trace("checking for existing user")
+      val ex = exists(registrationRequest.email).firstOption
+      val mapped = ex.map { e =>
+        if (e) {
+          log.trace(s"duplicate email detected when registering $registrationRequest")
+          throw new DuplicateUserException
+        } else {
+          createUserRecord(registrationRequest)
         }
       }
+      mapped.getOrElse(createUserRecord(registrationRequest))
+    }
+  }
+
+  private def createUserRecord(reg : UserRegistration) = {
+    //TODO: PASSWORD COMPLEXITY VALIDATION
+    insert(PhantomUser(None, UUID.randomUUID, reg.email, Passwords.getSaltedHash(reg.password), reg.birthday, true, ""))
   }
 
   def login(loginRequest : UserLogin) : Future[PhantomUser] = {
-    //log.info(s"logging in $loginRequest")
-
-    Query(UserTable).filter(_.email is loginRequest.email)
-      .firstOption.map { u : PhantomUser =>
-        // check hashed password vs. loginRequest.password
-        Future.successful(
-          PhantomUser(None, u.email, u.birthday, true, u.phoneNumber)
-        )
-        //case _ => 
-      }.getOrElse {
-        Future.failed(new NonexistantUserException())
+    future {
+      log.trace(s"logging in $loginRequest")
+      val userOpt = byEmail(loginRequest.email).firstOption
+      val filtered = userOpt.filter(x => Passwords.check(loginRequest.password, x.password))
+      val user = filtered.getOrElse(throw new NonexistantUserException)
+      if (user.status == Unverified) {
+        throw new UnverifiedUserException(user.uuid.toString)
       }
+      user
+    }
   }
 
   def find(id : Long) : Future[PhantomUser] = {
@@ -117,25 +143,6 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, 
       case 0 => Future.successful(StatusCodes.NotModified)
       case _ => Future.successful(StatusCodes.OK)
     }
-  }
-
-  def createSampleUsers = {
-
-    implicitSession.withTransaction {
-      println("in a transaction...")
-
-      UserTable.insertAll(
-        PhantomUser(None, "chris@test.com", new LocalDate(2003, 12, 21), true, "6144993676"),
-        PhantomUser(None, "adam@test.com", new LocalDate(2003, 12, 21), true, "6141234567"),
-        PhantomUser(None, "trevor@test.com", new LocalDate(2003, 12, 21), true, "6148911787"),
-        PhantomUser(None, "bob@test.com", new LocalDate(2003, 12, 21), true, "6148551499")
-      )
-
-      // uncomment this, the transaction will fail and no users
-      // will be inserted
-      //val dumbComputation : Int = 1 / 0
-    }
-
   }
 }
 

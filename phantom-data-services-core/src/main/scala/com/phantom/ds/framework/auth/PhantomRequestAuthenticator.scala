@@ -5,7 +5,9 @@ import spray.routing.{ AuthenticationFailedRejection, RequestContext }
 import scala.concurrent.{ ExecutionContext, Future, future }
 import com.phantom.ds.DSConfiguration
 import spray.routing.AuthenticationFailedRejection.CredentialsRejected
-import com.phantom.model.PhantomUser
+import com.phantom.model.{ Verified, PhantomUser }
+import com.phantom.dataAccess.DatabaseSupport
+import java.util.UUID
 
 //For now this authenticator does a bit of both authentication and authorziation
 //since we have no real roles or permissioning yet..just being a user opens up all doors
@@ -14,8 +16,7 @@ trait RequestAuthenticator extends Authenticator {
   def request(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[PhantomUser]]
 }
 
-trait PhantomRequestAuthenticator extends RequestAuthenticator with DSConfiguration {
-  sessionRepo : SessionRepository =>
+trait PhantomRequestAuthenticator extends RequestAuthenticator with DSConfiguration with DatabaseSupport {
 
   def request(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[PhantomUser]] = {
 
@@ -28,7 +29,8 @@ trait PhantomRequestAuthenticator extends RequestAuthenticator with DSConfigurat
         dt <- validateTime(d)
         user <- validateSession(s)
       } yield user
-      toAuthentication(result)
+      val filtered = result.filter(_.status == Verified)
+      toAuthentication(filtered)
     }
   }
 
@@ -41,7 +43,7 @@ trait PhantomRequestAuthenticator extends RequestAuthenticator with DSConfigurat
   }
 
   private def validateSession(sessionId : String) : Option[PhantomUser] = {
-    getUser(sessionId)
+    sessions.findFromSession(UUID.fromString(sessionId))
   }
 }
 

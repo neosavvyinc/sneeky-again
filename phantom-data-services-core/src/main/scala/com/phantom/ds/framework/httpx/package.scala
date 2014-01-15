@@ -8,10 +8,12 @@ import spray.http.StatusCodes.OK
 import spray.json._
 import com.phantom.model._
 import com.phantom.ds.framework.exception.PhantomException
-import com.phantom.model.UserInsert
 import spray.http.HttpResponse
 import com.phantom.model.ConversationSummary
 import com.phantom.model.ConversationItem
+import java.util.UUID
+import com.phantom.dataAccess.UnverifiedUserException
+
 //import com.phantom.model.User
 import com.phantom.model.ConversationStarter
 import com.phantom.model.UserRegistration
@@ -24,24 +26,6 @@ package object httpx {
   private[httpx]type JF[T] = JsonFormat[T]
 
   trait PhantomJsonProtocol extends DefaultJsonProtocol {
-    implicit val failureFormat = jsonFormat2(Failure)
-    implicit val userRegistrationFormat = jsonFormat3(UserRegistration)
-    implicit val userInsertFormat = jsonFormat4(UserInsert)
-
-    implicit val userFormat = jsonFormat5(PhantomUser)
-    implicit val phantomUserFormat = jsonFormat1(PhantomUserDeleteMe)
-    implicit val userLoginFormat = jsonFormat2(UserLogin)
-    implicit val clientSafeUserResponse = jsonFormat5(ClientSafeUserResponse)
-
-    implicit val conversationFormat = jsonFormat3(Conversation)
-    implicit val conversationStarterFormat = jsonFormat4(ConversationStarter)
-    implicit val conversationItemFormat = jsonFormat4(ConversationItem)
-    implicit val conversationSummaryFormat = jsonFormat1(ConversationSummary)
-    implicit val conversationDetail = jsonFormat2(ConversationDetail)
-    //    implicit val conversationFeed = jsonFormat1(Feed)
-    implicit val conversationInsertResponse = jsonFormat1(ConversationInsertResponse)
-    implicit val conversationUpdateResponse = jsonFormat1(ConversationUpdateResponse)
-    implicit val blockUserByConversationId = jsonFormat1(BlockUserByConversationResponse)
 
     implicit object JodaDateTimeFormat extends JsonFormat[DateTime] {
 
@@ -67,7 +51,40 @@ package object httpx {
       }
     }
 
-    //implicit def payloadFormat[T](implicit tag : ClassManifest[T]) : RootJsonFormat[Payload[T]] = jsonFormat1(Payload[T])
+    implicit object UserStatusFormat extends JsonFormat[UserStatus] {
+      def write(obj : UserStatus) = JsString(UserStatus.toStringRep(obj))
+
+      def read(json : JsValue) : UserStatus = json match {
+        case JsString(x) => UserStatus.fromStringRep(x)
+        case _           => deserializationError("Expected String value for UserStatus")
+      }
+    }
+
+    implicit object UUIDFormat extends JsonFormat[UUID] {
+      def write(obj : UUID) = JsString(UUIDConversions.toStringRep(obj))
+
+      def read(json : JsValue) : UUID = json match {
+        case JsString(x) => UUIDConversions.fromStringRep(x)
+        case _           => deserializationError("Expectd String value for UUID")
+      }
+    }
+
+    implicit val failureFormat = jsonFormat2(Failure)
+    implicit val userRegistrationFormat = jsonFormat3(UserRegistration)
+
+    implicit val userFormat = jsonFormat8(PhantomUser)
+    implicit val phantomUserFormat = jsonFormat1(PhantomUserDeleteMe)
+    implicit val userLoginFormat = jsonFormat2(UserLogin)
+    implicit val loginSuccessFormat = jsonFormat2(LoginSuccess)
+
+    implicit val conversationFormat = jsonFormat3(Conversation)
+    implicit val conversationStarterFormat = jsonFormat4(ConversationStarter)
+    implicit val conversationItemFormat = jsonFormat4(ConversationItem)
+    implicit val conversationSummaryFormat = jsonFormat1(ConversationSummary)
+    implicit val conversationDetail = jsonFormat2(ConversationDetail)
+    implicit val conversationInsertResponse = jsonFormat1(ConversationInsertResponse)
+    implicit val conversationUpdateResponse = jsonFormat1(ConversationUpdateResponse)
+    implicit val blockUserByConversationId = jsonFormat1(BlockUserByConversationResponse)
   }
 
   trait PhantomResponseMarshaller extends PhantomJsonProtocol {
@@ -97,8 +114,9 @@ package object httpx {
 
     private def toJson(t : Throwable) = {
       val failure = t match {
-        case x : PhantomException => Failure(x.code, Errors.getMessage(x.code))
-        case _                    => Failure(defaultCode, Errors.getMessage(defaultCode))
+        case x : UnverifiedUserException => Failure(x.code, x.getMessage)
+        case x : PhantomException        => Failure(x.code, Errors.getMessage(x.code))
+        case _                           => Failure(defaultCode, Errors.getMessage(defaultCode))
       }
       failureFormat.write(failure)
     }
@@ -106,5 +124,4 @@ package object httpx {
 
   case class Failure(errorCode : Int, displayError : String)
 
-  //case class Payload[T](payload : T)
 }
