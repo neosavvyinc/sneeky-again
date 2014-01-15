@@ -27,6 +27,8 @@ case class ConversationDetail(id : Long,
 
 case class ConversationInsertResponse(id : Long)
 
+case class ConversationUpdateResponse(id : Long)
+
 case class BlockUserByConversationResponse(id : Long)
 
 trait ConversationComponent { this : Profile with UserComponent =>

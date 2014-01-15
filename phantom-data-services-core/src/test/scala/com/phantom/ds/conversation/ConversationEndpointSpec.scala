@@ -52,15 +52,14 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
 
     "support receiving a multi-part form post to start a conversation with image" in {
 
-      val source = scala.io.Source.fromInputStream(getClass.getResourceAsStream("/testFile.png"))
-      val byteArray = source.map(_.toByte).toArray
-      source.close()
+      val in4 = this.getClass().getClassLoader().getResourceAsStream("testFile.png")
+      var stream = Iterator continually in4.read takeWhile (-1 !=) map (_.toByte) toArray
 
       val multipartFormWithData = MultipartFormData {
         Map(
           "imageText" -> BodyPart("This is the image text"),
           "userid" -> BodyPart("1"),
-          "image" -> BodyPart(byteArray),
+          "image" -> BodyPart(stream),
           "toUsers" -> BodyPart("1,2,3")
         )
       }
@@ -69,19 +68,18 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
         status === OK
       }
 
-    }.pendingUntilFixed("This is broken because of fromInputStream()")
+    }
 
     "support receiving a multi-part form post to update a conversation with image" in {
 
-      val source = scala.io.Source.fromInputStream(getClass.getResourceAsStream("/testFile.png"))
-      val byteArray = source.map(_.toByte).toArray
-      source.close()
+      val in4 = this.getClass().getClassLoader().getResourceAsStream("testFile.png")
+      var stream = Iterator continually in4.read takeWhile (-1 !=) map (_.toByte) toArray
 
       val multipartFormWithData = MultipartFormData {
         Map(
           "convId" -> BodyPart("1"),
           "imageText" -> BodyPart("This is the image text"),
-          "image" -> BodyPart(byteArray)
+          "image" -> BodyPart(stream)
         )
       }
 
@@ -89,7 +87,7 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
         status === OK
       }
 
-    }.pendingUntilFixed("Apparently the fromInputStream is failing on some machines")
+    }
 
     "support blocking a user by providing a conversation id" in {
 
@@ -99,7 +97,7 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
         }
       }
 
-    }.pendingUntilFixed("Apparently the fromInputStream is failing on some machines")
+    }.pendingUntilFixed("This is unimplemented")
   }
 
 }

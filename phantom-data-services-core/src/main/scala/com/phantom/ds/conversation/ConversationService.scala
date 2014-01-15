@@ -1,7 +1,7 @@
 package com.phantom.ds.conversation
 
 import scala.concurrent.{ Future, ExecutionContext }
-import com.phantom.model.{ Conversation, ConversationInsertResponse, ConversationItem }
+import com.phantom.model.{ ConversationUpdateResponse, Conversation, ConversationInsertResponse, ConversationItem }
 import scala.collection.mutable.{ Map => MMap }
 import com.phantom.ds.framework.exception.PhantomException
 import spray.http.StatusCodes
@@ -66,6 +66,20 @@ object ConversationService {
       session.close()
 
       Future.successful(ConversationInsertResponse(count))
+    }
+
+    def respondToConversation(conversationId : Long,
+                              imageText : String,
+                              imageUrl : String) : Future[ConversationUpdateResponse] = {
+
+      val session : Session = db.createSession
+      session.withTransaction {
+
+        conversationItems.insert(ConversationItem(None, conversationId, imageUrl, imageText))
+
+        Future.successful(ConversationUpdateResponse(1))
+      }
+
     }
   }
 
