@@ -8,6 +8,7 @@ import spray.http.StatusCodes
 import com.phantom.dataAccess.DatabaseSupport
 import scala.slick.session.Session
 import java.io.{ File, FileOutputStream }
+import com.phantom.ds.DSConfiguration
 
 /**
  * Created by Neosavvy
@@ -36,7 +37,7 @@ class NoFeedFoundException extends Exception with PhantomException {
   val code = 102
 }
 
-object ConversationService {
+object ConversationService extends DSConfiguration {
 
   def apply()(implicit ec : ExecutionContext) = new ConversationService with DatabaseSupport {
     def findFeed(userId : Long) : Future[List[Conversation]] = {
@@ -85,11 +86,11 @@ object ConversationService {
 
     def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String = {
 
-      val imageDir = "/tmp/" + conversationId
+      val imageDir = FileStoreConfiguration.baseDirectory + conversationId
       val imageUrl = imageDir + "/image"
       val dir : File = new File(imageDir)
       if (!dir.exists())
-        dir.mkdir()
+        dir.mkdirs()
 
       val fos : FileOutputStream = new FileOutputStream(imageUrl);
 

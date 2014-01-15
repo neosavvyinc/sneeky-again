@@ -25,4 +25,12 @@ trait DSConfiguration {
     private def authCfg = cfg.getConfig("auth")
   }
 
+  object FileStoreConfiguration {
+
+    val baseDirectory = fileStoreConfiguration.getString("baseDirectory")
+
+    private def fileStoreConfiguration = cfg.getConfig("fileStore")
+
+  }
+
 }
