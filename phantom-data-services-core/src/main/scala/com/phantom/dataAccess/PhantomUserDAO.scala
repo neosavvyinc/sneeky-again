@@ -13,27 +13,6 @@ import com.phantom.model.PhantomUser
 import com.phantom.model.UserRegistration
 import com.phantom.model.Contact
 
-class DuplicateUserException extends Exception with PhantomException {
-  val code = 101
-}
-
-class NonexistantUserException extends Exception with PhantomException {
-  val code = 103
-}
-
-class UnverifiedUserException(msg : String) extends Exception(msg) with PhantomException {
-  val code = 104
-}
-
-/*
-trait PhantomUserDAO {
-
-  def register(registrationRequest : UserRegistration) : Future[PhantomUser]
-
-  def login(loginRequest : UserLogin) : Future[PhantomUser]
-
-}*/
-
 class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionContext) extends BaseDAO(dal, db)
     with Logging {
 
@@ -60,7 +39,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
       val mapped = ex.map { e =>
         if (e) {
           log.trace(s"duplicate email detected when registering $registrationRequest")
-          throw new DuplicateUserException
+          throw PhantomException.duplicateUser
         } else {
           createUserRecord(registrationRequest)
         }
@@ -79,9 +58,9 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
       log.trace(s"logging in $loginRequest")
       val userOpt = byEmail(loginRequest.email).firstOption
       val filtered = userOpt.filter(x => Passwords.check(loginRequest.password, x.password))
-      val user = filtered.getOrElse(throw new NonexistantUserException)
+      val user = filtered.getOrElse(throw PhantomException.nonExistentUser)
       if (user.status == Unverified) {
-        throw new UnverifiedUserException(user.uuid.toString)
+        throw PhantomException.unverifiedUser(user.uuid.toString)
       }
       user
     }
@@ -91,7 +70,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     //log.info(s"finding contacts for user with id => $id")
     Query(UserTable).filter(_.id is id)
       .firstOption.map { u : PhantomUser => Future.successful(u) }
-      .getOrElse(Future.failed(new NonexistantUserException()))
+      .getOrElse(Future.failed(PhantomException.nonExistentUser))
   }
 
   def findContacts(id : Long) : Future[List[PhantomUser]] = {

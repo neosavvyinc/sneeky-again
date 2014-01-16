@@ -45,6 +45,13 @@ class UserEndpointSpec extends Specification
       }
     }
 
+    "fail if registering user doesn't meet password complexity" in withSetupTeardown {
+      val newUser = UserRegistration("adamparrish@something.com", birthday, "s")
+      Post("/users/register", newUser) ~> userRoute ~> check {
+        assertFailure(105)
+      }
+    }
+
     "fail logging in if a user does not exist" in withSetupTeardown {
       val newUser = UserLogin("crazy@abc.xyz", "mypassword")
       Post("/users/login", newUser) ~> userRoute ~> check {

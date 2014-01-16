@@ -33,6 +33,7 @@ object UserService {
 
     def register(registrationRequest : UserRegistration) : Future[RegistrationResponse] = {
       for {
+        _ <- Passwords.validate(registrationRequest.password)
         user <- phantomUsers.register(registrationRequest)
         session <- sessions.createSession(createNewSession(user))
       } yield RegistrationResponse(user.uuid, session.sessionId)

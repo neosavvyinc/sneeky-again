@@ -7,12 +7,11 @@ import spray.http.HttpEntity
 import spray.http.StatusCodes.OK
 import spray.json._
 import com.phantom.model._
-import com.phantom.ds.framework.exception.PhantomException
+import com.phantom.ds.framework.exception.{ UnverifiedUserException, PhantomException }
 import spray.http.HttpResponse
 import com.phantom.model.ConversationSummary
 import com.phantom.model.ConversationItem
 import java.util.UUID
-import com.phantom.dataAccess.UnverifiedUserException
 
 //import com.phantom.model.User
 import com.phantom.model.ConversationStarter
@@ -115,7 +114,7 @@ package object httpx {
 
     private def toJson(t : Throwable) = {
       val failure = t match {
-        case x : UnverifiedUserException => Failure(x.code, x.getMessage)
+        case x : UnverifiedUserException => Failure(x.code, x.msg)
         case x : PhantomException        => Failure(x.code, Errors.getMessage(x.code))
         case _                           => Failure(defaultCode, Errors.getMessage(defaultCode))
       }

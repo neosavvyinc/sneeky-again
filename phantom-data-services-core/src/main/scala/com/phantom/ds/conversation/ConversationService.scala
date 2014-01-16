@@ -3,8 +3,6 @@ package com.phantom.ds.conversation
 import scala.concurrent.{ Future, ExecutionContext }
 import com.phantom.model.{ ConversationUpdateResponse, Conversation, ConversationInsertResponse, ConversationItem }
 import scala.collection.mutable.{ Map => MMap }
-import com.phantom.ds.framework.exception.PhantomException
-import spray.http.StatusCodes
 import com.phantom.dataAccess.DatabaseSupport
 import scala.slick.session.Session
 import java.io.{ File, FileOutputStream }
@@ -31,10 +29,6 @@ trait ConversationService {
                         imageText : String,
                         imageUrl : String) : Future[ConversationInsertResponse]
 
-}
-
-class NoFeedFoundException extends Exception with PhantomException {
-  val code = 102
 }
 
 object ConversationService extends DSConfiguration {
@@ -92,12 +86,12 @@ object ConversationService extends DSConfiguration {
       if (!dir.exists())
         dir.mkdirs()
 
-      val fos : FileOutputStream = new FileOutputStream(imageUrl);
+      val fos : FileOutputStream = new FileOutputStream(imageUrl)
 
       try {
-        fos.write(image);
+        fos.write(image)
       } finally {
-        fos.close();
+        fos.close()
       }
 
       imageUrl

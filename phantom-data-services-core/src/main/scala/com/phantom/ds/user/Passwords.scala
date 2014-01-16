@@ -4,6 +4,8 @@ import java.security.SecureRandom
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import org.apache.commons.codec.binary.Base64
+import com.phantom.ds.framework.exception.PhantomException
+import scala.concurrent.Future
 
 //shamelessly stolen: http://stackoverflow.com/questions/2860943/suggestions-for-library-to-hash-passwords-in-java
 object Passwords {
@@ -12,8 +14,12 @@ object Passwords {
   val saltLen = 32
   val desiredKeyLen = 256
 
-  def validate(password : String) {
-
+  def validate(password : String) = {
+    if (password.length < 6) {
+      Future.failed(PhantomException.passwordsComplexity)
+    } else {
+      Future.successful(password)
+    }
   }
 
   def getSaltedHash(password : String) = {
