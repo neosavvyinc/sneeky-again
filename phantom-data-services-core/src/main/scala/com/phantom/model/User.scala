@@ -13,10 +13,12 @@ case class UserRegistration(email : String,
                             birthday : LocalDate,
                             password : String)
 
+case class RegistrationResponse(verificationUUID : UUID, sessionUUID : UUID)
+
 case class UserLogin(email : String,
                      password : String)
 
-case class LoginSuccess(user : PhantomUser, session : UUID)
+case class LoginSuccess(sessionUUID : UUID)
 
 case class PhantomUserDeleteMe(id : String)
 

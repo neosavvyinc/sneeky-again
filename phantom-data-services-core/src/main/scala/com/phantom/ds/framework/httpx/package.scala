@@ -71,11 +71,12 @@ package object httpx {
 
     implicit val failureFormat = jsonFormat2(Failure)
     implicit val userRegistrationFormat = jsonFormat3(UserRegistration)
+    implicit val userRegistrationResponseFormat = jsonFormat2(RegistrationResponse)
 
     implicit val userFormat = jsonFormat8(PhantomUser)
     implicit val phantomUserFormat = jsonFormat1(PhantomUserDeleteMe)
     implicit val userLoginFormat = jsonFormat2(UserLogin)
-    implicit val loginSuccessFormat = jsonFormat2(LoginSuccess)
+    implicit val loginSuccessFormat = jsonFormat1(LoginSuccess)
 
     implicit val conversationFormat = jsonFormat3(Conversation)
     implicit val conversationStarterFormat = jsonFormat4(ConversationStarter)

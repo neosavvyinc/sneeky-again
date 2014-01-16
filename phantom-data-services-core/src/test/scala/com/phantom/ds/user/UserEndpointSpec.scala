@@ -29,11 +29,9 @@ class UserEndpointSpec extends Specification
     "be able to register a user" in withSetupTeardown {
       val newUser = UserRegistration("adamparrish@something.com", birthday, "mypassword")
       Post("/users/register", newUser) ~> userRoute ~> check {
-        assertPayload[PhantomUser] { response =>
-          response.email must be equalTo "adamparrish@something.com"
-          response.birthday must be equalTo birthday
-          response.id must beSome
-          response.status must be equalTo Unverified
+        assertPayload[RegistrationResponse] { response =>
+          response.sessionUUID must not be null
+          response.verificationUUID must not be null
         }
       }
     }
@@ -74,7 +72,7 @@ class UserEndpointSpec extends Specification
       createVerifiedUser("adamparrish@something.com", "mypassword")
       Post("/users/login", UserLogin("adamparrish@something.com", "mypassword")) ~> userRoute ~> check {
         assertPayload[LoginSuccess] { response =>
-          response.user.email must be equalTo "adamparrish@something.com"
+          response.sessionUUID must not be null
         }
       }
     }
@@ -83,11 +81,11 @@ class UserEndpointSpec extends Specification
       createVerifiedUser("adamparrish@something.com", "mypassword")
       Post("/users/login", UserLogin("adamparrish@something.com", "mypassword")) ~> userRoute ~> check {
         assertPayload[LoginSuccess] { response =>
-          response.user.email must be equalTo "adamparrish@something.com"
-          val uuid = response.session
+          response.sessionUUID must not be null
+          val uuid = response.sessionUUID
           Post("/users/login", UserLogin("adamparrish@something.com", "mypassword")) ~> userRoute ~> check {
             assertPayload[LoginSuccess] { res =>
-              res.session must be equalTo uuid
+              res.sessionUUID must be equalTo uuid
             }
           }
         }

@@ -18,7 +18,7 @@ import java.util.UUID
 
 trait UserService {
 
-  def register(registrationRequest : UserRegistration) : Future[PhantomUser]
+  def register(registrationRequest : UserRegistration) : Future[RegistrationResponse]
   def login(loginRequest : UserLogin) : Future[LoginSuccess]
   def logout(sessionId : String) : Future[Unit]
   def findById(id : Long) : Future[PhantomUser]
@@ -31,8 +31,11 @@ object UserService {
 
   def apply()(implicit ec : ExecutionContext) = new UserService with DatabaseSupport with Logging {
 
-    def register(registrationRequest : UserRegistration) : Future[PhantomUser] = {
-      phantomUsers.register(registrationRequest)
+    def register(registrationRequest : UserRegistration) : Future[RegistrationResponse] = {
+      for {
+        user <- phantomUsers.register(registrationRequest)
+        session <- sessions.createSession(createNewSession(user))
+      } yield RegistrationResponse(user.uuid, session.sessionId)
     }
 
     def login(loginRequest : UserLogin) : Future[LoginSuccess] = {
@@ -40,7 +43,7 @@ object UserService {
         user <- phantomUsers.login(loginRequest)
         existingSession <- sessions.existingSession(user.id.get)
         session <- getOrCreateSession(user, existingSession)
-      } yield LoginSuccess(user, session.sessionId)
+      } yield LoginSuccess(session.sessionId)
     }
 
     def logout(sessionId : String) : Future[Unit] = {
@@ -48,8 +51,12 @@ object UserService {
     }
 
     private def getOrCreateSession(user : PhantomUser, sessionOpt : Option[PhantomSession]) : Future[PhantomSession] = {
+      sessionOpt.map(Future.successful).getOrElse(sessions.createSession(createNewSession(user)))
+    }
+
+    private def createNewSession(user : PhantomUser) : PhantomSession = {
       val now = DateTime.now(DateTimeZone.UTC)
-      sessionOpt.map(Future.successful).getOrElse(sessions.createSession(PhantomSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now)))
+      PhantomSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now)
     }
 
     def findById(id : Long) : Future[PhantomUser] = {
