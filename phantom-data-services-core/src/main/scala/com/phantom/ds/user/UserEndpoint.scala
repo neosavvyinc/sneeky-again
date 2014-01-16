@@ -39,6 +39,17 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
             }
         }
       } ~
+      pathPrefix("users" / "logout") {
+        authenticate(request _) { user =>
+          get {
+            parameter('sessionId) { session =>
+              respondWithMediaType(`application/json`) {
+                complete(userService.logout(session))
+              }
+            }
+          }
+        }
+      } ~
       pathPrefix("users" / LongNumber / "contacts") { id =>
         authenticate(request _) { user =>
           get {

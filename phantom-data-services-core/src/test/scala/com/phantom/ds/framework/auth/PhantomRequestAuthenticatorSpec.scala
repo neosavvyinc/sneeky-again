@@ -4,10 +4,6 @@ import org.specs2.mutable.Specification
 import spray.testkit.Specs2RouteTest
 import org.joda.time.{ LocalDate, DateTimeZone, DateTime }
 import spray.http.StatusCodes._
-import spray.routing.AuthenticationFailedRejection
-import org.apache.commons.codec.binary.Base64
-import java.net.URLEncoder
-import java.security.MessageDigest
 import com.phantom.ds.dataAccess.BaseDAOSpec
 import java.util.UUID
 import com.phantom.model.{ Verified, Unverified, PhantomUser, PhantomSession }
@@ -17,7 +13,8 @@ import scala.concurrent.duration._
 class PhantomRequestAuthenticatorSpec extends Specification
     with AuthTestPoint
     with Specs2RouteTest
-    with BaseDAOSpec {
+    with BaseDAOSpec
+    with AuthenticatedSpec {
 
   def actorRefFactory = system
 
@@ -26,21 +23,21 @@ class PhantomRequestAuthenticatorSpec extends Specification
       val d = now
       val s = "noHash"
       val url = s"/test/protected?$dateP=$d&$sessionIdP=$s"
-      assertAuthFailure(url)
+      assertAuthFailure(url, testRoute)
     }
 
     "fail if no date is detected" in {
       val h = "bla"
       val s = "noDate"
       val url = s"/test/protected?$hashP=$h&$sessionIdP=$s"
-      assertAuthFailure(url)
+      assertAuthFailure(url, testRoute)
     }
 
     "fail if no sessionId is detected" in {
       val h = "bla"
       val d = now
       val url = s"/test/protected?$hashP=$h&$dateP=$d"
-      assertAuthFailure(url)
+      assertAuthFailure(url, testRoute)
     }
 
     "fail if date is not in ISO8601 format" in {
@@ -48,7 +45,7 @@ class PhantomRequestAuthenticatorSpec extends Specification
       val s = "badDate"
       val h = hashValues(d, s)
       val url = s"/test/protected?$hashP=$h&$dateP=$d&$sessionIdP=$s"
-      assertAuthFailure(url)
+      assertAuthFailure(url, testRoute)
     }
 
     "fail if hashes don't match" in {
@@ -56,7 +53,7 @@ class PhantomRequestAuthenticatorSpec extends Specification
       val s = "unmatchedHashes"
       val h = hashValues(d, "badValue")
       val url = s"/test/protected?$hashP=$h&$dateP=$d&$sessionIdP=$s"
-      assertAuthFailure(url)
+      assertAuthFailure(url, testRoute)
     }
 
     "fail if request timed out" in {
@@ -64,7 +61,7 @@ class PhantomRequestAuthenticatorSpec extends Specification
       val s = "timedOutRequest"
       val h = hashValues(d, s)
       val url = s"/test/protected?$hashP=$h&$dateP=$d&$sessionIdP=$s"
-      assertAuthFailure(url)
+      assertAuthFailure(url, testRoute)
     }
 
     "fail if hashed with wrong secret" in {
@@ -72,7 +69,7 @@ class PhantomRequestAuthenticatorSpec extends Specification
       val s = "timedOutRequest"
       val h = hashValues(d, s, "wrongsecret")
       val url = s"/test/protected?$hashP=$h&$dateP=$d&$sessionIdP=$s"
-      assertAuthFailure(url)
+      assertAuthFailure(url, testRoute)
     }
 
     "fail if all values are present and valid but there is no session" in withSetupTeardown {
@@ -80,7 +77,7 @@ class PhantomRequestAuthenticatorSpec extends Specification
       val s = UUID.randomUUID().toString
       val h = hashValues(d, s)
       val url = s"/test/protected?$hashP=$h&$dateP=$d&$sessionIdP=$s"
-      assertAuthFailure(url)
+      assertAuthFailure(url, testRoute)
     }
 
     "pass if all values are present and valid and there is a session" in withSetupTeardown {
@@ -109,11 +106,11 @@ class PhantomRequestAuthenticatorSpec extends Specification
       Await.result(sessions.createSession(PhantomSession(uuid, u.id.get, sessionCreated, sessionCreated)), waitPeriod)
       val h = hashValues(d, s)
       val url = s"/test/protected?$hashP=$h&$dateP=$d&$sessionIdP=$s"
-      assertAuthFailure(url)
+      assertAuthFailure(url, testRoute)
     }
   }
 
-  private def hashValues(date : String, sessionId : String, secret : String = AuthConfiguration.secret) = {
+  /*private def hashValues(date : String, sessionId : String, secret : String = AuthConfiguration.secret) = {
     val digest = MessageDigest.getInstance("SHA-256")
     val concatBytes = s"${date}_${sessionId}_$secret".getBytes("UTF-8")
     val hashedBytes = digest.digest(concatBytes)
@@ -126,6 +123,6 @@ class PhantomRequestAuthenticatorSpec extends Specification
     Get(url) ~> testRoute ~> check {
       rejection must beAnInstanceOf[AuthenticationFailedRejection]
     }
-  }
+  }*/
 
 }

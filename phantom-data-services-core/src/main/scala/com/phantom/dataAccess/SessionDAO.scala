@@ -12,7 +12,7 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
   import dal._
   import dal.profile.simple._
 
-  private val bySessionId = for {
+  private val userBySessionId = for {
     id <- Parameters[UUID]
     (s, u) <- SessionTable innerJoin UserTable on ((sess, user) => sess.userId === user.id && sess.sessionId === id)
   } yield u
@@ -23,7 +23,7 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
   } yield s
 
   def findFromSession(session : UUID) : Option[PhantomUser] = {
-    bySessionId(session).firstOption
+    userBySessionId(session).firstOption
   }
 
   def existingSession(userId : Long) : Future[Option[PhantomSession]] = {
@@ -36,6 +36,13 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     future {
       SessionTable.insert(session)
       session
+    }
+  }
+
+  def removeSession(sessionId : UUID) : Future[Unit] = {
+    log.trace(s"deleting $sessionId")
+    future {
+      Query(SessionTable).where(_.sessionId === sessionId).delete
     }
   }
 

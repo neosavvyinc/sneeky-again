@@ -8,6 +8,7 @@ import spray.routing.AuthenticationFailedRejection.CredentialsRejected
 import com.phantom.model.{ Verified, PhantomUser }
 import com.phantom.dataAccess.DatabaseSupport
 import java.util.UUID
+import com.phantom.ds.framework.Logging
 
 //For now this authenticator does a bit of both authentication and authorziation
 //since we have no real roles or permissioning yet..just being a user opens up all doors
@@ -16,7 +17,7 @@ trait RequestAuthenticator extends Authenticator {
   def request(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[PhantomUser]]
 }
 
-trait PhantomRequestAuthenticator extends RequestAuthenticator with DSConfiguration with DatabaseSupport {
+trait PhantomRequestAuthenticator extends RequestAuthenticator with DSConfiguration with DatabaseSupport with Logging {
 
   def request(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[PhantomUser]] = {
 

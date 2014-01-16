@@ -20,6 +20,7 @@ trait UserService {
 
   def register(registrationRequest : UserRegistration) : Future[PhantomUser]
   def login(loginRequest : UserLogin) : Future[LoginSuccess]
+  def logout(sessionId : String) : Future[Unit]
   def findById(id : Long) : Future[PhantomUser]
   def findContactsById(id : Long) : Future[List[PhantomUser]]
   def updateContacts(id : Long, contacts : String) : Future[StatusCode]
@@ -40,6 +41,10 @@ object UserService {
         existingSession <- sessions.existingSession(user.id.get)
         session <- getOrCreateSession(user, existingSession)
       } yield LoginSuccess(user, session.sessionId)
+    }
+
+    def logout(sessionId : String) : Future[Unit] = {
+      sessions.removeSession(UUID.fromString(sessionId))
     }
 
     private def getOrCreateSession(user : PhantomUser, sessionOpt : Option[PhantomSession]) : Future[PhantomSession] = {
