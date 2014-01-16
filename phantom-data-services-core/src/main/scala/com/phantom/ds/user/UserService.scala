@@ -1,99 +1,97 @@
 package com.phantom.ds.user
 
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Success, Failure }
 import spray.http.{ StatusCode, StatusCodes }
 import spray.json._
 import com.phantom.ds.framework.httpx._
 import com.phantom.model._
-import com.phantom.ds.framework.exception.PhantomException
 import scala.collection.mutable.{ Map => MMap }
 import com.phantom.ds.framework.Logging
-import org.joda.time.LocalDate
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import com.phantom.model.UserLogin
-import com.phantom.model.User
+import com.phantom.model.PhantomUserTypes._
+import com.phantom.model.PhantomUser
 import com.phantom.model.UserRegistration
-import com.phantom.model.ClientSafeUserResponse
+import com.phantom.dataAccess.DatabaseSupport
+import java.util.UUID
 
 trait UserService {
 
-  def registerUser(registrationRequest : UserRegistration) : Future[ClientSafeUserResponse]
-  def loginUser(loginRequest : UserLogin) : Future[ClientSafeUserResponse]
-  def findUser(id : Long) : Future[ClientSafeUserResponse]
-  def findContactsForUser(id : Long) : Future[List[PhantomUser]]
-  def updateContactsForUser(id : Long, contacts : List[String]) : Future[List[PhantomUser]]
-  def clearBlockList(id : Long) : Future[String]
-}
-
-class DuplicateUserException extends Exception with PhantomException {
-  val code = 101
-}
-
-class NonexistantUserException extends Exception with PhantomException {
-  val code = 103
+  def register(registrationRequest : UserRegistration) : Future[RegistrationResponse]
+  def login(loginRequest : UserLogin) : Future[LoginSuccess]
+  def logout(sessionId : String) : Future[Unit]
+  def findById(id : Long) : Future[PhantomUser]
+  def findContactsById(id : Long) : Future[List[PhantomUser]]
+  def updateContacts(id : Long, contacts : String) : Future[StatusCode]
+  def clearBlockList(id : Long) : Future[StatusCode]
 }
 
 object UserService {
 
-  def apply()(implicit ec : ExecutionContext) = MapbackedUserService
+  def apply()(implicit ec : ExecutionContext) = new UserService with DatabaseSupport with Logging {
 
-}
-
-object MapbackedUserService extends UserService with Logging with PhantomJsonProtocol {
-
-  val map : MMap[Int, UserLogin] = MMap.empty
-  var contactList = List[String]()
-
-  def registerUser(registrationRequest : UserRegistration) : Future[ClientSafeUserResponse] = {
-    log.info(s"registering $registrationRequest")
-    map.values.collectFirst {
-      case u : UserLogin if u.email == registrationRequest.email => Future.failed(new DuplicateUserException())
-    }.getOrElse {
-      map(map.size + 1) = UserLogin(registrationRequest.email, registrationRequest.password)
-      log.info("added user to map")
-      Future.successful(ClientSafeUserResponse(registrationRequest.email, "", registrationRequest.birthday, true, false))
+    def register(registrationRequest : UserRegistration) : Future[RegistrationResponse] = {
+      for {
+        _ <- Passwords.validate(registrationRequest.password)
+        user <- phantomUsers.register(registrationRequest)
+        session <- sessions.createSession(createNewSession(user))
+      } yield RegistrationResponse(user.uuid, session.sessionId)
     }
 
-  }
+    def login(loginRequest : UserLogin) : Future[LoginSuccess] = {
+      for {
+        user <- phantomUsers.login(loginRequest)
+        existingSession <- sessions.existingSession(user.id.get)
+        session <- getOrCreateSession(user, existingSession)
+      } yield LoginSuccess(session.sessionId)
+    }
 
-  def loginUser(loginRequest : UserLogin) : Future[ClientSafeUserResponse] = {
-    log.info(s"logging in $loginRequest")
-    map.values.collectFirst {
-      case u : UserLogin if u.email == loginRequest.email && u.password == loginRequest.password =>
-        Future.successful(ClientSafeUserResponse(u.email, "", LocalDate.parse("2001-01-01"), true, false))
-    }.getOrElse(Future.failed(new NonexistantUserException()))
-  }
+    def logout(sessionId : String) : Future[Unit] = {
+      sessions.removeSession(UUID.fromString(sessionId))
+    }
 
-  def findUser(id : Long) : Future[ClientSafeUserResponse] = {
-    log.info(s"finding contacts for user with id => $id")
-    map.get(id.toInt)
-      .map(u => Future.successful(ClientSafeUserResponse(u.email, "", LocalDate.parse("2001-01-01"), true, false)))
-      .getOrElse(Future.failed(new NonexistantUserException()))
-  }
+    private def getOrCreateSession(user : PhantomUser, sessionOpt : Option[PhantomSession]) : Future[PhantomSession] = {
+      sessionOpt.map(Future.successful).getOrElse(sessions.createSession(createNewSession(user)))
+    }
 
-  def findContactsForUser(id : Long) : Future[List[PhantomUser]] = {
-    log.info(s"finding contacts for user with id => $id")
-    map.get(id.toInt)
-      .map(u => Future.successful(contactList.map(PhantomUser(_))))
-      .getOrElse(Future.failed(new NonexistantUserException()))
-  }
+    private def createNewSession(user : PhantomUser) : PhantomSession = {
+      val now = DateTime.now(DateTimeZone.UTC)
+      PhantomSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now)
+    }
 
-  def updateContactsForUser(id : Long, contacts : List[String]) : Future[List[PhantomUser]] = {
-    log.info(s"updating contacts for user with id => $id")
-    map.get(id.toInt)
-      .map { u =>
-        contactList = contacts
-        Future.successful(contactList.map(PhantomUser(_)))
+    def findById(id : Long) : Future[PhantomUser] = {
+      phantomUsers.find(id)
+    }
+
+    def findContactsById(id : Long) : Future[List[PhantomUser]] = {
+      phantomUsers.findContacts(id)
+    }
+
+    def updateContacts(id : Long, contactList : String) : Future[StatusCode] = {
+      val session = db.createSession
+
+      session.withTransaction {
+        contacts.deleteAll(id)(session)
+        //          .onComplete {
+        //          //case Success(_) => Future.successful(phantomUsers.updateContacts(id, contactList))
+        //          case Success(_) => {
+        //            Future.failed(new Exception())
+        //          }
+        //          case Failure(ex) => {
+        //            session.rollback()
+        //            Future.failed(new Exception())
+        //          }
+        //        }
+        session.rollback()
       }
-      .getOrElse(Future.failed(new NonexistantUserException()))
+      Future.successful(StatusCodes.OK)
+    }
+
+    def clearBlockList(id : Long) : Future[StatusCode] = {
+      phantomUsers.clearBlockList(id)
+    }
   }
 
-  def clearBlockList(id : Long) : Future[String] = {
-    log.info(s"clearing block list for use with id => $id")
-    map.get(id.toInt)
-      .map(u => Future.successful {
-        contactList = List[String]()
-        "OK"
-      })
-      .getOrElse(Future.failed(new NonexistantUserException()))
-  }
 }
+

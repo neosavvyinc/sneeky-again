@@ -2,11 +2,21 @@ package com.phantom.ds.conversation
 
 import spray.http.MediaTypes._
 import com.phantom.ds.DataHttpService
-import com.phantom.model.{ BlockUserByConversationResponse, Feed, ConversationItem, ConversationSummary }
+import com.phantom.model._
+import com.phantom.ds.framework.httpx._
 
-import scala.Some
+import scala._
 import spray.http.MultipartFormData
 import java.io.FileOutputStream
+import scala.concurrent.{ Future, ExecutionContext }
+import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
+import com.phantom.dataAccess.DatabaseSupport
+import scala.concurrent.ExecutionContext.Implicits._
+import com.phantom.model.Conversation
+import com.phantom.model.BlockUserByConversationResponse
+import com.phantom.model.Conversation
+import com.phantom.model.BlockUserByConversationResponse
+import scala.Some
 
 /**
  * Created by Neosavvy
@@ -16,7 +26,7 @@ import java.io.FileOutputStream
  * Time: 2:37 PM
  */
 trait ConversationEndpoint extends DataHttpService {
-
+  implicit def ex : ExecutionContext = global
   val conversationService = ConversationService()
   val conversation = "conversation"
 
@@ -27,9 +37,9 @@ trait ConversationEndpoint extends DataHttpService {
         id =>
           get {
             respondWithMediaType(`application/json`) {
-              complete {
+              complete(
                 conversationService.findFeed(id)
-              }
+              )
             }
           }
       }
@@ -41,30 +51,14 @@ trait ConversationEndpoint extends DataHttpService {
       pathPrefix(conversation) {
         path("start") {
           post {
-            formFields('image.as[Array[Byte]], 'imageText, 'userid, 'toUsers) { (image, imageText, userid, toUsers) =>
-
-              println("imageText> " + imageText)
-              println("userid> " + userid)
-              println("toUsers> " + toUsers)
-
-              val fos : FileOutputStream = new FileOutputStream("testAdam.png")
-
-              try {
-                fos.write(image);
-              } finally {
-                fos.close();
-              }
+            //            formFields('image.as[Array[Byte]], 'imageText, 'userid.as[Long], 'toUsers.as[List[Long]]) { (image, imageText, userid, toUsers) =>
+            formFields('image.as[Array[Byte]], 'imageText, 'userid.as[Long], 'toUsers.as[String]) { (image, imageText, userid, toUsers) =>
               complete {
-                Feed(
-                  List(
-                    ConversationSummary(
-                      ConversationItem(1, 1, 1L, 2L, imageText, "/path/to/image")
-                    ),
-                    ConversationSummary(
-                      ConversationItem(1, 1, 1L, 2L, imageText, "/path/to/image")
-                    )
-                  )
-                )
+                conversationService.startConversation(
+                  userid,
+                  for (toUserId <- toUsers.split(",").toList) yield toUserId.toLong,
+                  conversationService.saveFileForConversationId(image, userid),
+                  imageText)
               }
             }
           }
@@ -78,30 +72,14 @@ trait ConversationEndpoint extends DataHttpService {
       pathPrefix(conversation) {
         path("respond") {
           post {
-            formFields('image.as[Array[Byte]], 'imageText, 'convId.as[Int]?) { (image, imageText, convId) =>
+            formFields('image.as[Array[Byte]], 'imageText, 'convId.as[Long]) { (image, imageText, convId) =>
 
-              println("imageText> " + imageText)
-              println("convId> " + convId)
-
-              //TODO Make sure this file is saved outside classpath
-              //TODO Make sure this file is unique to each conversation so that we can clean it later
-              val fos : FileOutputStream = new FileOutputStream("testAdam.png");
-              try {
-                fos.write(image);
-              } finally {
-                fos.close();
-              }
               complete {
-                Feed(
-                  List(
-                    ConversationSummary(
-                      ConversationItem(1, 1, 1L, 2L, imageText, "/path/to/image")
-                    ),
-                    ConversationSummary(
-                      ConversationItem(1, 1, 1L, 2L, imageText, "/path/to/image")
-                    )
-                  )
-                )
+                conversationService.respondToConversation(
+                  convId,
+                  imageText,
+                  conversationService.saveFileForConversationId(image, convId))
+
               }
             }
           }
@@ -114,7 +92,7 @@ trait ConversationEndpoint extends DataHttpService {
             post {
               respondWithMediaType(`application/json`) {
                 complete {
-                  BlockUserByConversationResponse(conversationService.blockUserByConversationId(id))
+                  BlockUserByConversationResponse(1)
                 }
               }
             }
