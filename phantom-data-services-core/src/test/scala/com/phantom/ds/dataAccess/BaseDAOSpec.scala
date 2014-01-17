@@ -30,7 +30,7 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
     }
 
     def after {
-      conversations.dropDB
+      //      conversations.dropDB
     }
   }
 
