@@ -22,11 +22,15 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
 
   def insertList(id : Long, ids : List[Long]) : Future[List[Contact]] = {
     future {
-      val cs : List[Contact] = ids.map { uid : Long =>
-        Contact(None, id, uid, "friend")
+      //      val cs : List[Contact] = ids.map { uid : Long =>
+      //        Contact(None, id, uid, "friend")
+      //      }
+      //
+      //      cs.map(c => insert(c))
+      //
+      ids.map { uid : Long =>
+        insert(Contact(None, id, uid, "friend"))
       }
-
-      cs.map(c => insert(c))
     }
 
   }
