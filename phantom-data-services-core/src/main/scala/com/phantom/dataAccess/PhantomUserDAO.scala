@@ -91,7 +91,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     } yield c.contactType
   }
 
-  def updateContacts(id : Long, contacts : String) : Future[StatusCode] = {
+  def findContactIdsByPhone(id : Long, contacts : List[String]) : Future[List[Long]] = {
 
     import scala.slick.jdbc.StaticQuery
     import java.lang.StringBuilder
@@ -103,17 +103,16 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     // oh man, this is dumb...
     var sb = new StringBuilder
     sb.append("""select x2.`id` from `USERS` x2 where x2.`PHONE_NUMBER` = '""")
-    sb.append(contacts)
+    sb.append(contacts(0))
     sb.append("""'""")
     val q = sb.toString.replace(""""""", """""")
 
-    val users = StaticQuery.queryNA[Long](q)
+    val user_ids = StaticQuery.queryNA[Long](q)
 
-    users.list.foreach { uid : Long =>
-      ContactTable.insert(Contact(None, id, uid, "friend"))
+    user_ids.list match {
+      case ids : List[Long] => Future.successful(ids)
+      case _                => Future.failed(new Exception())
     }
-
-    Future.successful(StatusCodes.OK)
   }
 
   def clearBlockList(id : Long) : Future[StatusCode] = {

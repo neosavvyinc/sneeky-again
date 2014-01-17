@@ -23,7 +23,7 @@ trait UserService {
   def logout(sessionId : String) : Future[Unit]
   def findById(id : Long) : Future[PhantomUser]
   def findContactsById(id : Long) : Future[List[PhantomUser]]
-  def updateContacts(id : Long, contacts : String) : Future[StatusCode]
+  def updateContacts(id : Long, contacts : List[String]) : Future[Unit]
   def clearBlockList(id : Long) : Future[StatusCode]
 }
 
@@ -68,24 +68,29 @@ object UserService {
       phantomUsers.findContacts(id)
     }
 
-    def updateContacts(id : Long, contactList : String) : Future[StatusCode] = {
+    def updateContacts(id : Long, contactList : List[String]) : Future[Unit] = {
       val session = db.createSession
 
       session.withTransaction {
-        contacts.deleteAll(id)(session)
-        //          .onComplete {
-        //          //case Success(_) => Future.successful(phantomUsers.updateContacts(id, contactList))
-        //          case Success(_) => {
-        //            Future.failed(new Exception())
-        //          }
-        //          case Failure(ex) => {
-        //            session.rollback()
-        //            Future.failed(new Exception())
-        //          }
-        //        }
-        session.rollback()
+
+        val res = for {
+          d <- contacts.deleteAll(id)(session)
+          ids <- phantomUsers.findContactIdsByPhone(id, contactList)
+          insert <- contacts.insertList(id, ids)
+        } yield insert
+
+        Future {
+          res.onComplete {
+            case Success(_) => {
+              Future.successful(StatusCodes.OK)
+            }
+            case Failure(ex) => {
+              session.rollback()
+              Future.failed(new Exception())
+            }
+          }
+        }
       }
-      Future.successful(StatusCodes.OK)
     }
 
     def clearBlockList(id : Long) : Future[StatusCode] = {

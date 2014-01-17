@@ -5,9 +5,9 @@ import spray.http.{ StatusCode, StatusCodes }
 import org.joda.time.LocalDate
 import com.phantom.ds.framework.Logging
 import com.phantom.model.Contact
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ ExecutionContext, Future, future }
 
-class ContactDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, db) {
+class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionContext) extends BaseDAO(dal, db) {
   import dal._
   import dal.profile.simple._
 
@@ -15,16 +15,25 @@ class ContactDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, db) 
   def dropDB = dal.drop
   def purgeDB = dal.purge
 
-  def insert(contact : Contact) = {
+  def insert(contact : Contact) : Contact = {
     val id = ContactTable.forInsert.insert(contact)
-    Contact(Some(id), contact.ownerId, contact.contactId, contact.contactType)
+    contact.copy(id = Some(id))
   }
 
-  def deleteAll(id : Long)(session : scala.slick.session.Session) : StatusCode = {
-    Query(ContactTable).filter(_.ownerId === id).delete(session) match {
-      case 0 =>
-        new Exception("nothing deleted"); StatusCodes.NotFound
-      case _ => StatusCodes.OK
+  def insertList(id : Long, ids : List[Long]) : Future[List[Contact]] = {
+    future {
+      val cs : List[Contact] = ids.map { uid : Long =>
+        Contact(None, id, uid, "friend")
+      }
+
+      cs.map(c => insert(c))
+    }
+
+  }
+
+  def deleteAll(id : Long)(session : scala.slick.session.Session) : Future[Int] = {
+    future {
+      Query(ContactTable).filter(_.ownerId === id).delete(session)
     }
   }
 
