@@ -40,50 +40,12 @@ class ConversationDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal,
     updateQuery.update(conversation)
   }
   def findConversationsAndItems(fromUserId : Long) : List[(Conversation, List[ConversationItem])] = {
-    val q = for {
+    val conversationPairs = (for {
       c <- ConversationTable
       ci <- ConversationItemTable if c.id === ci.conversationId
-    } yield (c, ci)
+    } yield (c, ci)).list
 
-    val results : List[(Conversation, ConversationItem)] = q.list
-
-    var previous : Conversation = null
-    var current : Conversation = null
-    var combinedCollection : List[ConversationItem] = null
-    var returnValue : List[(Conversation, List[ConversationItem])] = null
-
-    //TODO: This is a total hack - we need a better way to do this
-    results.foreach {
-      result =>
-        val (conversation, conversationItem) = result
-        current = conversation
-        if (previous == null || combinedCollection == null) {
-          combinedCollection = (conversationItem :: Nil)
-        } else if (previous == current) {
-          combinedCollection = List.concat(combinedCollection, (conversationItem :: Nil))
-        } else {
-          if (returnValue == null) {
-            returnValue = (current, combinedCollection) :: Nil
-          } else {
-            returnValue = List.concat(returnValue,
-              ((current, combinedCollection) :: Nil))
-          }
-          combinedCollection = null
-          combinedCollection = (conversationItem :: Nil)
-
-        }
-
-        previous = current
-    }
-
-    if (returnValue == null) {
-      returnValue = (current, combinedCollection) :: Nil
-    } else {
-      returnValue = List.concat(returnValue,
-        ((current, combinedCollection) :: Nil))
-    }
-
-    returnValue
+    conversationPairs.groupBy(_._1).map { case (convo, cItem) => (convo, cItem.map(_._2)) }
   }
 
 }
