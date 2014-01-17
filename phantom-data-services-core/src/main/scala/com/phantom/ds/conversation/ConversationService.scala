@@ -1,12 +1,16 @@
 package com.phantom.ds.conversation
 
 import scala.concurrent.{ Future, ExecutionContext }
-import com.phantom.model.{ ConversationUpdateResponse, Conversation, ConversationInsertResponse, ConversationItem }
+import com.phantom.model._
 import scala.collection.mutable.{ Map => MMap }
 import com.phantom.dataAccess.DatabaseSupport
 import scala.slick.session.Session
 import java.io.{ File, FileOutputStream }
 import com.phantom.ds.DSConfiguration
+import com.phantom.model.ConversationUpdateResponse
+import com.phantom.model.Conversation
+import com.phantom.model.ConversationItem
+import com.phantom.model.ConversationInsertResponse
 
 /**
  * Created by Neosavvy
@@ -22,7 +26,7 @@ trait ConversationService {
   //    * UserId
   //    * Response
   //    * List of conversations
-  def findFeed(userId : Long) : Future[List[Conversation]]
+  def findFeed(userId : Long) : Future[List[(Conversation, List[ConversationItem])]]
 
   def startConversation(fromUserId : Long,
                         toUserIds : List[Long],
@@ -34,8 +38,11 @@ trait ConversationService {
 object ConversationService extends DSConfiguration {
 
   def apply()(implicit ec : ExecutionContext) = new ConversationService with DatabaseSupport {
-    def findFeed(userId : Long) : Future[List[Conversation]] = {
-      Future.successful(List(new Conversation(Some(1), 1, 1)))
+    def findFeed(userId : Long) : Future[List[(Conversation, List[ConversationItem])]] = {
+
+      val returnValue : List[(Conversation, List[ConversationItem])] =
+        conversations.findConversationsAndItems(userId)
+      Future.successful(returnValue)
     }
 
     def startConversation(fromUserId : Long,

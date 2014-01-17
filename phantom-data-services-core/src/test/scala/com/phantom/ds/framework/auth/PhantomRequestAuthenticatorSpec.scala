@@ -16,6 +16,8 @@ class PhantomRequestAuthenticatorSpec extends Specification
     with BaseDAOSpec
     with AuthenticatedSpec {
 
+  sequential
+
   def actorRefFactory = system
 
   "PhantomRequestAuthenticator" should {

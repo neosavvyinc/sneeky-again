@@ -64,7 +64,7 @@ package object httpx {
 
       def read(json : JsValue) : UUID = json match {
         case JsString(x) => UUIDConversions.fromStringRep(x)
-        case _           => deserializationError("Expectd String value for UUID")
+        case _           => deserializationError("Expected String value for UUID")
       }
     }
 
