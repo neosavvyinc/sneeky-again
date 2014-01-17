@@ -24,6 +24,8 @@ class UserLogoutSpec extends Specification
 
   def actorRefFactory = system
 
+  sequential
+
   "Logout" should {
 
     "work" in withSetupTeardown {
