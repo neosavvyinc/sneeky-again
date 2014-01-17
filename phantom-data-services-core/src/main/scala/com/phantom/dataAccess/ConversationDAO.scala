@@ -45,7 +45,9 @@ class ConversationDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal,
       ci <- ConversationItemTable if c.id === ci.conversationId
     } yield (c, ci)).list
 
-    conversationPairs.groupBy(_._1).map { case (convo, cItem) => (convo, cItem.map(_._2)) }
+    conversationPairs.groupBy(_._1).map {
+      case (convo, cItem) => (convo, cItem.map(_._2))
+    }.toList
   }
 
 }
