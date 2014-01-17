@@ -142,7 +142,7 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
         status === OK
       }
 
-    }.pendingUntilFixed("Adam will fix this")
+    }
 
     "support blocking a user by providing a conversation id" in {
 
