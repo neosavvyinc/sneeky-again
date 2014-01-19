@@ -7,10 +7,12 @@ import com.phantom.dataAccess.DatabaseSupport
 import scala.slick.session.Session
 import java.io.{ File, FileOutputStream }
 import com.phantom.ds.DSConfiguration
+import com.phantom.model.BlockUserByConversationResponse
 import com.phantom.model.ConversationUpdateResponse
 import com.phantom.model.Conversation
 import com.phantom.model.ConversationItem
 import com.phantom.model.ConversationInsertResponse
+import com.phantom.ds.framework.exception.PhantomException
 
 /**
  * Created by Neosavvy
@@ -110,7 +112,31 @@ object ConversationService extends DSConfiguration {
 
     def blockByConversationId(id : Long) : Future[BlockUserByConversationResponse] = {
 
-      return Future.successful(BlockUserByConversationResponse(1, false))
+      // find the base conversation
+      val conversation = conversations.findById(id)
+
+      // find the user that is being blocked - this should be the conv.toUser
+      val userToBlock = phantomUsers.find(conversation.toUser)
+
+      // see if the contact table has a reference in it for this association
+      val contactToBlock : Option[Contact] = contacts.findByContactId(conversation.toUser, conversation.fromUser)
+
+      // TODO: if not then insert a new record with type = block
+      // else update the existing record with type = block
+
+      val numUpdatedContacts = contactToBlock match {
+        case Some(c : Contact) => contacts.update(c.copy(contactType = "block"))
+        case _                 => -1
+      }
+
+      println("Num Updated Contacts: " + numUpdatedContacts)
+
+      if (numUpdatedContacts == 1) {
+        Future.successful(BlockUserByConversationResponse(contactToBlock.get.id.get, true))
+      } else {
+        Future.failed(throw PhantomException.contactNotUpdated)
+      }
+
     }
   }
 
