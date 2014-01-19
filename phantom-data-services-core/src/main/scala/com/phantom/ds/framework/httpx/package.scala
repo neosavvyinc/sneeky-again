@@ -26,27 +26,6 @@ package object httpx {
   private[httpx]type JF[T] = JsonFormat[T]
 
   trait PhantomJsonProtocol extends DefaultJsonProtocol {
-<<<<<<< HEAD
-    implicit val failureFormat = jsonFormat2(Failure)
-    implicit val userRegistrationFormat = jsonFormat3(UserRegistration)
-    implicit val userInsertFormat = jsonFormat4(UserInsert)
-
-    implicit val userFormat = jsonFormat4(User)
-    implicit val phantomUserFormat = jsonFormat1(PhantomUser)
-    implicit val userLoginFormat = jsonFormat2(UserLogin)
-    implicit val clientSafeUserResponse = jsonFormat5(ClientSafeUserResponse)
-    implicit val registrationVerificationFormat = jsonFormat6(RegistrationVerification)
-    implicit val inviteMessageStatusFormat = jsonFormat2(InviteMessageStatus)
-
-    implicit val conversationStarterFormat = jsonFormat4(ConversationStarter)
-    implicit val conversationItemFormat = jsonFormat6(ConversationItem)
-    implicit val conversationSummaryFormat = jsonFormat1(ConversationSummary)
-    implicit val conversationDetail = jsonFormat2(ConversationDetail)
-    implicit val conversationFeed = jsonFormat1(Feed)
-    implicit val conversationResponse = jsonFormat1(ConversationInsertResponse)
-    implicit val blockUserByConversationId = jsonFormat1(BlockUserByConversationResponse)
-=======
->>>>>>> master
 
     implicit object JodaDateTimeFormat extends JsonFormat[DateTime] {
 
@@ -98,6 +77,8 @@ package object httpx {
     implicit val phantomUserFormat = jsonFormat1(PhantomUserDeleteMe)
     implicit val userLoginFormat = jsonFormat2(UserLogin)
     implicit val loginSuccessFormat = jsonFormat1(LoginSuccess)
+    implicit val registrationVerificationFormat = jsonFormat6(RegistrationVerification)
+    implicit val inviteMessageStatusFormat = jsonFormat2(InviteMessageStatus)
 
     implicit val conversationFormat = jsonFormat3(Conversation)
     implicit val conversationStarterFormat = jsonFormat4(ConversationStarter)

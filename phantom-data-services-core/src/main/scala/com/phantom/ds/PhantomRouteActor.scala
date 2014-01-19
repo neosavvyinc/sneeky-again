@@ -4,7 +4,6 @@ import akka.actor.{ ActorRef, Actor }
 import com.phantom.ds.user.UserEndpoint
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 import com.phantom.ds.conversation.ConversationEndpoint
-import com.phantom.ds.integration.twilio.TwilioEndpoint
 import com.phantom.dataAccess.DatabaseSupport
 import com.phantom.ds.integration.twilio.TwilioEndpoint
 
@@ -16,11 +15,11 @@ import com.phantom.ds.integration.twilio.TwilioEndpoint
  * Time: 4:53 PM
  */
 
-class PhantomRouteActor() extends Actor
+class PhantomRouteActor(val twilioActor : ActorRef) extends Actor
     with UserEndpoint
     with ConversationEndpoint
     with TwilioEndpoint
-    with DatabaseSupport{
+    with DatabaseSupport {
   this : RequestAuthenticator with EntryPointAuthenticator =>
 
   // the HttpService trait defines only one abstract member, which
