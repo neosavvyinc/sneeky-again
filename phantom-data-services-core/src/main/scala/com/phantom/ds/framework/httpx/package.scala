@@ -13,8 +13,6 @@ import spray.http.HttpResponse
 import com.phantom.model.ConversationItem
 import java.util.UUID
 
-//import com.phantom.model.User
-import com.phantom.model.ConversationStarter
 import com.phantom.model.UserRegistration
 
 import org.joda.time.{ LocalDate, DateTimeZone, DateTime }
@@ -78,12 +76,13 @@ package object httpx {
     implicit val loginSuccessFormat = jsonFormat1(LoginSuccess)
 
     implicit val conversationFormat = jsonFormat3(Conversation)
-    implicit val conversationStarterFormat = jsonFormat4(ConversationStarter)
+
     implicit val conversationItemFormat = jsonFormat4(ConversationItem)
 
     implicit val conversationInsertResponse = jsonFormat1(ConversationInsertResponse)
     implicit val conversationUpdateResponse = jsonFormat1(ConversationUpdateResponse)
-    implicit val blockUserByConversationId = jsonFormat1(BlockUserByConversationResponse)
+    implicit val blockUserByConversationResponse = jsonFormat2(BlockUserByConversationResponse)
+
   }
 
   trait PhantomResponseMarshaller extends PhantomJsonProtocol {

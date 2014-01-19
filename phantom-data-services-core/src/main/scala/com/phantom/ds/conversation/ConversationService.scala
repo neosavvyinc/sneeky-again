@@ -34,6 +34,8 @@ trait ConversationService {
 
   def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String
 
+  def blockByConversationId(id : Long) : Future[BlockUserByConversationResponse]
+
 }
 
 object ConversationService extends DSConfiguration {
@@ -104,6 +106,11 @@ object ConversationService extends DSConfiguration {
 
       imageUrl
 
+    }
+
+    def blockByConversationId(id : Long) : Future[BlockUserByConversationResponse] = {
+
+      return Future.successful(BlockUserByConversationResponse(1, false))
     }
   }
 

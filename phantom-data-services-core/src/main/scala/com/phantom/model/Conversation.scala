@@ -18,13 +18,12 @@ case class Conversation(id : Option[Long],
                         toUser : Long,
                         fromUser : Long)
 
-case class ConversationSummary(mostRecent : ConversationItem)
-
 case class ConversationInsertResponse(id : Long)
 
 case class ConversationUpdateResponse(id : Long)
 
-case class BlockUserByConversationResponse(id : Long)
+case class BlockUserByConversationResponse(id : Long,
+                                           success : Boolean)
 
 trait ConversationComponent { this : Profile with UserComponent =>
 

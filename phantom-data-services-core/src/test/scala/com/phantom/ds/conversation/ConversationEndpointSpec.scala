@@ -150,7 +150,7 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
         }
       }
 
-    }.pendingUntilFixed("This is unimplemented")
+    }
   }
 
 }
