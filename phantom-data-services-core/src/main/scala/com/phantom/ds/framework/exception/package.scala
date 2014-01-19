@@ -4,8 +4,19 @@ import java.util.ResourceBundle
 
 package object exception {
 
-  trait PhantomException {
-    def code : Int
+  class PhantomException(val code : Int, val msg : String = "") extends java.lang.Exception(msg)
+
+  class UnverifiedUserException(code : Int, msg : String = "") extends PhantomException(code, msg)
+
+  object PhantomException {
+    //signup/login/auth exceptions will be in the 100 block
+    def duplicateUser = new PhantomException(101)
+    def nonExistentUser = new PhantomException(103)
+    def unverifiedUser(uuid : String) = new UnverifiedUserException(104, uuid)
+    def passwordsComplexity = new PhantomException(105)
+
+    def noFeedFound = new PhantomException(201)
+
   }
 
   object Errors {

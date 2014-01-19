@@ -1,2 +1,2 @@
 
-sbt clean compile "test-only"
+sbt clean compile test
