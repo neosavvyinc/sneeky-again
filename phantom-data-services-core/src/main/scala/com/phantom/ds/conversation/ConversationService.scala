@@ -21,17 +21,18 @@ import com.phantom.model.ConversationInsertResponse
  */
 trait ConversationService {
 
-  //  * Get my feed
-  //    * Request
-  //    * UserId
-  //    * Response
-  //    * List of conversations
   def findFeed(userId : Long) : Future[List[(Conversation, List[ConversationItem])]]
 
   def startConversation(fromUserId : Long,
                         toUserIds : List[Long],
                         imageText : String,
                         imageUrl : String) : Future[ConversationInsertResponse]
+
+  def respondToConversation(conversationId : Long,
+                            imageText : String,
+                            imageUrl : String) : Future[ConversationUpdateResponse]
+
+  def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String
 
 }
 

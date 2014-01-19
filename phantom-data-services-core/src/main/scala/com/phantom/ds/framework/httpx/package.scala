@@ -9,14 +9,14 @@ import spray.json._
 import com.phantom.model._
 import com.phantom.ds.framework.exception.{ UnverifiedUserException, PhantomException }
 import spray.http.HttpResponse
-import com.phantom.model.ConversationSummary
+
 import com.phantom.model.ConversationItem
 import java.util.UUID
 
 //import com.phantom.model.User
 import com.phantom.model.ConversationStarter
 import com.phantom.model.UserRegistration
-import com.phantom.model.ConversationDetail
+
 import org.joda.time.{ LocalDate, DateTimeZone, DateTime }
 import org.joda.time.format.ISODateTimeFormat
 
@@ -80,8 +80,7 @@ package object httpx {
     implicit val conversationFormat = jsonFormat3(Conversation)
     implicit val conversationStarterFormat = jsonFormat4(ConversationStarter)
     implicit val conversationItemFormat = jsonFormat4(ConversationItem)
-    implicit val conversationSummaryFormat = jsonFormat1(ConversationSummary)
-    implicit val conversationDetail = jsonFormat2(ConversationDetail)
+
     implicit val conversationInsertResponse = jsonFormat1(ConversationInsertResponse)
     implicit val conversationUpdateResponse = jsonFormat1(ConversationUpdateResponse)
     implicit val blockUserByConversationId = jsonFormat1(BlockUserByConversationResponse)
