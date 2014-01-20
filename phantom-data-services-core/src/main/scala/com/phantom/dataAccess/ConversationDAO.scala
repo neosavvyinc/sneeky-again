@@ -39,13 +39,15 @@ class ConversationDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal,
     val updateQuery = Query(ConversationTable) filter { _.id === conversation.id }
     updateQuery.update(conversation)
   }
-  def findConversationsAndItems(fromUserId : Long) : List[(Conversation, ConversationItem)] = {
-    val q = for {
+  def findConversationsAndItems(fromUserId : Long) : List[(Conversation, List[ConversationItem])] = {
+    val conversationPairs = (for {
       c <- ConversationTable
       ci <- ConversationItemTable if c.id === ci.conversationId
-    } yield (c, ci)
+    } yield (c, ci)).list
 
-    q.list
+    conversationPairs.groupBy(_._1).map {
+      case (convo, cItem) => (convo, cItem.map(_._2))
+    }.toList
   }
 
 }

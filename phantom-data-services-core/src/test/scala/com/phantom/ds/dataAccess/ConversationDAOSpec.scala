@@ -84,25 +84,28 @@ class ConversationDAOSpec extends BaseDAOSpec {
     }
 
     "support returning a list of conversations with a collection of their conversation items attached as a tuple" in withSetupTeardown {
+      conversations.findConversationsAndItems(1)
       insertTestConverationsWithItems
 
-      val feed : List[(Conversation, ConversationItem)] = conversations.findConversationsAndItems(1)
+      val feed : List[(Conversation, List[ConversationItem])] = conversations.findConversationsAndItems(1)
 
       feed.foreach {
         c =>
           val (conv, ci) = c
-          println("ConvId: " + conv.id + " " + conv.toUser + " " + conv.fromUser + " " + ci.imageText + " " + ci.imageUrl)
+          println("ConvId: " + conv.id + " " + conv.toUser + " " + conv.fromUser)
 
-        //          ci.foreach {
-        //            cItem =>
-        //              println(cItem.id + " " + cItem.imageText + " " + cItem.imageUrl)
-        //          }
+          ci.foreach {
+            cItem =>
+              println(cItem.id + " " + cItem.imageText + " " + cItem.imageUrl)
+          }
 
       }
 
-      true must equalTo(false) //lacks a real assertion
+      (feed.length must equalTo(2)) and
+        (feed(0)._2.length must equalTo(3)) and
+        (feed(1)._2.length must equalTo(3))
 
-    }.pendingUntilFixed("Adam will fix this")
+    }
 
   }
 

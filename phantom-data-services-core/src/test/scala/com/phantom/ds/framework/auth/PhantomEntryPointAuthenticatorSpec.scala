@@ -14,6 +14,8 @@ class PhantomEntryPointAuthenticatorSpec extends Specification
     with Specs2RouteTest
     with AuthenticatedSpec {
 
+  sequential
+
   def actorRefFactory = system
 
   "PhantomEntryPointAuthenticator" should {

@@ -80,10 +80,8 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
   "Conversation Service" should {
     "return just one conversation with all 1's" in {
       Get("/conversation/1") ~> conversationRoute ~> check {
-        assertPayload[List[Conversation]] { response =>
-          response(0).id must be equalTo Some(1)
-          response(0).fromUser must be equalTo 1
-          response(0).toUser must be equalTo 1
+        assertPayload[List[(Conversation, List[ConversationItem])]] { response =>
+          response.length must be equalTo (2)
         }
       }
     }
