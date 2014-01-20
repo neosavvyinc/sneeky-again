@@ -72,7 +72,6 @@ object UserService {
       val session = db.createSession
 
       session.withTransaction {
-
         val res = for {
           d <- contacts.deleteAll(id)(session)
           ids <- phantomUsers.findContactIdsByPhone(id, contactList)
@@ -86,7 +85,7 @@ object UserService {
             }
             case Failure(ex) => {
               session.rollback()
-              Future.failed(new Exception())
+              Future.failed(ex)
             }
           }
         }

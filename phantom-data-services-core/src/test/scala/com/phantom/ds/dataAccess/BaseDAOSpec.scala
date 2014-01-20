@@ -24,13 +24,13 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
 
   object withSetupTeardown extends BeforeAfter {
     def before {
-      dataAccessLayer.drop
+      //dataAccessLayer.drop
       dataAccessLayer.create
 
     }
 
     def after {
-      conversations.dropDB
+      dataAccessLayer.drop
     }
   }
 
