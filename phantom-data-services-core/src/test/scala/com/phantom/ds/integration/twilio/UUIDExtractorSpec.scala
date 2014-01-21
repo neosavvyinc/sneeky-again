@@ -2,8 +2,9 @@ package com.phantom.ds.integration.twilio
 
 import org.specs2.mutable.Specification
 import java.util.UUID
+import com.phantom.ds.TestUtils
 
-class UUIDExtractorSpec extends Specification {
+class UUIDExtractorSpec extends Specification with TestUtils {
 
   "The UUIDExtractor" should {
 
@@ -26,11 +27,6 @@ class UUIDExtractorSpec extends Specification {
     assertFailure("pre", bad, "")
     assertFailure("", bad, "post")
     assertFailure("pre", bad, "post")
-  }
-
-  private def reg(pre : String, uuid : String, post : String) = {
-    val delim = "##"
-    RegistrationVerification("", "", "", "", s"$pre$delim$uuid$delim$post", 1)
   }
 
   private def assertFailure(pre : String, uuid : String, post : String) {
