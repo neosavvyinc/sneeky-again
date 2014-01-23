@@ -1,45 +1,25 @@
-## _spray_ Template Project
+## Phantom Services
 
-This projects provides a starting point for your own _spray-routing_ endeavors.
-There are four branches, providing templates for _spray-routing_ on
+To create a new feature - use a branch:
 
-* _spray-can_, Scala 2.9 + Akka 2.0 + spray 1.0 (the `on_spray-can_1.0` branch)
-* _spray-can_, Scala 2.10 + Akka 2.1 + spray 1.1 (the `on_spray-can_1.1` branch)
-* _spray-can_, Scala 2.10 + Akka 2.2 + spray 1.2 (the `on_spray-can_1.2` branch)
-* _Jetty_, Scala 2.9 + Akka 2.0 + spray 1.0 (the `on_jetty_1.0` branch)
-* _Jetty_, Scala 2.10 + Akka 2.1 + spray 1.1 (the `on_jetty_1.1` branch)
-* _Jetty_, Scala 2.10 + Akka 2.2 + spray 1.2 (the `on_jetty_1.2` branch)
+`git checkout -b feature-block-by-convo`
 
-You are currently on the `on_spray-can_1.1` branch.
+Then push it to the remote
 
-Follow these steps to get started:
+`git push origin feature-block-by-convo:feature-block-by-convo`
 
-1. Git-clone this repository.
+## Run your tests
 
-        $ git clone git://github.com/spray/spray-template.git my-project
+`sbt test`
 
-2. Change directory into your clone:
+All of them should pass
 
-        $ cd my-project
+## Start the server with assembly mode
 
-3. Launch SBT:
+`sbt clean assembly`
+`./startServer.sh`
 
-        $ sbt
+## Start the server with Revolver
 
-4. Compile everything and run all tests:
-
-        > test
-
-5. Start the application:
-
-        > re-start
-
-6. Browse to http://localhost:8080/
-
-7. Stop the application:
-
-        > re-stop
-
-8. Learn more at http://www.spray.io/
-
-9. Start hacking on `src/main/scala/com/example/MyService.scala`
+`sbt`
+`re-start`
