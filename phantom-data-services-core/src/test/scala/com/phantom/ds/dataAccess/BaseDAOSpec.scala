@@ -46,11 +46,11 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
     List(item1, item2, item3)
   }
 
-  def createVerifiedUser(email : String, password : String) {
+  def createVerifiedUser(email : String, password : String) = {
     phantomUsers.insert(PhantomUser(None, UUID.randomUUID, email, Passwords.getSaltedHash(password), LocalDate.now(DateTimeZone.UTC), true, "", Verified))
   }
 
-  def createUnverifiedUser(email : String, password : String) {
+  def createUnverifiedUser(email : String, password : String) = {
     phantomUsers.insert(PhantomUser(None, UUID.randomUUID, email, Passwords.getSaltedHash(password), LocalDate.now(DateTimeZone.UTC), true, "", Unverified))
   }
 
