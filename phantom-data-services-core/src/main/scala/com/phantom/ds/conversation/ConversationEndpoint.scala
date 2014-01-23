@@ -2,21 +2,11 @@ package com.phantom.ds.conversation
 
 import spray.http.MediaTypes._
 import com.phantom.ds.DataHttpService
-import com.phantom.model._
-import com.phantom.ds.framework.httpx._
 
 import scala._
-import spray.http.MultipartFormData
-import java.io.FileOutputStream
 import scala.concurrent.{ Future, ExecutionContext }
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
-import com.phantom.dataAccess.DatabaseSupport
 import scala.concurrent.ExecutionContext.Implicits._
-import com.phantom.model.Conversation
-import com.phantom.model.BlockUserByConversationResponse
-import com.phantom.model.Conversation
-import com.phantom.model.BlockUserByConversationResponse
-import scala.Some
 
 /**
  * Created by Neosavvy
@@ -92,13 +82,11 @@ trait ConversationEndpoint extends DataHttpService {
             post {
               respondWithMediaType(`application/json`) {
                 complete {
-                  BlockUserByConversationResponse(1)
+                  conversationService.blockByConversationId(id)
                 }
               }
             }
         }
       }
-
     }
-
 }

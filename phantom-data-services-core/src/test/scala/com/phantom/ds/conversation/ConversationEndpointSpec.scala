@@ -13,6 +13,7 @@ import com.phantom.model.{ ConversationItem, PhantomUser, BlockUserByConversatio
 import java.util.UUID
 import org.joda.time.LocalDate
 import com.phantom.dataAccess.DatabaseSupport
+import com.phantom.ds.dataAccess.BaseDAOSpec
 
 /**
  * Created by Neosavvy
@@ -21,64 +22,35 @@ import com.phantom.dataAccess.DatabaseSupport
  * Date: 12/7/13
  * Time: 3:13 PM
  */
-class ConversationEndpointSpec extends Specification with PhantomEndpointSpec with Specs2RouteTest with Logging with ConversationEndpoint with DatabaseSupport {
+class ConversationEndpointSpec extends Specification
+    with PhantomEndpointSpec
+    with Specs2RouteTest
+    with Logging
+    with ConversationEndpoint
+    with DatabaseSupport
+    with BaseDAOSpec {
 
   sequential
-
-  def insertTestUsers {
-    val user1 = new PhantomUser(None, UUID.randomUUID(), "aparrish@neosavvy.com", "password", new LocalDate(1981, 8, 10), true, "1234567")
-    val user2 = new PhantomUser(None, UUID.randomUUID(), "ccaplinger@neosavvy.com", "password", new LocalDate(1986, 10, 12), true, "1234567")
-    val user3 = new PhantomUser(None, UUID.randomUUID(), "tewen@neosavvy.com", "password", new LocalDate(1987, 8, 16), true, "1234567")
-    val user4 = new PhantomUser(None, UUID.randomUUID(), "dhamlettneosavvy.com", "password", new LocalDate(1985, 5, 17), true, "1234567")
-    val user5 = new PhantomUser(None, UUID.randomUUID(), "nick.sauro@gmail.com", "password", new LocalDate(1987, 8, 16), true, "1234567")
-    val user6 = new PhantomUser(None, UUID.randomUUID(), "pablo.alonso@gmail.com", "password", new LocalDate(1987, 8, 16), true, "1234567")
-    phantomUsers.insert(user1)
-    phantomUsers.insert(user2)
-    phantomUsers.insert(user3)
-    phantomUsers.insert(user4)
-    phantomUsers.insert(user5)
-    phantomUsers.insert(user6)
-  }
-
-  def insertTestConversations {
-
-    val conv1 = new Conversation(None, 1, 2)
-    val conv2 = new Conversation(None, 3, 4)
-    val conv3 = new Conversation(None, 5, 6)
-    conversations.insert(conv1)
-    conversations.insert(conv2)
-    conversations.insert(conv3)
-
-  }
-
-  def insertTestUsersAndConversations {
-    insertTestUsers
-    insertTestConversations
-  }
-
-  def insertTestConverationsWithItems {
-    insertTestUsersAndConversations
-
-    val conv1item1 = new ConversationItem(None, 1, "imageUrl1", "imageText1")
-    val conv1item2 = new ConversationItem(None, 1, "imageUrl2", "imageText2")
-    val conv1item3 = new ConversationItem(None, 1, "imageUrl3", "imageText3")
-
-    val conv2item1 = new ConversationItem(None, 2, "imageUrl1", "imageText1")
-    val conv2item2 = new ConversationItem(None, 2, "imageUrl2", "imageText2")
-    val conv2item3 = new ConversationItem(None, 2, "imageUrl3", "imageText3")
-
-    conversationItems.insert(conv1item1)
-    conversationItems.insert(conv1item2)
-    conversationItems.insert(conv1item3)
-    conversationItems.insert(conv2item1)
-    conversationItems.insert(conv2item2)
-    conversationItems.insert(conv2item3)
-  }
 
   def actorRefFactory = system
 
   "Conversation Service" should {
-    "return just one conversation with all 1's" in {
+
+    "support blocking a user by providing a conversation id" in withSetupTeardown {
+      insertTestConverationsWithItems
+      insertTestContacts
+
+      Post("/conversation/block/1") ~> conversationRoute ~> check {
+        assertPayload[BlockUserByConversationResponse] { response =>
+          response.id must be equalTo 1L
+        }
+      }
+
+    }
+
+    "return just one conversation with all 1's" in withSetupTeardown {
+      insertTestConverationsWithItems
+
       Get("/conversation/1") ~> conversationRoute ~> check {
         assertPayload[List[(Conversation, List[ConversationItem])]] { response =>
           response.length must be equalTo (2)
@@ -86,7 +58,7 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
       }
     }
 
-    "support receiving a multi-part form post to start or update a conversation, if no image it throws error" in {
+    "support receiving a multi-part form post to start or update a conversation, if no image it throws error" in withSetupTeardown {
 
       val multipartForm = MultipartFormData {
         Map(
@@ -101,7 +73,7 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
 
     }
 
-    "support receiving a multi-part form post to start a conversation with image" in {
+    "support receiving a multi-part form post to start a conversation with image" in withSetupTeardown {
       insertTestUsers
 
       val in4 = this.getClass().getClassLoader().getResourceAsStream("testFile.png")
@@ -122,7 +94,7 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
 
     }
 
-    "support receiving a multi-part form post to update a conversation with image" in {
+    "support receiving a multi-part form post to update a conversation with image" in withSetupTeardown {
       insertTestConverationsWithItems
 
       val in4 = this.getClass().getClassLoader().getResourceAsStream("testFile.png")
@@ -142,15 +114,6 @@ class ConversationEndpointSpec extends Specification with PhantomEndpointSpec wi
 
     }
 
-    "support blocking a user by providing a conversation id" in {
-
-      Post("/conversation/block/1") ~> conversationRoute ~> check {
-        assertPayload[BlockUserByConversationResponse] { response =>
-          response.id must be equalTo 1L
-        }
-      }
-
-    }.pendingUntilFixed("This is unimplemented")
   }
 
 }

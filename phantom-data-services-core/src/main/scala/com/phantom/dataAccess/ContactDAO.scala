@@ -49,6 +49,22 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     contactList.future
   }
 
+  def findByContactId(ownerId : Long, contactId : Long) : Option[Contact] = {
+    val query = Query(ContactTable)
+      .filter { _.ownerId === ownerId }
+      .filter { _.contactId === contactId }
+
+    println("sql: " + query.selectStatement)
+
+    query.firstOption()
+  }
+
+  def update(contact : Contact) : Int = {
+    val update = Query(ContactTable)
+      .filter { _.id === contact.id }
+    update.update(contact)
+  }
+
   def deleteAll(id : Long)(session : scala.slick.session.Session) : Future[Int] = {
     future {
       Query(ContactTable).filter(_.ownerId === id).delete(session)
@@ -60,5 +76,6 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
       Query(ContactTable).list
     }
   }
+
 }
 

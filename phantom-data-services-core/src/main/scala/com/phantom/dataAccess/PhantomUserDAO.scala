@@ -19,7 +19,6 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
   import dal._
   import dal.profile.simple._
 
-  //move me to test layer
   def insert(user : PhantomUser) : PhantomUser = {
     log.trace(s"inserting user: $user")
 
@@ -28,15 +27,15 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     user.copy(id = Some(id))
   }
 
-  private val byEmail = for (email <- Parameters[String]; u <- UserTable if u.email is email) yield u
+  private val byEmailQuery = for (email <- Parameters[String]; u <- UserTable if u.email is email) yield u
 
-  private val exists = for (email <- Parameters[String]; u <- UserTable if u.email is email) yield u.exists
+  private val existsQuery = for (email <- Parameters[String]; u <- UserTable if u.email is email) yield u.exists
 
   def register(registrationRequest : UserRegistration) : Future[PhantomUser] = {
     log.trace(s"registering $registrationRequest")
     future {
       log.trace("checking for existing user")
-      val ex = exists(registrationRequest.email).firstOption
+      val ex = existsQuery(registrationRequest.email).firstOption
       val mapped = ex.map { e =>
         if (e) {
           log.trace(s"duplicate email detected when registering $registrationRequest")
@@ -50,20 +49,27 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
   }
 
   private def createUserRecord(reg : UserRegistration) = {
-    //TODO: PASSWORD COMPLEXITY VALIDATION
     insert(PhantomUser(None, UUID.randomUUID, reg.email, Passwords.getSaltedHash(reg.password), reg.birthday, true, ""))
   }
 
   def login(loginRequest : UserLogin) : Future[PhantomUser] = {
     future {
       log.trace(s"logging in $loginRequest")
-      val userOpt = byEmail(loginRequest.email).firstOption
+      val userOpt = byEmailQuery(loginRequest.email).firstOption
       val filtered = userOpt.filter(x => Passwords.check(loginRequest.password, x.password))
       val user = filtered.getOrElse(throw PhantomException.nonExistentUser)
       if (user.status == Unverified) {
         throw PhantomException.unverifiedUser(user.uuid.toString)
       }
       user
+    }
+  }
+
+  def verifyUser(uuid : UUID) : Future[Int] = {
+    future {
+      //inefficient
+      val q = for { u <- UserTable if u.uuid === uuid && u.status === (Unverified : UserStatus) } yield u.status
+      q.update(Verified)
     }
   }
 

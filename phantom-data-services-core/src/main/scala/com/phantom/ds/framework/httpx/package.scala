@@ -9,16 +9,15 @@ import spray.json._
 import com.phantom.model._
 import com.phantom.ds.framework.exception.{ UnverifiedUserException, PhantomException }
 import spray.http.HttpResponse
-import com.phantom.model.ConversationSummary
+
 import com.phantom.model.ConversationItem
 import java.util.UUID
 
-//import com.phantom.model.User
-import com.phantom.model.ConversationStarter
 import com.phantom.model.UserRegistration
-import com.phantom.model.ConversationDetail
+
 import org.joda.time.{ LocalDate, DateTimeZone, DateTime }
 import org.joda.time.format.ISODateTimeFormat
+import com.phantom.ds.integration.twilio.{ InviteMessageStatus, RegistrationVerification }
 
 package object httpx {
 
@@ -76,15 +75,17 @@ package object httpx {
     implicit val phantomUserFormat = jsonFormat1(PhantomUserDeleteMe)
     implicit val userLoginFormat = jsonFormat2(UserLogin)
     implicit val loginSuccessFormat = jsonFormat1(LoginSuccess)
+    implicit val registrationVerificationFormat = jsonFormat6(RegistrationVerification)
+    implicit val inviteMessageStatusFormat = jsonFormat2(InviteMessageStatus)
 
     implicit val conversationFormat = jsonFormat3(Conversation)
-    implicit val conversationStarterFormat = jsonFormat4(ConversationStarter)
+
     implicit val conversationItemFormat = jsonFormat4(ConversationItem)
-    implicit val conversationSummaryFormat = jsonFormat1(ConversationSummary)
-    implicit val conversationDetail = jsonFormat2(ConversationDetail)
+
     implicit val conversationInsertResponse = jsonFormat1(ConversationInsertResponse)
     implicit val conversationUpdateResponse = jsonFormat1(ConversationUpdateResponse)
-    implicit val blockUserByConversationId = jsonFormat1(BlockUserByConversationResponse)
+    implicit val blockUserByConversationResponse = jsonFormat2(BlockUserByConversationResponse)
+
   }
 
   trait PhantomResponseMarshaller extends PhantomJsonProtocol {

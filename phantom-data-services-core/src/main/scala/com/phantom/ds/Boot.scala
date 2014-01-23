@@ -4,6 +4,7 @@ import akka.actor.{ Props, ActorSystem }
 import akka.io.IO
 import spray.can.Http
 import com.phantom.ds.framework.auth._
+import com.phantom.ds.integration.twilio.{ TwilioService, TwilioActor }
 
 object Boot extends App with DSConfiguration {
 
@@ -14,14 +15,18 @@ object Boot extends App with DSConfiguration {
 
   val phantomService = getActor
 
+  implicit val executor = scala.concurrent.ExecutionContext.Implicits.global
+
   // start a new HTTP server on port 8080 with our service actor as the handler
   IO(Http) ! Http.Bind(phantomService, interface = "0.0.0.0", port = 9090)
 
   private def getActor = {
     if (AuthConfiguration.authEnabled) {
-      system.actorOf(Props(new PhantomRouteActor() with MockSessionRepository with PhantomRequestAuthenticator with PhantomEntryPointAuthenticator), "service")
+      system.actorOf(Props(new PhantomRouteActor(twilioActor) with MockSessionRepository with PhantomRequestAuthenticator with PhantomEntryPointAuthenticator), "service")
     } else {
-      system.actorOf(Props(new PhantomRouteActor() with PassThroughRequestAuthenticator with PassThroughEntryPointAuthenticator), "service")
+      system.actorOf(Props(new PhantomRouteActor(twilioActor) with PassThroughRequestAuthenticator with PassThroughEntryPointAuthenticator), "service")
     }
   }
+
+  private def twilioActor = system.actorOf(Props(new TwilioActor(TwilioService(executor))))
 }
