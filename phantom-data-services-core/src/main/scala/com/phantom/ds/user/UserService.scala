@@ -1,6 +1,6 @@
 package com.phantom.ds.user
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ Promise, ExecutionContext, Future }
 import scala.util.{ Success, Failure }
 import spray.http.{ StatusCode, StatusCodes }
 import spray.json._
@@ -23,7 +23,7 @@ trait UserService {
   def logout(sessionId : String) : Future[Unit]
   def findById(id : Long) : Future[PhantomUser]
   def findContactsById(id : Long) : Future[List[PhantomUser]]
-  def updateContacts(id : Long, contacts : List[String]) : Future[Unit]
+  def updateContacts(id : Long, contacts : List[String]) : Future[List[Long]]
   def clearBlockList(id : Long) : Future[StatusCode]
 }
 
@@ -68,8 +68,9 @@ object UserService {
       phantomUsers.findContacts(id)
     }
 
-    def updateContacts(id : Long, contactList : List[String]) : Future[Unit] = {
+    def updateContacts(id : Long, contactList : List[String]) : Future[List[Long]] = {
       val session = db.createSession
+      val updatedContacts : Promise[List[Long]] = Promise()
 
       session.withTransaction {
         val res = for {
@@ -78,18 +79,18 @@ object UserService {
           insert <- contacts.insertList(id, ids)
         } yield insert
 
-        Future {
-          res.onComplete {
-            case Success(_) => {
-              Future.successful(StatusCodes.OK)
-            }
-            case Failure(ex) => {
-              session.rollback()
-              Future.failed(ex)
-            }
+        res.onComplete {
+          case Success(contacts : List[Contact]) => {
+            updatedContacts.success(contacts.map(_.contactId))
+          }
+          case Failure(ex) => {
+            session.rollback()
+            updatedContacts.failure(ex)
           }
         }
       }
+
+      updatedContacts.future
     }
 
     def clearBlockList(id : Long) : Future[StatusCode] = {

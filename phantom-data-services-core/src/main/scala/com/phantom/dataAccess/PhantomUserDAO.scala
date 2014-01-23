@@ -22,6 +22,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
   //move me to test layer
   def insert(user : PhantomUser) : PhantomUser = {
     log.trace(s"inserting user: $user")
+
     val id = UserTable.forInsert.insert(user)
     log.trace(s"id $id")
     user.copy(id = Some(id))
@@ -93,24 +94,13 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
 
   def findContactIdsByPhone(id : Long, contacts : List[String]) : Future[List[Long]] = {
 
-    import scala.slick.jdbc.StaticQuery
-    import java.lang.StringBuilder
-
     future {
-      //val q = Query(ContactTable).filter(_.ownerId is id)
-      //val users = Query(UserTable).filter(_.phoneNumber === contacts)
-      //select x2.`id`, x2.`EMAIL`, x2.`BIRTHDAY`, x2.`ACTIVE`, x2.`PHONE_NUMBER` from `USERS` x2 where x2.`PHONE_NUMBER` = '\"6148551499\"'
 
-      // oh man, this is dumb...
-      var sb = new StringBuilder
-      sb.append("""select x2.`id` from `USERS` x2 where x2.`PHONE_NUMBER` = '""")
-      sb.append(contacts(0))
-      sb.append("""'""")
-      val q = sb.toString.replace(""""""", """""")
-
-      val user_ids = StaticQuery.queryNA[Long](q)
-
-      user_ids.list
+      val users = for {
+        c <- ContactTable if c.ownerId is id
+        u <- UserTable if u.id === c.contactId
+      } yield u
+      users.list.filter(u => contacts.contains(u.phoneNumber)).map(_.id.get)
     }
   }
 

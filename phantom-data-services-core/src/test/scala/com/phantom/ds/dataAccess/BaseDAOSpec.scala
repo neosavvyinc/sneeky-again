@@ -6,10 +6,8 @@ import org.specs2.specification.BeforeAfter
 import com.phantom.model._
 import org.joda.time.{ DateTimeZone, LocalDate }
 import java.util.UUID
-import com.phantom.model.Conversation
-import com.phantom.model.ConversationItem
-import com.phantom.model.PhantomUser
 import com.phantom.ds.user.Passwords
+import scala.concurrent.{ Promise, ExecutionContext, Future, future }
 
 /**
  * Created with IntelliJ IDEA.
@@ -68,6 +66,34 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
     phantomUsers.insert(user4)
     phantomUsers.insert(user5)
     phantomUsers.insert(user6)
+  }
+
+  def insertUsersWithPhoneNumbersAndContacts = {
+
+    val user1 = PhantomUser(None, UUID.randomUUID(), "aparrish@neosavvy.com", "password", new LocalDate(1981, 8, 10), true, "4993676")
+    val user2 = PhantomUser(None, UUID.randomUUID(), "ccaplinger@neosavvy.com", "password", new LocalDate(1986, 10, 12), true, "5192050")
+    val user3 = PhantomUser(None, UUID.randomUUID(), "tewen@neosavvy.com", "password", new LocalDate(1987, 8, 16), true, "2061266")
+    val user4 = PhantomUser(None, UUID.randomUUID(), "nsauro@gmail.com", "password", new LocalDate(1987, 8, 16), true, "1234567")
+    phantomUsers.insert(user1)
+    phantomUsers.insert(user2)
+    phantomUsers.insert(user3)
+    phantomUsers.insert(user4)
+
+    val conv1 = Contact(None, 1, 2, "friend")
+    val conv2 = Contact(None, 1, 3, "friend")
+    val conv3 = Contact(None, 1, 4, "friend")
+    contacts.insert(conv1)
+    contacts.insert(conv2)
+    contacts.insert(conv3)
+  }
+
+  def insertContacts {
+    val contact1 = Contact(None, 1, 2, "friend")
+    val contact2 = Contact(None, 1, 3, "friend")
+    val contact3 = Contact(None, 1, 4, "friend")
+    contacts.insert(contact1)
+    contacts.insert(contact2)
+    contacts.insert(contact3)
   }
 
   def insertTestConversations {

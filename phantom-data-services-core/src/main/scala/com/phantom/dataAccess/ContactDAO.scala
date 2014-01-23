@@ -17,10 +17,7 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
   def purgeDB = dal.purge
 
   def insert(contact : Contact) : Future[Contact] = {
-
     ContactTable.forInsert.insert(contact) match {
-      // fix this for failure case... I believe insert returns a 0
-      // on failure???
       case 0         => Future.failed(new Exception("unable to insert contact"))
       case id : Long => Future.successful(contact.copy(id = Some(id)))
     }
