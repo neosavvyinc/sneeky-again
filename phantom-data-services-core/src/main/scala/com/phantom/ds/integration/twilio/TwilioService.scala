@@ -8,12 +8,12 @@ import java.util.UUID
 
 trait TwilioService {
   def verifyRegistration(response : RegistrationVerification) : Future[Unit]
-  def sendInvitations(contacts : List[String]) : Future[Unit]
+  def sendInvitations(contacts : List[String])
   def recordInvitationStatus(status : InviteMessageStatus) : Future[Unit]
 }
 
 object TwilioService {
-  def apply(implicit ec : ExecutionContext) : TwilioService =
+  def apply(sender : TwilioMessageSender)(implicit ec : ExecutionContext) : TwilioService =
 
     new TwilioService with DatabaseSupport with Logging with DSConfiguration {
 
@@ -37,8 +37,14 @@ object TwilioService {
       }
 
       // for now..this could probably its own actor w/ a router on it
-      def sendInvitations(contacts : List[String]) : Future[Unit] = {
-        Future.successful()
+      def sendInvitations(contacts : List[String]) {
+        val messageStatuses = Future.sequence(contacts.map(sender.sendInvitation))
+        messageStatuses.onSuccess {
+          case x =>
+            x.foreach { message =>
+              log.info(s"invitation sent status $message")
+            }
+        }
       }
 
       //TODO FIX ME..i do nothing good

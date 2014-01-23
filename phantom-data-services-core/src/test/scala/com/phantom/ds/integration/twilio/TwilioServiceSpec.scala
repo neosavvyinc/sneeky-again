@@ -12,7 +12,7 @@ class TwilioServiceSpec extends Specification
     with BaseDAOSpec
     with TestUtils {
 
-  private val svc = TwilioService(global)
+  private val svc = TwilioService(TwiioMessageSender(TwilioConfiguration.accountSid, TwilioConfiguration.authToken, TwilioConfiguration.phoneNumber))(global)
 
   sequential
 

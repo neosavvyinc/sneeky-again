@@ -37,6 +37,7 @@ trait DSConfiguration {
 
     val accountSid = twilioCfg.getString("accountSid")
     val authToken = twilioCfg.getString("authToken")
+    def phoneNumber = twilioCfg.getString("phoneNumber")
 
     private def twilioCfg = cfg.getConfig("twilio")
 
