@@ -69,12 +69,6 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     update.update(contact)
   }
 
-  def createSampleContacts = {
-    ContactTable.insertAll(
-      Contact(None, 1, 2, "friend"),
-      Contact(None, 1, 3, "block"),
-      Contact(None, 3, 2, "friend")
-    )
   def deleteAll(id : Long)(session : scala.slick.session.Session) : Future[Int] = {
     future {
       Query(ContactTable).filter(_.ownerId === id).delete(session)
@@ -86,5 +80,6 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
       Query(ContactTable).list
     }
   }
+
 }
 

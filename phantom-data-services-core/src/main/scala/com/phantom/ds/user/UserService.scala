@@ -1,11 +1,16 @@
 package com.phantom.ds.user
 
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Success, Failure }
 import spray.http.{ StatusCode, StatusCodes }
+import spray.json._
+import com.phantom.ds.framework.httpx._
 import com.phantom.model._
+import scala.collection.mutable.{ Map => MMap }
 import com.phantom.ds.framework.Logging
-import org.joda.time.{ DateTime, DateTimeZone }
+import org.joda.time.{ DateTime, DateTimeZone, LocalDate }
 import com.phantom.model.UserLogin
+import com.phantom.model.PhantomUserTypes._
 import com.phantom.model.PhantomUser
 import com.phantom.model.UserRegistration
 import com.phantom.dataAccess.DatabaseSupport
