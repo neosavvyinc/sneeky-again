@@ -18,12 +18,11 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
 
   def insert(contact : Contact) : Future[Contact] = {
 
-    val id = ContactTable.forInsert.insert(contact)
-    id match {
+    ContactTable.forInsert.insert(contact) match {
       // fix this for failure case... I believe insert returns a 0
       // on failure???
-      //case 0 => insertPromise.failure(new Exception("unable to insert contact"))
-      case _ => Future.successful(contact.copy(id = Some(id)))
+      case 0         => Future.failed(new Exception("unable to insert contact"))
+      case id : Long => Future.successful(contact.copy(id = Some(id)))
     }
   }
 
