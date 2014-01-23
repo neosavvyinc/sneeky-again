@@ -26,7 +26,6 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
     def before {
       //dataAccessLayer.drop
       dataAccessLayer.create
-
     }
 
     def after {
@@ -47,11 +46,11 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
     List(item1, item2, item3)
   }
 
-  def createVerifiedUser(email : String, password : String) {
+  def createVerifiedUser(email : String, password : String) = {
     phantomUsers.insert(PhantomUser(None, UUID.randomUUID, email, Passwords.getSaltedHash(password), LocalDate.now(DateTimeZone.UTC), true, "", Verified))
   }
 
-  def createUnverifiedUser(email : String, password : String) {
+  def createUnverifiedUser(email : String, password : String) = {
     phantomUsers.insert(PhantomUser(None, UUID.randomUUID, email, Passwords.getSaltedHash(password), LocalDate.now(DateTimeZone.UTC), true, "", Unverified))
   }
 
@@ -68,6 +67,20 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
     phantomUsers.insert(user4)
     phantomUsers.insert(user5)
     phantomUsers.insert(user6)
+  }
+
+  def insertTestContacts {
+
+    var user1and2 = new Contact(None, 1, 2, "friend")
+    var user1and3 = new Contact(None, 1, 3, "friend")
+    var user1and4 = new Contact(None, 1, 4, "friend")
+    var user1and5 = new Contact(None, 1, 5, "friend")
+
+    contacts.insert(user1and2)
+    contacts.insert(user1and3)
+    contacts.insert(user1and4)
+    contacts.insert(user1and5)
+
   }
 
   def insertTestConversations {
