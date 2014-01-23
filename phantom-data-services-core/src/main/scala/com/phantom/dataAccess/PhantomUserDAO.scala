@@ -99,14 +99,8 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
   }
 
   def findContactIdsByPhone(id : Long, contacts : List[String]) : Future[List[Long]] = {
-
     future {
-
-      val users = for {
-        c <- ContactTable if c.ownerId is id
-        u <- UserTable if u.id === c.contactId
-      } yield u
-      users.list.filter(u => contacts.contains(u.phoneNumber)).map(_.id.get)
+      Query(UserTable).list.filter(u => contacts.contains(u.phoneNumber)).map(_.id.get)
     }
   }
 
