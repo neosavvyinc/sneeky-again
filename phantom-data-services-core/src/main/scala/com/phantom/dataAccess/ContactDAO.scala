@@ -1,13 +1,14 @@
 package com.phantom.dataAccess
 
 import scala.slick.session.Database
+import scala.util.{ Success, Failure }
 import spray.http.{ StatusCode, StatusCodes }
 import org.joda.time.LocalDate
 import com.phantom.ds.framework.Logging
 import com.phantom.model.Contact
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ Promise, ExecutionContext, Future, future }
 
-class ContactDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, db) {
+class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionContext) extends BaseDAO(dal, db) {
   import dal._
   import dal.profile.simple._
 
@@ -15,17 +16,37 @@ class ContactDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, db) 
   def dropDB = dal.drop
   def purgeDB = dal.purge
 
-  def insert(contact : Contact) = {
-    val id = ContactTable.forInsert.insert(contact)
-    Contact(Some(id), contact.ownerId, contact.contactId, contact.contactType)
+  def insert(contact : Contact) : Future[Contact] = {
+    ContactTable.forInsert.insert(contact) match {
+      case 0         => Future.failed(new Exception("unable to insert contact"))
+      case id : Long => Future.successful(contact.copy(id = Some(id)))
+    }
   }
 
-  def deleteAll(id : Long)(session : scala.slick.session.Session) : StatusCode = {
-    Query(ContactTable).filter(_.ownerId === id).delete(session) match {
-      case 0 =>
-        new Exception("nothing deleted"); StatusCodes.NotFound
-      case _ => StatusCodes.OK
+  def insertList(id : Long, ids : List[Long]) : Future[List[Contact]] = {
+
+    val contactList : Promise[List[Contact]] = Promise()
+
+    future {
+
+      val insertFutures : List[Future[Contact]] = ids.map { uid : Long =>
+        insert(Contact(None, id, uid, "friend"))
+      }
+
+      Future.sequence(insertFutures).onComplete {
+        case Success(vs) => contactList.success(vs)
+        case Failure(ex) => contactList.failure(ex)
+      }
+      // is it possible to batch insert?
+      //      cs.foreach { (c : Contact) =>
+      //        insert(c).onComplete {
+      //          case Success(v)  => contactList.success(List(v))
+      //          case Failure(ex) => contactList.failure(ex)
+      //        }
+      //      }
     }
+
+    contactList.future
   }
 
   def findByContactId(ownerId : Long, contactId : Long) : Option[Contact] = {
@@ -44,12 +65,17 @@ class ContactDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, db) 
     update.update(contact)
   }
 
-  def createSampleContacts = {
-    ContactTable.insertAll(
-      Contact(None, 1, 2, "friend"),
-      Contact(None, 1, 3, "block"),
-      Contact(None, 3, 2, "friend")
-    )
+  def deleteAll(id : Long)(session : scala.slick.session.Session) : Future[Int] = {
+    future {
+      Query(ContactTable).filter(_.ownerId === id).delete(session)
+    }
   }
+
+  def findAll : Future[List[Contact]] = {
+    future {
+      Query(ContactTable).list
+    }
+  }
+
 }
 

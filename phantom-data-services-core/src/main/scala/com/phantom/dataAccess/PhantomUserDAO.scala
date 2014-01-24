@@ -21,6 +21,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
 
   def insert(user : PhantomUser) : PhantomUser = {
     log.trace(s"inserting user: $user")
+
     val id = UserTable.forInsert.insert(user)
     log.trace(s"id $id")
     user.copy(id = Some(id))
@@ -97,29 +98,14 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     } yield c.contactType
   }
 
-  def updateContacts(id : Long, contacts : String) : Future[StatusCode] = {
+  def findPhantomUserIdsByPhone(contacts : List[String]) : Future[List[Long]] = {
+    future {
+      val q = for {
+        u <- UserTable if u.phoneNumber inSet contacts
+      } yield u
 
-    import scala.slick.jdbc.StaticQuery
-    import java.lang.StringBuilder
-    //val q = Query(ContactTable).filter(_.ownerId is id)
-
-    //val users = Query(UserTable).filter(_.phoneNumber === contacts)
-    //select x2.`id`, x2.`EMAIL`, x2.`BIRTHDAY`, x2.`ACTIVE`, x2.`PHONE_NUMBER` from `USERS` x2 where x2.`PHONE_NUMBER` = '\"6148551499\"'
-
-    // oh man, this is dumb...
-    var sb = new StringBuilder
-    sb.append("""select x2.`id` from `USERS` x2 where x2.`PHONE_NUMBER` = '""")
-    sb.append(contacts)
-    sb.append("""'""")
-    val q = sb.toString.replace(""""""", """""")
-
-    val users = StaticQuery.queryNA[Long](q)
-
-    users.list.foreach { uid : Long =>
-      ContactTable.insert(Contact(None, id, uid, "friend"))
+      q.list.map(_.id.get)
     }
-
-    Future.successful(StatusCodes.OK)
   }
 
   def clearBlockList(id : Long) : Future[StatusCode] = {
