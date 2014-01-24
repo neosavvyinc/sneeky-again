@@ -25,7 +25,7 @@ class ConversationItemDAOSpec extends BaseDAOSpec {
         None, 1, "imageUrl", "imageText"
       )
 
-      val ret = conversationItems.insert(item)
+      val ret = conversationItemDao.insert(item)
 
       (ret.id.get must equalTo(1)) and
         (ret.conversationId must equalTo(1)) and
@@ -40,9 +40,9 @@ class ConversationItemDAOSpec extends BaseDAOSpec {
 
       val list = setupConversationItems(1)
 
-      conversationItems.insertAll(list)
+      conversationItemDao.insertAll(list)
 
-      val itemsFromDb = conversationItems.findByConversationId(1)
+      val itemsFromDb = conversationItemDao.findByConversationId(1)
 
       itemsFromDb.length must equalTo(3)
 
@@ -54,16 +54,16 @@ class ConversationItemDAOSpec extends BaseDAOSpec {
 
       val conv1 = setupConversationItems(1)
       val conv2 = setupConversationItems(2)
-      conversationItems.insertAll(conv1)
-      conversationItems.insertAll(conv2)
+      conversationItemDao.insertAll(conv1)
+      conversationItemDao.insertAll(conv2)
 
-      val conv1FromDB = conversationItems.findByConversationId(1)
-      val conv2FromDB = conversationItems.findByConversationId(2)
+      val conv1FromDB = conversationItemDao.findByConversationId(1)
+      val conv2FromDB = conversationItemDao.findByConversationId(2)
 
-      conversationItems.deleteByConversationId(1)
+      conversationItemDao.deleteByConversationId(1)
 
-      val conv1FromDBAfterDelete = conversationItems.findByConversationId(1)
-      val conv2FromDBAfterDelete = conversationItems.findByConversationId(2)
+      val conv1FromDBAfterDelete = conversationItemDao.findByConversationId(1)
+      val conv2FromDBAfterDelete = conversationItemDao.findByConversationId(2)
 
       (conv1FromDBAfterDelete.length must equalTo(0)) and
         (conv2FromDBAfterDelete.length must equalTo(3))

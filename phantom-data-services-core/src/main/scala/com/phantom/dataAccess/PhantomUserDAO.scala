@@ -79,6 +79,13 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
       .getOrElse(Future.failed(PhantomException.nonExistentUser))
   }
 
+  def findByPhoneNumbers(phoneNumbers : Set[String]) : Future[List[PhantomUser]] = {
+    future {
+      val q = for { u <- UserTable if u.phoneNumber inSet phoneNumbers } yield u
+      q.list
+    }
+  }
+
   def findContacts(id : Long) : Future[List[PhantomUser]] = {
     val q = for {
       u <- UserTable

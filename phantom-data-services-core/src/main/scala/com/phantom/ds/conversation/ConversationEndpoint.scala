@@ -6,17 +6,9 @@ import com.phantom.model._
 import com.phantom.ds.framework.httpx._
 
 import scala._
-import spray.http.MultipartFormData
-import java.io.FileOutputStream
 import scala.concurrent.{ Future, ExecutionContext }
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
-import com.phantom.dataAccess.DatabaseSupport
-import scala.concurrent.ExecutionContext.Implicits._
-import com.phantom.model.Conversation
 import com.phantom.model.BlockUserByConversationResponse
-import com.phantom.model.Conversation
-import com.phantom.model.BlockUserByConversationResponse
-import scala.Some
 
 /**
  * Created by Neosavvy
@@ -26,7 +18,8 @@ import scala.Some
  * Time: 2:37 PM
  */
 trait ConversationEndpoint extends DataHttpService {
-  implicit def ex : ExecutionContext = global
+  this : RequestAuthenticator =>
+
   val conversationService = ConversationService()
   val conversation = "conversation"
 
@@ -51,14 +44,15 @@ trait ConversationEndpoint extends DataHttpService {
       pathPrefix(conversation) {
         path("start") {
           post {
-            //            formFields('image.as[Array[Byte]], 'imageText, 'userid.as[Long], 'toUsers.as[List[Long]]) { (image, imageText, userid, toUsers) =>
             formFields('image.as[Array[Byte]], 'imageText, 'userid.as[Long], 'toUsers.as[String]) { (image, imageText, userid, toUsers) =>
               complete {
                 conversationService.startConversation(
                   userid,
-                  for (toUserId <- toUsers.split(",").toList) yield toUserId.toLong,
-                  conversationService.saveFileForConversationId(image, userid),
-                  imageText)
+                  toUsers.split(",").toSet,
+                  imageText,
+                  //todo: move this into the service, and future bound it
+                  conversationService.saveFileForConversationId(image, userid)
+                )
               }
             }
           }

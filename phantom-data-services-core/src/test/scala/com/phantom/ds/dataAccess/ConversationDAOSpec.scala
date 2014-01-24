@@ -1,10 +1,6 @@
 package com.phantom.ds.dataAccess
 
-import org.specs2.mutable._
-import com.phantom.dataAccess.DatabaseSupport
-import com.phantom.model.{ ConversationItem, PhantomUser, Conversation }
-import org.specs2.specification.BeforeAfter
-import org.joda.time.LocalDate
+import com.phantom.model.{ ConversationItem, Conversation }
 
 /**
  * Created with IntelliJ IDEA.
@@ -22,11 +18,11 @@ class ConversationDAOSpec extends BaseDAOSpec {
 
       insertTestUsers
 
-      val conv1 = conversations.insert(new Conversation(
+      val conv1 = conversationDao.insert(new Conversation(
         None, 1, 2
       ))
       println(conv1)
-      val conv2 = conversations.insert(new Conversation(
+      val conv2 = conversationDao.insert(new Conversation(
         None, 2, 3
       ))
       println(conv2)
@@ -37,45 +33,45 @@ class ConversationDAOSpec extends BaseDAOSpec {
     "support searching for a conversation by owner id" in withSetupTeardown {
       insertTestUsers
 
-      conversations.insert(new Conversation(None, 3, 2))
-      conversations.insert(new Conversation(None, 3, 4))
-      val c = conversations.findByFromUserId(2)
-      val c1 = conversations.findByFromUserId(4)
+      conversationDao.insert(new Conversation(None, 3, 2))
+      conversationDao.insert(new Conversation(None, 3, 4))
+      val c = conversationDao.findByFromUserId(2)
+      val c1 = conversationDao.findByFromUserId(4)
       (c(0).fromUser must equalTo(2)) and (c1(0).fromUser must equalTo(4))
     }
 
     "support deleting conversations" in withSetupTeardown {
       insertTestUsers
 
-      conversations.insert(new Conversation(None, 1, 2))
-      conversations.insert(new Conversation(None, 3, 4))
-      conversations.insert(new Conversation(None, 5, 6))
-      (conversations.deleteById(1) must equalTo(1)) and
-        (conversations.deleteById(2) must equalTo(1)) and
-        (conversations.deleteById(3) must equalTo(1)) and
-        (conversations.deleteById(4) must equalTo(0))
+      conversationDao.insert(new Conversation(None, 1, 2))
+      conversationDao.insert(new Conversation(None, 3, 4))
+      conversationDao.insert(new Conversation(None, 5, 6))
+      (conversationDao.deleteById(1) must equalTo(1)) and
+        (conversationDao.deleteById(2) must equalTo(1)) and
+        (conversationDao.deleteById(3) must equalTo(1)) and
+        (conversationDao.deleteById(4) must equalTo(0))
     }
 
     "support finding one conversation by id" in withSetupTeardown {
       insertTestUsers
 
-      conversations.insert(new Conversation(None, 1, 2))
-      conversations.insert(new Conversation(None, 3, 4))
-      conversations.insert(new Conversation(None, 5, 6))
+      conversationDao.insert(new Conversation(None, 1, 2))
+      conversationDao.insert(new Conversation(None, 3, 4))
+      conversationDao.insert(new Conversation(None, 5, 6))
 
-      (conversations.findById(1).id.get must equalTo(1)) and
-        (conversations.findById(1).toUser must equalTo(1)) and
-        (conversations.findById(1).fromUser must equalTo(2))
+      (conversationDao.findById(1).id.get must equalTo(1)) and
+        (conversationDao.findById(1).toUser must equalTo(1)) and
+        (conversationDao.findById(1).fromUser must equalTo(2))
     }
 
     "support inserting then updating a row" in withSetupTeardown {
       insertTestUsers
 
-      val inserted : Conversation = conversations.insert(new Conversation(None, 1, 2))
+      val inserted : Conversation = conversationDao.insert(new Conversation(None, 1, 2))
 
-      val numRowsAffected : Int = conversations.updateById(new Conversation(inserted.id, 4, 5))
+      val numRowsAffected : Int = conversationDao.updateById(new Conversation(inserted.id, 4, 5))
 
-      val insertedFromDb : Conversation = conversations.findById(inserted.id.get)
+      val insertedFromDb : Conversation = conversationDao.findById(inserted.id.get)
 
       (numRowsAffected must equalTo(1)) and
         (insertedFromDb.id.get must equalTo(1)) and
@@ -84,10 +80,10 @@ class ConversationDAOSpec extends BaseDAOSpec {
     }
 
     "support returning a list of conversations with a collection of their conversation items attached as a tuple" in withSetupTeardown {
-      conversations.findConversationsAndItems(1)
+      conversationDao.findConversationsAndItems(1)
       insertTestConverationsWithItems
 
-      val feed : List[(Conversation, List[ConversationItem])] = conversations.findConversationsAndItems(1)
+      val feed : List[(Conversation, List[ConversationItem])] = conversationDao.findConversationsAndItems(1)
 
       feed.foreach {
         c =>

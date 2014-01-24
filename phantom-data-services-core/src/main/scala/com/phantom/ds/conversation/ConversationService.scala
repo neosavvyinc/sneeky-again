@@ -1,8 +1,7 @@
 package com.phantom.ds.conversation
 
-import scala.concurrent.{ Future, ExecutionContext }
+import scala.concurrent.{ Future, ExecutionContext, future }
 import com.phantom.model._
-import scala.collection.mutable.{ Map => MMap }
 import com.phantom.dataAccess.DatabaseSupport
 import scala.slick.session.Session
 import java.io.{ File, FileOutputStream }
@@ -11,6 +10,7 @@ import com.phantom.model.ConversationUpdateResponse
 import com.phantom.model.Conversation
 import com.phantom.model.ConversationItem
 import com.phantom.model.ConversationInsertResponse
+import com.phantom.ds.framework.Logging
 
 /**
  * Created by Neosavvy
@@ -29,7 +29,7 @@ trait ConversationService {
   def findFeed(userId : Long) : Future[List[(Conversation, List[ConversationItem])]]
 
   def startConversation(fromUserId : Long,
-                        toUserIds : List[Long],
+                        contactNumbers : Set[String],
                         imageText : String,
                         imageUrl : String) : Future[ConversationInsertResponse]
 
@@ -37,38 +37,60 @@ trait ConversationService {
 
 object ConversationService extends DSConfiguration {
 
-  def apply()(implicit ec : ExecutionContext) = new ConversationService with DatabaseSupport {
-    def findFeed(userId : Long) : Future[List[(Conversation, List[ConversationItem])]] = {
+  def apply()(implicit ec : ExecutionContext) = new ConversationService with DatabaseSupport with Logging {
 
-      val returnValue : List[(Conversation, List[ConversationItem])] =
-        conversations.findConversationsAndItems(userId)
-      Future.successful(returnValue)
+    def findFeed(userId : Long) : Future[List[(Conversation, List[ConversationItem])]] = {
+      future {
+        conversationDao.findConversationsAndItems(userId)
+      }
     }
 
     def startConversation(fromUserId : Long,
-                          toUserIds : List[Long],
+                          contactNumbers : Set[String],
                           imageText : String,
                           imageUrl : String) : Future[ConversationInsertResponse] = {
+      for {
+        (nonUsers, users) <- partitionUsers(contactNumbers)
+        response <- createConversationRoots(users, fromUserId, imageText, imageUrl)
+        _ <- sendInvitations(nonUsers)
+        _ <- sendConversationNotifications(users)
+      } yield response
 
-      val session : Session = db.createSession
-      var count = 0
+    }
 
-      session.withTransaction {
-        val startedConversations : List[Conversation] = for (toUserId <- toUserIds) yield Conversation(None, toUserId, fromUserId)
-        val conversationsFromDB : List[Conversation] = startedConversations.map {
-          conversation => conversations.insert(conversation)
-        }
-
-        conversationsFromDB.foreach {
-          conversation => conversationItems.insert(ConversationItem(None, conversation.id.get, imageUrl, imageText))
-        }
-
-        count = startedConversations.size
+    //are there 3 segments here?  stub users ? fuck
+    private def partitionUsers(contactNumbers : Set[String]) : Future[(Set[String], Seq[PhantomUser])] = {
+      phantomUsers.findByPhoneNumbers(contactNumbers).map { users =>
+        val existingNumbers = users.map(_.phoneNumber).toSet
+        val nonUsers = contactNumbers.diff(existingNumbers)
+        (nonUsers, users)
       }
+    }
 
+    private def createConversationRoots(users : Seq[PhantomUser], fromUserId : Long, imageText : String, imageUrl : String) : Future[ConversationInsertResponse] = {
+      val conversations = users.map(x => Conversation(None, x.id.getOrElse(-1), fromUserId))
+      val session : Session = db.createSession
+
+      val b = session.withTransaction {
+        for {
+          createdConversations <- conversationDao.insertAll(conversations)
+          createdConversationItems <- conversationItemDao.insertAll(createConversationItemRoots(createdConversations, fromUserId, imageText, imageUrl))
+        } yield ConversationInsertResponse(createdConversations.size)
+      }
       session.close()
+      b
+    }
 
-      Future.successful(ConversationInsertResponse(count))
+    private def createConversationItemRoots(conversations : Seq[Conversation], fromUserId : Long, imageText : String, imageUrl : String) : Seq[ConversationItem] = {
+      conversations.map(x => ConversationItem(None, x.id.getOrElse(-1), imageUrl, imageText))
+    }
+
+    private def sendConversationNotifications(phantomUsers : Seq[PhantomUser]) : Future[Unit] = {
+      Future.successful()
+    }
+
+    private def sendInvitations(contacts : Set[String]) : Future[Unit] = {
+      Future.successful()
     }
 
     def respondToConversation(conversationId : Long,
@@ -78,7 +100,7 @@ object ConversationService extends DSConfiguration {
       val session : Session = db.createSession
       session.withTransaction {
 
-        conversationItems.insert(ConversationItem(None, conversationId, imageUrl, imageText))
+        conversationItemDao.insert(ConversationItem(None, conversationId, imageUrl, imageText))
 
         Future.successful(ConversationUpdateResponse(1))
       }

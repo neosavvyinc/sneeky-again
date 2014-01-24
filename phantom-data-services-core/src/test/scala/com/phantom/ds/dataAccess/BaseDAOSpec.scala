@@ -55,10 +55,14 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
     phantomUsers.insert(PhantomUser(None, UUID.randomUUID, email, Passwords.getSaltedHash(password), LocalDate.now(DateTimeZone.UTC), true, "", Unverified))
   }
 
+  def createConversation(fromId : Long, toId : Long) : Conversation = {
+    conversationDao.insert(Conversation(None, toId, fromId))
+  }
+
   def insertTestUsers {
-    val user1 = new PhantomUser(None, UUID.randomUUID(), "aparrish@neosavvy.com", "password", new LocalDate(1981, 8, 10), true, "1234567")
-    val user2 = new PhantomUser(None, UUID.randomUUID(), "ccaplinger@neosavvy.com", "password", new LocalDate(1986, 10, 12), true, "1234567")
-    val user3 = new PhantomUser(None, UUID.randomUUID(), "tewen@neosavvy.com", "password", new LocalDate(1987, 8, 16), true, "1234567")
+    val user1 = new PhantomUser(None, UUID.randomUUID(), "aparrish@neosavvy.com", "password", new LocalDate(1981, 8, 10), true, "111111")
+    val user2 = new PhantomUser(None, UUID.randomUUID(), "ccaplinger@neosavvy.com", "password", new LocalDate(1986, 10, 12), true, "222222")
+    val user3 = new PhantomUser(None, UUID.randomUUID(), "tewen@neosavvy.com", "password", new LocalDate(1987, 8, 16), true, "333333")
     val user4 = new PhantomUser(None, UUID.randomUUID(), "dhamlettneosavvy.com", "password", new LocalDate(1985, 5, 17), true, "1234567")
     val user5 = new PhantomUser(None, UUID.randomUUID(), "nick.sauro@gmail.com", "password", new LocalDate(1987, 8, 16), true, "1234567")
     val user6 = new PhantomUser(None, UUID.randomUUID(), "pablo.alonso@gmail.com", "password", new LocalDate(1987, 8, 16), true, "1234567")
@@ -75,9 +79,9 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
     val conv1 = new Conversation(None, 1, 2)
     val conv2 = new Conversation(None, 3, 4)
     val conv3 = new Conversation(None, 5, 6)
-    conversations.insert(conv1)
-    conversations.insert(conv2)
-    conversations.insert(conv3)
+    conversationDao.insert(conv1)
+    conversationDao.insert(conv2)
+    conversationDao.insert(conv3)
 
   }
 
@@ -92,12 +96,12 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
     val conv2item2 = new ConversationItem(None, 2, "imageUrl2", "imageText2")
     val conv2item3 = new ConversationItem(None, 2, "imageUrl3", "imageText3")
 
-    conversationItems.insert(conv1item1)
-    conversationItems.insert(conv1item2)
-    conversationItems.insert(conv1item3)
-    conversationItems.insert(conv2item1)
-    conversationItems.insert(conv2item2)
-    conversationItems.insert(conv2item3)
+    conversationItemDao.insert(conv1item1)
+    conversationItemDao.insert(conv1item2)
+    conversationItemDao.insert(conv1item3)
+    conversationItemDao.insert(conv2item1)
+    conversationItemDao.insert(conv2item2)
+    conversationItemDao.insert(conv2item3)
   }
 
   def insertTestUsersAndConversations {

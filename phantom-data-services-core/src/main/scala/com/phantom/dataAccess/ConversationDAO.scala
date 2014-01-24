@@ -10,8 +10,9 @@ package com.phantom.dataAccess
 
 import scala.slick.session.Database
 import com.phantom.model.{ ConversationItem, Conversation }
+import scala.concurrent.{ Future, ExecutionContext, future }
 
-class ConversationDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, db) {
+class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionContext) extends BaseDAO(dal, db) {
   import dal._
   import dal.profile.simple._
 
@@ -23,6 +24,17 @@ class ConversationDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal,
     val id = ConversationTable.forInsert.insert(conversationItem)
     Conversation(Some(id), conversationItem.toUser, conversationItem.fromUser)
   }
+
+  def insertAll(conversations : Seq[Conversation]) : Future[Seq[Conversation]] = {
+    future {
+      val b = ConversationTable.forInsert.insertAll(conversations : _*)
+      b.zip(conversations).map {
+        case (id, conversation) =>
+          conversation.copy(id = Some(id))
+      }
+    }
+  }
+
   def findByFromUserId(fromUserId : Long) : List[Conversation] = {
     val items = Query(ConversationTable) filter { _.fromUser === fromUserId }
     items.list()
@@ -42,7 +54,7 @@ class ConversationDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal,
   def findConversationsAndItems(fromUserId : Long) : List[(Conversation, List[ConversationItem])] = {
     val conversationPairs = (for {
       c <- ConversationTable
-      ci <- ConversationItemTable if c.id === ci.conversationId
+      ci <- ConversationItemTable if c.id === ci.conversationId && c.fromUser === fromUserId
     } yield (c, ci)).list
 
     conversationPairs.groupBy(_._1).map {

@@ -5,6 +5,9 @@ import com.phantom.ds.framework.Logging
 import com.phantom.ds.DSConfiguration
 import com.phantom.dataAccess.DatabaseSupport
 import java.util.UUID
+import scala.util.{ Failure, Success }
+import com.twilio.sdk.TwilioRestException
+import com.twilio.sdk.resource.instance.Sms
 
 trait TwilioService {
   def verifyRegistration(response : RegistrationVerification) : Future[Unit]
@@ -38,13 +41,24 @@ object TwilioService {
 
       // for now..this could probably its own actor w/ a router on it
       def sendInvitations(contacts : List[String]) {
-        val messageStatuses = Future.sequence(contacts.map(sender.sendInvitation))
-        messageStatuses.onSuccess {
-          case x =>
-            x.foreach { message =>
-              log.info(s"invitation sent status $message")
-            }
+        contacts.foreach(sendInvitation)
+      }
+
+      private def sendInvitation(contact : String) {
+        val messageF = sender.sendInvitation(contact)
+        messageF.onComplete {
+          case Success(x)                       => createStubAccount(contact)
+          case Failure(x : TwilioRestException) => handleTwilioException(x.getErrorCode, contact)
+          case Failure(x)                       => log.error(s"error when sending invitation to $contact", x)
         }
+      }
+
+      private def createStubAccount(phoneNumber : String) {
+
+      }
+
+      private def handleTwilioException(code : Int, phoneNumber : String) {
+
       }
 
       //TODO FIX ME..i do nothing good

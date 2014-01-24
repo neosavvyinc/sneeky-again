@@ -10,8 +10,9 @@ package com.phantom.dataAccess
 
 import scala.slick.session.Database
 import com.phantom.model.ConversationItem
+import scala.concurrent.{ Future, ExecutionContext, future }
 
-class ConversationItemDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(dal, db) {
+class ConversationItemDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionContext) extends BaseDAO(dal, db) {
   import dal._
   import dal.profile.simple._
 
@@ -24,8 +25,14 @@ class ConversationItemDAO(dal : DataAccessLayer, db : Database) extends BaseDAO(
     new ConversationItem(Some(id), conversationItem.conversationId, conversationItem.imageUrl, conversationItem.imageText)
   }
 
-  def insertAll(conversationItems : List[ConversationItem]) : Unit = {
-    conversationItems.foreach(insert(_))
+  def insertAll(conversationItems : Seq[ConversationItem]) : Future[Seq[ConversationItem]] = {
+    future {
+      val b = ConversationItemTable.forInsert.insertAll(conversationItems : _*)
+      b.zip(conversationItems).map {
+        case (id, conversationItem) =>
+          conversationItem.copy(id = Some(id))
+      }
+    }
   }
 
   def findByConversationId(conversationId : Long) : List[ConversationItem] = {
