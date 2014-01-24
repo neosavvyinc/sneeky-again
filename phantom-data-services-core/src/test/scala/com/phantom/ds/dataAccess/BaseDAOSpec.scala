@@ -22,7 +22,9 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
 
   object withSetupTeardown extends BeforeAfter {
     def before {
-      //dataAccessLayer.drop
+      try {
+        dataAccessLayer.drop
+      }
       dataAccessLayer.create
     }
 
