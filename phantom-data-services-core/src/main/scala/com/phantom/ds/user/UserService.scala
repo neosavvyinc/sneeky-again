@@ -75,7 +75,7 @@ object UserService {
       session.withTransaction {
         val res = for {
           d <- contacts.deleteAll(id)(session)
-          ids <- phantomUsers.findContactIdsByPhone(id, contactList)
+          ids <- phantomUsers.findPhantomUserIdsByPhone(id, contactList)
           insert <- contacts.insertList(id, ids)
         } yield insert
 

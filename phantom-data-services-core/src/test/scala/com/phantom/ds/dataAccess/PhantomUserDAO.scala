@@ -16,7 +16,7 @@ class PhantomDAOSpec extends BaseDAOSpec {
 
       insertUsersWithPhoneNumbersAndContacts
 
-      val res = phantomUsers.findContactIdsByPhone(1, List("5192050", "2061266"))
+      val res = phantomUsers.findPhantomUserIdsByPhone(1, List("5192050", "2061266"))
 
       res must be_==(List[Long](2, 3)).await
     }
