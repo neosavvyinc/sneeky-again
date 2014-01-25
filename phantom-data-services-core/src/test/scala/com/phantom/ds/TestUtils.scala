@@ -1,6 +1,6 @@
 package com.phantom.ds
 
-import com.phantom.ds.integration.twilio.RegistrationVerification
+import com.phantom.model.RegistrationVerification
 
 trait TestUtils {
 

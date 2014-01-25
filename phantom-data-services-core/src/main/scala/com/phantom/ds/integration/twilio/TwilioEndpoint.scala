@@ -10,9 +10,9 @@ trait TwilioEndpoint extends DataHttpService with PhantomJsonProtocol {
   def twilioActor : ActorRef
 
   val twilioRoute =
-    pathPrefix("integration" / "registration") {
+    pathPrefix("integration" / "invitation") {
       post {
-        entity(as[RegistrationVerification]) {
+        entity(as[InviteMessageStatus]) {
           reg =>
             complete {
               twilioActor ! reg
@@ -20,17 +20,6 @@ trait TwilioEndpoint extends DataHttpService with PhantomJsonProtocol {
             }
         }
       }
-    } ~
-      pathPrefix("integration" / "invitation") {
-        post {
-          entity(as[InviteMessageStatus]) {
-            reg =>
-              complete {
-                twilioActor ! reg
-                OK
-              }
-          }
-        }
-      }
+    }
 
 }

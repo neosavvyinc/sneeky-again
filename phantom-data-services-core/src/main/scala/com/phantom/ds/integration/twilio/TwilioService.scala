@@ -10,7 +10,6 @@ import com.twilio.sdk.TwilioRestException
 import com.twilio.sdk.resource.instance.Sms
 
 trait TwilioService {
-  def verifyRegistration(response : RegistrationVerification) : Future[Unit]
   def sendInvitations(contacts : List[String])
   def recordInvitationStatus(status : InviteMessageStatus) : Future[Unit]
 }
@@ -19,25 +18,6 @@ object TwilioService {
   def apply(sender : TwilioMessageSender)(implicit ec : ExecutionContext) : TwilioService =
 
     new TwilioService with DatabaseSupport with Logging with DSConfiguration {
-
-      def verifyRegistration(response : RegistrationVerification) : Future[Unit] = {
-        log.error(s"received $response")
-        val uuidOpt = UUIDExtractor.extractUUID(response)
-        uuidOpt.map(updateUserStatus(_, response)).getOrElse(logBadVerification(response))
-      }
-
-      private def updateUserStatus(uuid : UUID, message : RegistrationVerification) : Future[Unit] = {
-        val updated = phantomUsers.verifyUser(uuid)
-        updated.map { x =>
-          if (x != 1) {
-            log.error(s"uuid : $uuid extracted from $message is either not valid, or the user is already verified.")
-          }
-        }
-      }
-
-      private def logBadVerification(response : RegistrationVerification) : Future[Unit] = {
-        Future.successful(log.error(s"invalid UUID detected for $response"))
-      }
 
       // for now..this could probably its own actor w/ a router on it
       def sendInvitations(contacts : List[String]) {

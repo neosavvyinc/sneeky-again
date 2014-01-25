@@ -16,18 +16,4 @@ class TwilioServiceSpec extends Specification
 
   sequential
 
-  "Twilio Service" should {
-    "be able to verify a registration" in withSetupTeardown {
-      val user = createUnverifiedUser("email@email.com", "password")
-      user.id must not beNone
-
-      val regResponse = reg("pre", user.uuid.toString, "post")
-      val d = FiniteDuration(5, SECONDS)
-      Await.result(svc.verifyRegistration(regResponse), d)
-
-      val updatedUser = Await.result(phantomUsers.find(user.id.get), d)
-      updatedUser.status must be equalTo Verified
-    }
-  }
-
 }

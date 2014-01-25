@@ -19,7 +19,7 @@ import com.phantom.model.UserRegistration
 import com.phantom.model.ConversationDetail
 import org.joda.time.{ LocalDate, DateTimeZone, DateTime }
 import org.joda.time.format.ISODateTimeFormat
-import com.phantom.ds.integration.twilio.{ InviteMessageStatus, RegistrationVerification }
+import com.phantom.ds.integration.twilio.InviteMessageStatus
 
 package object httpx {
 

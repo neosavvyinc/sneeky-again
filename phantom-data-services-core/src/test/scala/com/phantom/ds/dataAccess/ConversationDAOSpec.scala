@@ -1,6 +1,6 @@
 package com.phantom.ds.dataAccess
 
-import com.phantom.model.{ ConversationItem, Conversation }
+import com.phantom.model.Conversation
 
 /**
  * Created with IntelliJ IDEA.
@@ -78,31 +78,6 @@ class ConversationDAOSpec extends BaseDAOSpec {
         (insertedFromDb.fromUser must equalTo(5)) and
         (insertedFromDb.toUser must equalTo(4))
     }
-
-    "support returning a list of conversations with a collection of their conversation items attached as a tuple" in withSetupTeardown {
-      conversationDao.findConversationsAndItems(1)
-      insertTestConverationsWithItems
-
-      val feed : List[(Conversation, List[ConversationItem])] = conversationDao.findConversationsAndItems(1)
-
-      feed.foreach {
-        c =>
-          val (conv, ci) = c
-          println("ConvId: " + conv.id + " " + conv.toUser + " " + conv.fromUser)
-
-          ci.foreach {
-            cItem =>
-              println(cItem.id + " " + cItem.imageText + " " + cItem.imageUrl)
-          }
-
-      }
-
-      (feed.length must equalTo(2)) and
-        (feed(0)._2.length must equalTo(3)) and
-        (feed(1)._2.length must equalTo(3))
-
-    }
-
   }
 
 }

@@ -11,7 +11,7 @@ class TwilioMessageSenderSpec extends Specification with DSConfiguration {
   val sender = TwiioMessageSender(TwilioConfiguration.accountSid, TwilioConfiguration.authToken, TwilioConfiguration.phoneNumber)
   val d = FiniteDuration(5, SECONDS)
 
-  "sending SMS messages by way of twilio" should {
+  /*"sending SMS messages by way of twilio" should {
 
     "be able to handle an invalid phone number" in {
 
@@ -21,6 +21,6 @@ class TwilioMessageSenderSpec extends Specification with DSConfiguration {
       sms should not be null
     }
 
-  }
+  }*/
 
 }

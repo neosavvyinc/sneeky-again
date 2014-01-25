@@ -1,7 +1,7 @@
 package com.phantom.model
 
 import com.phantom.dataAccess.Profile
-import org.joda.time.{ DateTime, LocalDate }
+import org.joda.time.{ DateTimeZone, DateTime, LocalDate }
 import scala.slick.lifted.ColumnOption.DBType
 import java.util.UUID
 
@@ -14,6 +14,13 @@ case class UserRegistration(email : String,
                             password : String)
 
 case class RegistrationResponse(verificationUUID : UUID, sessionUUID : UUID)
+
+case class RegistrationVerification(messageSid : String,
+                                    accountSid : String,
+                                    from : String,
+                                    to : String,
+                                    body : String,
+                                    numMedia : Int)
 
 case class UserLogin(email : String,
                      password : String)
@@ -58,6 +65,14 @@ case class PhantomUser(id : Option[Long],
                        phoneNumber : String,
                        status : UserStatus = Unverified)
 
+object PhantomSession {
+
+  def newSession(user : PhantomUser) : PhantomSession = {
+    val now = DateTime.now(DateTimeZone.UTC)
+    PhantomSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now)
+  }
+}
+
 case class PhantomSession(sessionId : UUID, userId : Long, created : DateTime, lastAccessed : DateTime)
 
 trait UserComponent { this : Profile =>
@@ -96,7 +111,7 @@ trait UserSessionComponent { this : Profile with UserComponent =>
     def userId = column[Long]("USERID")
     def created = column[DateTime]("CREATED")
     def lastAccessed = column[DateTime]("LASTACCESSED")
-    def * = sessionId ~ userId ~ created ~ lastAccessed <> (PhantomSession, PhantomSession.unapply _)
+    def * = sessionId ~ userId ~ created ~ lastAccessed <> (PhantomSession.apply _, PhantomSession.unapply _)
 
     def owner = foreignKey("USER_FK", userId, UserTable)(_.id)
     //def userUnqiue = index("userUnique", userId, unique = true)

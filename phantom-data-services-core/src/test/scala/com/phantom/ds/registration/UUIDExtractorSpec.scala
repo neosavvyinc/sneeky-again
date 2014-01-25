@@ -1,4 +1,4 @@
-package com.phantom.ds.integration.twilio
+package com.phantom.ds.registration
 
 import org.specs2.mutable.Specification
 import java.util.UUID
