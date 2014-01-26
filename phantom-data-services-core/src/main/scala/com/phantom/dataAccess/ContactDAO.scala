@@ -26,30 +26,13 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     }
   }
 
-  def insertList(id : Long, ids : List[Long]) : Future[List[Contact]] = {
-
-    val contactList : Promise[List[Contact]] = Promise()
-
+  def insertAll(contacts : Seq[Contact]) : Future[Seq[Contact]] = {
     future {
-
-      val insertFutures : List[Future[Contact]] = ids.map { uid : Long =>
-        insert(Contact(None, id, uid, "friend"))
+      val c = ContactTable.forInsert.insertAll(contacts : _*)
+      c.zip(contacts).map {
+        case (id, contact) => contact.copy(id = Some(id))
       }
-
-      Future.sequence(insertFutures).onComplete {
-        case Success(vs) => contactList.success(vs)
-        case Failure(ex) => contactList.failure(ex)
-      }
-      // is it possible to batch insert?
-      //      cs.foreach { (c : Contact) =>
-      //        insert(c).onComplete {
-      //          case Success(v)  => contactList.success(List(v))
-      //          case Failure(ex) => contactList.failure(ex)
-      //        }
-      //      }
     }
-
-    contactList.future
   }
 
   def findByContactId(ownerId : Long, contactId : Long) : Option[Contact] = {
