@@ -3,6 +3,7 @@ package com.phantom.dataAccess
 import scala.slick.session.Database
 import scala.util.{ Success, Failure }
 import spray.http.{ StatusCode, StatusCodes }
+import com.phantom.ds.framework.exception.PhantomException
 import org.joda.time.LocalDate
 import com.phantom.ds.framework.Logging
 import com.phantom.model.Contact
@@ -17,9 +18,11 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
   def purgeDB = dal.purge
 
   def insert(contact : Contact) : Future[Contact] = {
-    ContactTable.forInsert.insert(contact) match {
-      case 0         => Future.failed(new Exception("unable to insert contact"))
-      case id : Long => Future.successful(contact.copy(id = Some(id)))
+    future {
+      ContactTable.forInsert.insert(contact) match {
+        case 0         => throw PhantomException.contactNotInserted
+        case id : Long => contact.copy(id = Some(id))
+      }
     }
   }
 
