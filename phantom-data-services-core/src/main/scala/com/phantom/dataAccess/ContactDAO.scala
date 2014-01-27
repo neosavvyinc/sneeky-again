@@ -37,10 +37,11 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
 
   def findByContactId(ownerId : Long, contactId : Long) : Future[Contact] = {
     future {
-      Query(ContactTable)
-        .filter { _.ownerId === ownerId }
-        .filter { _.contactId === contactId }
-        .firstOption
+      val q = for {
+        c <- ContactTable if c.ownerId === ownerId && c.contactId === contactId
+      } yield c
+
+      q.firstOption
         .map((c : Contact) => c)
         .getOrElse(throw PhantomException.nonExistentContact)
     }

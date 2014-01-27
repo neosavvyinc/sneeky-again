@@ -57,6 +57,14 @@ class ContactDAOSpec extends BaseDAOSpec {
       contacts.deleteAll(1)(session) must be_==(2).await
     }
 
+    "should support finding a contact by contactId" in withSetupTeardown {
+      insertTestUsers
+      contacts.insert(Contact(None, 2, 3, "friend"))
+
+      contacts.findByContactId(2, 3) must be_==(Contact(Some(1), 2, 3, "friend")).await
+
+    }
+
     "should support updating a contact" in withSetupTeardown {
       insertTestUsers
       contacts.insert(Contact(None, 2, 3, "friend"))
