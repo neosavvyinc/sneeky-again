@@ -17,6 +17,7 @@ package object exception {
     def noFeedFound = new PhantomException(201)
     def contactNotUpdated = new PhantomException(301)
     def contactNotInserted = new PhantomException(302)
+    def nonExistentContact = new PhantomException(303)
 
   }
 
