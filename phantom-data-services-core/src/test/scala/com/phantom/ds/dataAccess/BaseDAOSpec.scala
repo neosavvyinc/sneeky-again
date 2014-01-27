@@ -80,21 +80,17 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
     phantomUsers.insert(user3)
     phantomUsers.insert(user4)
 
-    val conv1 = Contact(None, 1, 2, "friend")
-    val conv2 = Contact(None, 1, 3, "friend")
-    val conv3 = Contact(None, 1, 4, "friend")
-    contacts.insert(conv1)
-    contacts.insert(conv2)
-    contacts.insert(conv3)
+    insertTestContacts
   }
 
   def insertTestContacts {
-    val contact1 = Contact(None, 1, 2, "friend")
-    val contact2 = Contact(None, 1, 3, "friend")
-    val contact3 = Contact(None, 1, 4, "friend")
-    contacts.insert(contact1)
-    contacts.insert(contact2)
-    contacts.insert(contact3)
+    contacts.insertAll(
+      Seq(
+        Contact(None, 1, 2, "friend"),
+        Contact(None, 1, 3, "friend"),
+        Contact(None, 1, 4, "friend")
+      )
+    )
   }
 
   def insertTestConversations {

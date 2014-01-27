@@ -1,6 +1,7 @@
 package com.phantom.ds.conversation
 
-import scala.concurrent.{ Future, ExecutionContext }
+import scala.concurrent.{ Promise, Future, future, ExecutionContext }
+import scala.util.{ Success, Failure }
 import com.phantom.model._
 import scala.collection.mutable.{ Map => MMap }
 import com.phantom.dataAccess.DatabaseSupport
@@ -112,31 +113,22 @@ object ConversationService extends DSConfiguration {
 
     def blockByConversationId(id : Long) : Future[BlockUserByConversationResponse] = {
 
-      // find the base conversation
-      val conversation = conversations.findById(id)
+      val blockUserPromise : Promise[BlockUserByConversationResponse] = Promise()
 
-      // find the user that is being blocked - this should be the conv.toUser
-      val userToBlock = phantomUsers.find(conversation.toUser)
+      future {
+        val contact = for {
+          c <- conversations.findById(id)
+          cb <- contacts.findByContactId(c.toUser, c.fromUser)
+          n <- contacts.update(cb.copy(contactType = "block"))
+        } yield cb
 
-      // see if the contact table has a reference in it for this association
-      val contactToBlock : Option[Contact] = contacts.findByContactId(conversation.toUser, conversation.fromUser)
-
-      // TODO: if not then insert a new record with type = block
-      // else update the existing record with type = block
-
-      val numUpdatedContacts = contactToBlock match {
-        case Some(c : Contact) => contacts.update(c.copy(contactType = "block"))
-        case _                 => -1
+        contact.onComplete {
+          case Success(c : Contact) => blockUserPromise.success(BlockUserByConversationResponse(c.id.get, true))
+          case Failure(ex)          => blockUserPromise.failure(PhantomException.contactNotUpdated)
+        }
       }
 
-      println("Num Updated Contacts: " + numUpdatedContacts)
-
-      if (numUpdatedContacts == 1) {
-        Future.successful(BlockUserByConversationResponse(contactToBlock.get.id.get, true))
-      } else {
-        Future.failed(throw PhantomException.contactNotUpdated)
-      }
-
+      blockUserPromise.future
     }
   }
 
