@@ -35,20 +35,24 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     }
   }
 
-  def findByContactId(ownerId : Long, contactId : Long) : Option[Contact] = {
-    val query = Query(ContactTable)
-      .filter { _.ownerId === ownerId }
-      .filter { _.contactId === contactId }
-
-    println("sql: " + query.selectStatement)
-
-    query.firstOption()
+  def findByContactId(ownerId : Long, contactId : Long) : Future[Contact] = {
+    future {
+      Query(ContactTable)
+        .filter { _.ownerId === ownerId }
+        .filter { _.contactId === contactId }
+        .firstOption
+        .map((c : Contact) => c)
+        .getOrElse(throw PhantomException.nonExistentContact)
+    }
   }
 
-  def update(contact : Contact) : Int = {
-    val update = Query(ContactTable)
-      .filter { _.id === contact.id }
-    update.update(contact)
+  def update(contact : Contact) : Future[Int] = {
+    future {
+      val q = for {
+        c <- ContactTable if c.id === contact.id
+      } yield (c.ownerId ~ c.contactId ~ c.contactType)
+      q.update(contact.ownerId, contact.contactId, contact.contactType)
+    }
   }
 
   def deleteAll(id : Long)(session : scala.slick.session.Session) : Future[Int] = {
