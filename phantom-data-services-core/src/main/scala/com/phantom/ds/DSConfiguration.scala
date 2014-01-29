@@ -43,4 +43,13 @@ trait DSConfiguration {
 
   }
 
+  object UserConfiguration {
+
+    val invitationMax = userCfg.getInt("invitationMax")
+
+    val maxRetries = userCfg.getInt("maxRetries")
+
+    private def userCfg = cfg.getConfig("user")
+  }
+
 }

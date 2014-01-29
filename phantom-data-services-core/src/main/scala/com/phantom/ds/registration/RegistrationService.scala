@@ -21,7 +21,7 @@ object RegistrationService {
       def register(registrationRequest : UserRegistration) : Future[RegistrationResponse] = {
         for {
           _ <- Passwords.validate(registrationRequest.password)
-          user <- phantomUsers.register(registrationRequest)
+          user <- phantomUsersDao.register(registrationRequest)
           session <- sessions.createSession(PhantomSession.newSession(user))
         } yield RegistrationResponse(user.uuid, session.sessionId)
       }
@@ -33,7 +33,7 @@ object RegistrationService {
       }
 
       private def updateUserStatus(uuid : UUID, message : RegistrationVerification) : Future[Unit] = {
-        val updated = phantomUsers.verifyUser(uuid)
+        val updated = phantomUsersDao.verifyUser(uuid)
         updated.map { x =>
           if (x != 1) {
             log.error(s"uuid : $uuid extracted from $message is either not valid, or the user is already verified.")

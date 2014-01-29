@@ -16,7 +16,7 @@ import com.phantom.ds.registration.RegistrationEndpoint
  * Time: 4:53 PM
  */
 
-class PhantomRouteActor(val twilioActor : ActorRef) extends Actor
+class PhantomRouteActor(val twilioActor : ActorRef, val appleActor : ActorRef) extends Actor
     with UserEndpoint
     with RegistrationEndpoint
     with ConversationEndpoint

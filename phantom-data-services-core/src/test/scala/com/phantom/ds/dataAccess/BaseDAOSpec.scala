@@ -47,12 +47,12 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
     List(item1, item2, item3)
   }
 
-  def createVerifiedUser(email : String, password : String) = {
-    phantomUsers.insert(PhantomUser(None, UUID.randomUUID, email, Passwords.getSaltedHash(password), LocalDate.now(DateTimeZone.UTC), true, "", Verified))
+  def createVerifiedUser(email : String, password : String, phoneNumber : String = "") = {
+    phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, email, Passwords.getSaltedHash(password), LocalDate.now(DateTimeZone.UTC), true, phoneNumber, Verified))
   }
 
   def createUnverifiedUser(email : String, password : String) = {
-    phantomUsers.insert(PhantomUser(None, UUID.randomUUID, email, Passwords.getSaltedHash(password), LocalDate.now(DateTimeZone.UTC), true, "", Unverified))
+    phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, email, Passwords.getSaltedHash(password), LocalDate.now(DateTimeZone.UTC), true, "", Unverified))
   }
 
   def createConversation(fromId : Long, toId : Long) : Conversation = {
@@ -66,12 +66,12 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
     val user4 = new PhantomUser(None, UUID.randomUUID(), "dhamlettneosavvy.com", "password", new LocalDate(1985, 5, 17), true, "1234567")
     val user5 = new PhantomUser(None, UUID.randomUUID(), "nick.sauro@gmail.com", "password", new LocalDate(1987, 8, 16), true, "1234567")
     val user6 = new PhantomUser(None, UUID.randomUUID(), "pablo.alonso@gmail.com", "password", new LocalDate(1987, 8, 16), true, "1234567")
-    phantomUsers.insert(user1)
-    phantomUsers.insert(user2)
-    phantomUsers.insert(user3)
-    phantomUsers.insert(user4)
-    phantomUsers.insert(user5)
-    phantomUsers.insert(user6)
+    phantomUsersDao.insert(user1)
+    phantomUsersDao.insert(user2)
+    phantomUsersDao.insert(user3)
+    phantomUsersDao.insert(user4)
+    phantomUsersDao.insert(user5)
+    phantomUsersDao.insert(user6)
   }
 
   def insertTestConversations {

@@ -9,6 +9,7 @@ import com.phantom.model.{ Verified, PhantomUser }
 import com.phantom.dataAccess.DatabaseSupport
 import java.util.UUID
 import com.phantom.ds.framework.Logging
+import org.joda.time.LocalDate
 
 //For now this authenticator does a bit of both authentication and authorziation
 //since we have no real roles or permissioning yet..just being a user opens up all doors
@@ -48,10 +49,11 @@ trait PhantomRequestAuthenticator extends RequestAuthenticator with DSConfigurat
   }
 }
 
-trait PassThroughRequestAuthenticator extends PhantomRequestAuthenticator with MockSessionRepository {
+trait PassThroughRequestAuthenticator extends PhantomRequestAuthenticator {
 
   override def request(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[PhantomUser]] = {
-    Future.successful(getUser("").toRight(AuthenticationFailedRejection(CredentialsRejected, Nil)))
+    val user = Some(PhantomUser(None, UUID.randomUUID, "nsauro@sauron.com", "password", new LocalDate(2003, 12, 21), true, ""))
+    Future.successful(user.toRight(AuthenticationFailedRejection(CredentialsRejected, Nil)))
   }
 
 }

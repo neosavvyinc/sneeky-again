@@ -56,6 +56,10 @@ object UUIDConversions {
 
 }
 
+trait Phantom {
+  def phoneNumber : String
+}
+
 case class PhantomUser(id : Option[Long],
                        uuid : UUID,
                        email : String,
@@ -63,7 +67,7 @@ case class PhantomUser(id : Option[Long],
                        birthday : LocalDate,
                        active : Boolean,
                        phoneNumber : String,
-                       status : UserStatus = Unverified)
+                       status : UserStatus = Unverified) extends Phantom
 
 object PhantomSession {
 

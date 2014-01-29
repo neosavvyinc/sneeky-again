@@ -5,10 +5,9 @@ import com.phantom.ds.DataHttpService
 import com.phantom.model._
 import com.phantom.ds.framework.httpx._
 
-import scala._
-import scala.concurrent.{ Future, ExecutionContext }
-import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
+import com.phantom.ds.framework.auth.RequestAuthenticator
 import com.phantom.model.BlockUserByConversationResponse
+import akka.actor.ActorRef
 
 /**
  * Created by Neosavvy
@@ -20,7 +19,11 @@ import com.phantom.model.BlockUserByConversationResponse
 trait ConversationEndpoint extends DataHttpService {
   this : RequestAuthenticator =>
 
-  val conversationService = ConversationService()
+  def twilioActor : ActorRef
+
+  def appleActor : ActorRef
+
+  val conversationService = ConversationService(twilioActor, appleActor) //need a better way of injecting services..trait!
   val conversation = "conversation"
 
   val conversationRoute =

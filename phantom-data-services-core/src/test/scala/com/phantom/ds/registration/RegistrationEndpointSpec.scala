@@ -67,7 +67,7 @@ class RegistrationEndpointSpec extends Specification
 
       Post("/users/verification", regResponse) ~> registrationRoute ~> check {
         status == OK
-        val updatedUser = Await.result(phantomUsers.find(user.id.get), FiniteDuration(5, SECONDS))
+        val updatedUser = Await.result(phantomUsersDao.find(user.id.get), FiniteDuration(5, SECONDS))
         updatedUser.status must be equalTo Verified
       }
     }

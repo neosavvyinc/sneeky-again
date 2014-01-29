@@ -25,7 +25,7 @@ object UserService {
 
     def login(loginRequest : UserLogin) : Future[LoginSuccess] = {
       for {
-        user <- phantomUsers.login(loginRequest)
+        user <- phantomUsersDao.login(loginRequest)
         existingSession <- sessions.existingSession(user.id.get)
         session <- getOrCreateSession(user, existingSession)
       } yield LoginSuccess(session.sessionId)
@@ -40,11 +40,11 @@ object UserService {
     }
 
     def findById(id : Long) : Future[PhantomUser] = {
-      phantomUsers.find(id)
+      phantomUsersDao.find(id)
     }
 
     def findContactsById(id : Long) : Future[List[PhantomUser]] = {
-      phantomUsers.findContacts(id)
+      phantomUsersDao.findContacts(id)
     }
 
     def updateContacts(id : Long, contactList : String) : Future[StatusCode] = {
@@ -68,7 +68,7 @@ object UserService {
     }
 
     def clearBlockList(id : Long) : Future[StatusCode] = {
-      phantomUsers.clearBlockList(id)
+      phantomUsersDao.clearBlockList(id)
     }
   }
 

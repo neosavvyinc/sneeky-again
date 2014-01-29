@@ -12,6 +12,8 @@ import com.phantom.dataAccess.DatabaseSupport
 import com.phantom.ds.dataAccess.BaseDAOSpec
 import com.phantom.ds.framework.auth.PassThroughRequestAuthenticator
 import com.phantom.model.{ Conversation, ConversationItem, BlockUserByConversationResponse }
+import akka.testkit.TestProbe
+import akka.actor.ActorRef
 
 /**
  * Created by Neosavvy
@@ -32,6 +34,11 @@ class ConversationEndpointSpec extends Specification
   sequential
 
   def actorRefFactory = system
+
+  val probe = TestProbe()
+  val appleProbe = TestProbe()
+  val twilioActor : ActorRef = probe.ref
+  val appleActor : ActorRef = appleProbe.ref
 
   "Conversation Service" should {
     "return conversations by fromUser id" in withSetupTeardown {

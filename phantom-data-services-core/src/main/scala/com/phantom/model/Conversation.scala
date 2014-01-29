@@ -25,7 +25,7 @@ case class ConversationDetail(id : Long,
 
 //case class Feed(conversations : List[Conversation])
 
-case class ConversationInsertResponse(id : Long)
+case class ConversationInsertResponse(createdCount : Long)
 
 case class ConversationUpdateResponse(id : Long)
 
