@@ -1,10 +1,11 @@
 package com.phantom.dataAccess
 
 import scala.slick.driver.MySQLDriver
-import scala.slick.session.{ Database, Session }
+import scala.slick.session.Database
 import com.phantom.ds.DSConfiguration
 import scala.concurrent.ExecutionContext
 import java.util.Properties
+import com.jolbox.bonecp.{ BoneCPConfig, BoneCPDataSource }
 
 trait DatabaseSupport extends DSConfiguration {
 
@@ -13,13 +14,18 @@ trait DatabaseSupport extends DSConfiguration {
   var dbProps = new Properties()
   dbProps.setProperty("autoReconnect", "true")
 
-  val db = Database.forURL(
-    DBConfiguration.url,
-    DBConfiguration.user,
-    DBConfiguration.pass,
-    dbProps,
-    DBConfiguration.driver
-  )
+  val db = {
+    val dsConfig = new BoneCPConfig
+    dsConfig.setJdbcUrl(DBConfiguration.url)
+    dsConfig.setUser(DBConfiguration.user)
+    dsConfig.setPassword(DBConfiguration.pass)
+    dsConfig.setMinConnectionsPerPartition(5)
+    dsConfig.setMaxConnectionsPerPartition(20)
+    dsConfig.setPartitionCount(1)
+
+    val ds = new BoneCPDataSource(dsConfig)
+    Database forDataSource (ds)
+  }
 
   // again, creating a DAL requires a Profile, which in this case is the MySQLDriver
   val dataAccessLayer = new DataAccessLayer(MySQLDriver)
@@ -32,6 +38,6 @@ trait DatabaseSupport extends DSConfiguration {
   val sessions = new SessionDAO(dataAccessLayer, db)
 
   //umm.....we should move this :)
-  dataAccessLayer.create(db.createSession())
+  dataAccessLayer.create(db)
 
 }

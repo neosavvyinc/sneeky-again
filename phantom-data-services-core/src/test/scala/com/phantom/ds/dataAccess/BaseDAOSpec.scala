@@ -20,16 +20,12 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
 
   object withSetupTeardown extends BeforeAfter {
     def before {
-      db.withTransaction { implicit session : Session =>
-        dataAccessLayer.drop
-        dataAccessLayer.create
-      }
+      dataAccessLayer.drop(db)
+      dataAccessLayer.create(db)
     }
 
     def after {
-      db.withTransaction { implicit session : Session =>
-        dataAccessLayer.drop
-      }
+      dataAccessLayer.drop(db)
     }
   }
 
