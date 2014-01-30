@@ -20,22 +20,22 @@ object TwilioService {
 
       def sendInvitationsToUnidentifiedUsers(invite : SendInvite) : Future[Seq[String]] = {
         val seqd = invite.contacts.toSeq
-        val resultsF = sender.sendInvitations(seqd).map(x => maptitionTuple(seqd.zip(x)))
+        val resultsF = sender.sendInvitations(seqd).map(x => toResults(seqd.zip(x)))
         for {
-          (failedSends, passedSends) <- resultsF
-          _ <- createStubAccounts(passedSends, invite.from, invite.imageText, invite.imageUrl)
-        } yield failedSends
+          results <- resultsF
+          _ <- createStubAccounts(results.passed, invite.from, invite.imageText, invite.imageUrl)
+        } yield results.failed
       }
 
       //not sure how to handle failed known stub users...in theory..they shouldn't exist
       //blacklisted might be the only real case to look out for
       def sendInvitationsToStubUsers(stubUsers : Seq[StubUser]) : Future[Seq[StubUser]] = {
-        val resultsF = sender.sendInvitations(stubUsers.map(_.phoneNumber)).map(x => maptitionTuple(stubUsers.zip(x)))
+        val resultsF = sender.sendInvitations(stubUsers.map(_.phoneNumber)).map(x => toResults(stubUsers.zip(x)))
 
         for {
-          (failedSends, passedSends) <- resultsF
-          _ <- updateInvitationCount(passedSends)
-        } yield failedSends
+          results <- resultsF
+          _ <- updateInvitationCount(results.passed)
+        } yield results.failed
       }
 
       private def updateInvitationCount(stubUsers : Seq[StubUser]) : Future[Unit] = {
@@ -64,19 +64,16 @@ object TwilioService {
         }
       }
 
-      private def maptitionTuple[T, S](seq : Seq[(S, Either[TwilioSendFail, Sms])]) : (Seq[S], Seq[S]) = {
-        maptition(seq)(_._2.isLeft)(_._1)
-      }
-
-      private def maptition[T, S](seq : Seq[T])(p : T => Boolean)(m : T => S) : (Seq[S], Seq[S]) = {
-        seq.foldLeft((Seq[S](), Seq[S]())) { (acc, i) =>
-          val mapped = m(i)
-          if (p(i)) {
-            (acc._1.+:(mapped), acc._2)
-          } else {
-            (acc._1, acc._2.+:(mapped))
+      private def toResults[T](seq : Seq[(T, Either[TwilioSendFail, Sms])]) : Results[T] = {
+        seq.foldLeft(Results[T]()) { (acc, i) =>
+          i match {
+            case (x, Left(y : NonTwilioException)) => acc.copy(failed = acc.failed :+ x)
+            case (x, Left(_))                      => acc.copy(twilioRejected = acc.twilioRejected :+ x)
+            case (x, Right(_))                     => acc.copy(passed = acc.passed :+ x)
           }
         }
       }
     }
 }
+
+case class Results[T](failed : Seq[T] = Seq(), twilioRejected : Seq[T] = Seq(), passed : Seq[T] = Seq())

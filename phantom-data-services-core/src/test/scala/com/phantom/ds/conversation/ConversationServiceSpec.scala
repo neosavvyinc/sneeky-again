@@ -1,7 +1,6 @@
 package com.phantom.ds.conversation
 
 import org.specs2.mutable.{ After, Specification }
-import com.phantom.dataAccess.DatabaseSupport
 import akka.testkit.TestProbe
 import com.phantom.ds.dataAccess.BaseDAOSpec
 import com.phantom.ds.TestUtils
@@ -18,7 +17,6 @@ import com.phantom.ds.integration.twilio.{ SendInvite, SendInviteToStubUsers }
  * Time: 1:37 PM
  */
 class ConversationServiceSpec extends Specification
-    with DatabaseSupport
     with BaseDAOSpec
     with Specs2RouteTest
     with TestUtils

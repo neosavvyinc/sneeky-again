@@ -16,9 +16,9 @@ class TwilioActor(service : TwilioService)(implicit ec : ExecutionContext) exten
 
   private def handleInviteUnidentifiedContacts(msg : SendInvite) = {
     val failedSendsF = service.sendInvitationsToUnidentifiedUsers(msg)
-    failedSendsF.onSuccess {
+    /*failedSendsF.onSuccess {
       case x if msg.tries < UserConfiguration.maxRetries => self ! msg.copy(contacts = x.toSet, tries = msg.tries + 1)
-    }
+    }*/
     failedSendsF.onFailure {
       case t : Throwable => log.error(t.getMessage, t)
     }
@@ -26,9 +26,9 @@ class TwilioActor(service : TwilioService)(implicit ec : ExecutionContext) exten
 
   private def handleInviteStubUsers(msg : SendInviteToStubUsers) = {
     val failedSendsF = service.sendInvitationsToStubUsers(msg.stubUsers)
-    failedSendsF.onSuccess {
+    /*failedSendsF.onSuccess {
       case x if msg.tries < UserConfiguration.maxRetries => self ! SendInviteToStubUsers(x, msg.tries + 1)
-    }
+    }*/
     //TODO ROBUST THIS FUNCTION IN THE FACE
     failedSendsF.onFailure {
       case t : Throwable => log.error(t.getMessage, t)

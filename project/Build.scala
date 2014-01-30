@@ -77,7 +77,7 @@ object Shared {
 
   val testDeps = Seq(
     "org.specs2" %% "specs2" % "2.2.3" % "test",
-    "junit" % "junit-dep" % "4.10"
+    "org.mockito" % "mockito-all" % "1.9.5"
   )
 
   val Other = Seq(

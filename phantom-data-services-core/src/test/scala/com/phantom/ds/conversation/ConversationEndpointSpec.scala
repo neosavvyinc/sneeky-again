@@ -8,7 +8,6 @@ import spray.testkit.Specs2RouteTest
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.PhantomEndpointSpec
 import spray.http.{ BodyPart, MultipartFormData }
-import com.phantom.dataAccess.DatabaseSupport
 import com.phantom.ds.dataAccess.BaseDAOSpec
 import com.phantom.ds.framework.auth.PassThroughRequestAuthenticator
 import com.phantom.model.{ Conversation, ConversationItem, BlockUserByConversationResponse }
@@ -28,7 +27,6 @@ class ConversationEndpointSpec extends Specification
     with Logging
     with ConversationEndpoint
     with PassThroughRequestAuthenticator
-    with DatabaseSupport
     with BaseDAOSpec {
 
   sequential
