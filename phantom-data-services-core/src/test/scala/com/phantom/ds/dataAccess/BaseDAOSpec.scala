@@ -56,11 +56,11 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
 
   def insertTestUsers {
     val user1 = new PhantomUser(None, UUID.randomUUID(), "aparrish@neosavvy.com", "password", new LocalDate(1981, 8, 10), true, "1234567")
-    val user2 = new PhantomUser(None, UUID.randomUUID(), "ccaplinger@neosavvy.com", "password", new LocalDate(1986, 10, 12), true, "1234567")
-    val user3 = new PhantomUser(None, UUID.randomUUID(), "tewen@neosavvy.com", "password", new LocalDate(1987, 8, 16), true, "1234567")
-    val user4 = new PhantomUser(None, UUID.randomUUID(), "dhamlettneosavvy.com", "password", new LocalDate(1985, 5, 17), true, "1234567")
-    val user5 = new PhantomUser(None, UUID.randomUUID(), "nick.sauro@gmail.com", "password", new LocalDate(1987, 8, 16), true, "1234567")
-    val user6 = new PhantomUser(None, UUID.randomUUID(), "pablo.alonso@gmail.com", "password", new LocalDate(1987, 8, 16), true, "1234567")
+    val user2 = new PhantomUser(None, UUID.randomUUID(), "ccaplinger@neosavvy.com", "password", new LocalDate(1986, 10, 12), true, "2234567")
+    val user3 = new PhantomUser(None, UUID.randomUUID(), "tewen@neosavvy.com", "password", new LocalDate(1987, 8, 16), true, "3234567")
+    val user4 = new PhantomUser(None, UUID.randomUUID(), "dhamlettneosavvy.com", "password", new LocalDate(1985, 5, 17), true, "4234567")
+    val user5 = new PhantomUser(None, UUID.randomUUID(), "nick.sauro@gmail.com", "password", new LocalDate(1987, 8, 16), true, "5234567")
+    val user6 = new PhantomUser(None, UUID.randomUUID(), "pablo.alonso@gmail.com", "password", new LocalDate(1987, 8, 16), true, "6234567")
     phantomUsers.insert(user1)
     phantomUsers.insert(user2)
     phantomUsers.insert(user3)
@@ -80,21 +80,17 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
     phantomUsers.insert(user3)
     phantomUsers.insert(user4)
 
-    val conv1 = Contact(None, 1, 2, "friend")
-    val conv2 = Contact(None, 1, 3, "friend")
-    val conv3 = Contact(None, 1, 4, "friend")
-    contacts.insert(conv1)
-    contacts.insert(conv2)
-    contacts.insert(conv3)
+    insertTestContacts
   }
 
   def insertTestContacts {
-    val contact1 = Contact(None, 1, 2, "friend")
-    val contact2 = Contact(None, 1, 3, "friend")
-    val contact3 = Contact(None, 1, 4, "friend")
-    contacts.insert(contact1)
-    contacts.insert(contact2)
-    contacts.insert(contact3)
+    contacts.insertAll(
+      Seq(
+        Contact(None, 1, 2, "friend"),
+        Contact(None, 1, 3, "friend"),
+        Contact(None, 1, 4, "friend")
+      )
+    )
   }
 
   def insertTestConversations {

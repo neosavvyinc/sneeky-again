@@ -15,7 +15,10 @@ package object exception {
     def unverifiedUser(uuid : String) = new UnverifiedUserException(104, uuid)
     def passwordsComplexity = new PhantomException(105)
     def noFeedFound = new PhantomException(201)
-    def contactNotUpdated = new PhantomException(202)
+    def nonExistentConversation = new PhantomException(203)
+    def contactNotUpdated = new PhantomException(301)
+    def contactNotInserted = new PhantomException(302)
+    def nonExistentContact = new PhantomException(303)
 
   }
 

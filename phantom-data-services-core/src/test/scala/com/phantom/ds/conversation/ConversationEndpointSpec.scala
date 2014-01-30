@@ -7,6 +7,7 @@ import org.specs2.mutable.Specification
 import spray.testkit.Specs2RouteTest
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.PhantomEndpointSpec
+import scala.concurrent.{ Promise, Future, future }
 import spray.http.{ BodyPart, MultipartFormData }
 import java.io.{ FileInputStream, FileOutputStream }
 import com.phantom.model.{ ConversationItem, PhantomUser, BlockUserByConversationResponse, Conversation }
@@ -37,8 +38,15 @@ class ConversationEndpointSpec extends Specification
   "Conversation Service" should {
 
     "support blocking a user by providing a conversation id" in withSetupTeardown {
-      insertTestConverationsWithItems
-      insertTestContacts
+      import scala.concurrent.duration._
+
+      // using "executor" ExecutionContext from RouteTest trait
+      val f = future {
+        insertTestConverationsWithItems
+        insertTestContacts
+      }(executor)
+
+      val waitForIt = scala.concurrent.Await.result(f, FiniteDuration(5, SECONDS))
 
       Post("/conversation/block/1") ~> conversationRoute ~> check {
         assertPayload[BlockUserByConversationResponse] { response =>
