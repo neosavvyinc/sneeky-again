@@ -1,7 +1,6 @@
 
 package com.phantom.ds.dataAccess
 
-
 class PhantomUsersDAOSpec extends BaseDAOSpec {
 
   sequential

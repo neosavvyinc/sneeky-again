@@ -46,7 +46,7 @@ class ConversationEndpointSpec extends Specification
   val appleActor : ActorRef = appleProbe.ref
 
   "Conversation Service" should {
-    
+
     "support blocking a user by providing a conversation id" in withSetupTeardown {
       import scala.concurrent.duration._
 
@@ -65,7 +65,7 @@ class ConversationEndpointSpec extends Specification
       }
 
     }
-    
+
     "return conversations by fromUser id" in withSetupTeardown {
       insertTestConverationsWithItems
       //userid?  this should not be using userid this should should be session based
@@ -92,7 +92,6 @@ class ConversationEndpointSpec extends Specification
 
     }
 
-    "support receiving a multi-part form post to start a conversation with image" in withSetupTeardown {
     "support receiving a multi-part form post to start a conversation with image" in withSetupTeardown {
       insertTestUsers
 

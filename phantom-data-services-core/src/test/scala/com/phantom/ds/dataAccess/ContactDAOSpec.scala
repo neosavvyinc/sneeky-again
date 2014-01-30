@@ -1,9 +1,6 @@
 package com.phantom.ds.dataAccess
 
-import org.specs2.mutable._
-import com.phantom.dataAccess.DatabaseSupport
-import com.phantom.model.{ PhantomUser, Contact, ContactComponent }
-import org.specs2.specification.BeforeAfter
+import com.phantom.model.Contact
 
 class ContactDAOSpec extends BaseDAOSpec {
 

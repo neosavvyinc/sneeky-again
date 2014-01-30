@@ -1,6 +1,8 @@
 package com.phantom.ds.dataAccess
 
 import com.phantom.model.Conversation
+import com.phantom.ds.TestUtils
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * Created with IntelliJ IDEA.
@@ -9,7 +11,7 @@ import com.phantom.model.Conversation
  * Time: 8:23 AM
  * To change this template use File | Settings | File Templates.
  */
-class ConversationDAOSpec extends BaseDAOSpec {
+class ConversationDAOSpec extends BaseDAOSpec with TestUtils {
 
   sequential
 
@@ -59,10 +61,12 @@ class ConversationDAOSpec extends BaseDAOSpec {
       conversationDao.insert(new Conversation(None, 3, 4))
       conversationDao.insert(new Conversation(None, 5, 6))
 
-      (conversationDao.findById(1).id.get must equalTo(1)) and
-        (conversationDao.findById(1).toUser must equalTo(1)) and
-        (conversationDao.findById(1).fromUser must equalTo(2))
-      conversations.findById(1) must be_==(Conversation(Some(1), 1, 2)).await
+      (await(conversationDao.findById(1)).id.get must equalTo(1)) and
+        (await(conversationDao.findById(1)).toUser must equalTo(1)) and
+        (await(conversationDao.findById(1)).fromUser must equalTo(2))
+
+      val c = await(conversationDao.findById(1))
+      c must be_==(Conversation(Some(1), 1, 2))
     }
 
     "support inserting then updating a row" in withSetupTeardown {
@@ -70,10 +74,10 @@ class ConversationDAOSpec extends BaseDAOSpec {
 
       val inserted : Conversation = conversationDao.insert(new Conversation(None, 1, 2))
 
-      val numRowsAffected : Int = conversations.updateById(new Conversation(inserted.id, 4, 5))
+      val numRowsAffected : Int = conversationDao.updateById(new Conversation(inserted.id, 4, 5))
       numRowsAffected must equalTo(1)
 
-      val insertedFromDb = conversations.findById(inserted.id.get)
+      val insertedFromDb = conversationDao.findById(inserted.id.get)
       insertedFromDb must be_==(Conversation(Some(1), 4, 5)).await
 
     }

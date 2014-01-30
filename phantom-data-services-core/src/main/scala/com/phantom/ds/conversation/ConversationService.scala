@@ -1,6 +1,6 @@
 package com.phantom.ds.conversation
 
-import scala.concurrent.{ Future, ExecutionContext, future }
+import scala.concurrent.{ Promise, Future, ExecutionContext, future }
 import com.phantom.model._
 import com.phantom.dataAccess.DatabaseSupport
 import scala.slick.session.Session
@@ -16,6 +16,7 @@ import akka.actor.ActorRef
 import com.phantom.ds.integration.twilio.{ SendInvite, SendInviteToStubUsers }
 import com.phantom.ds.integration.apple.SendConversationNotification
 import com.phantom.ds.framework.exception.PhantomException
+import scala.util.{ Failure, Success }
 
 /**
  * Created by Neosavvy
@@ -166,7 +167,7 @@ object ConversationService extends DSConfiguration {
 
       future {
         val contact = for {
-          c <- conversations.findById(id)
+          c <- conversationDao.findById(id)
           cb <- contacts.findByContactId(c.toUser, c.fromUser)
           n <- contacts.update(cb.copy(contactType = "block"))
         } yield cb
