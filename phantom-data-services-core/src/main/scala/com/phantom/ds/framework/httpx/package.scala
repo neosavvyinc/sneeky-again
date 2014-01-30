@@ -23,7 +23,7 @@ package object httpx {
 
   private[httpx]type JF[T] = JsonFormat[T]
 
-  trait PhantomJsonProtocol extends DefaultJsonProtocol {
+  trait PhantomJsonProtocol extends DefaultJsonProtocol with Logging {
 
     implicit object JodaDateTimeFormat extends JsonFormat[DateTime] {
 
@@ -117,7 +117,7 @@ package object httpx {
       val failure = t match {
         case x : UnverifiedUserException => Failure(x.code, x.msg)
         case x : PhantomException        => Failure(x.code, Errors.getMessage(x.code))
-        case _                           => Failure(defaultCode, Errors.getMessage(defaultCode))
+        case x                           => log.error(x.getMessage, x); Failure(defaultCode, Errors.getMessage(defaultCode))
       }
       failureFormat.write(failure)
     }

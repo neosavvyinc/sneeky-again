@@ -26,4 +26,5 @@
     <logger name="com.phantom.ds" level="trace"/>
     <logger name="com.phantom.dataAccess" level="trace"/>
     <logger name="scala.slick.session" level="trace"/>
+    <logger name="com.phantom.ds.framework" level="trace"/>
 </configuration>
