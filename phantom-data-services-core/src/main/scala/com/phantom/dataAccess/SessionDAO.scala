@@ -23,26 +23,34 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
   } yield s
 
   def findFromSession(session : UUID) : Option[PhantomUser] = {
-    userBySessionId(session).firstOption
+    db.withSession { implicit s =>
+      userBySessionId(session).firstOption
+    }
   }
 
   def existingSession(userId : Long) : Future[Option[PhantomSession]] = {
     future {
-      byUserId(userId).firstOption
+      db.withSession { implicit session =>
+        byUserId(userId).firstOption
+      }
     }
   }
 
   def createSession(session : PhantomSession) : Future[PhantomSession] = {
     future {
-      SessionTable.insert(session)
-      session
+      db.withTransaction { implicit s =>
+        SessionTable.insert(session)
+        session
+      }
     }
   }
 
-  def removeSession(sessionId : UUID) : Future[Unit] = {
+  def removeSession(sessionId : UUID) : Future[Int] = {
     log.trace(s"deleting $sessionId")
     future {
-      Query(SessionTable).where(_.sessionId === sessionId).delete
+      db.withTransaction { implicit session =>
+        Query(SessionTable).where(_.sessionId === sessionId).delete
+      }
     }
   }
 

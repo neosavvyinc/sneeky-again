@@ -7,6 +7,7 @@ import com.phantom.model._
 import org.joda.time.{ DateTimeZone, LocalDate }
 import java.util.UUID
 import com.phantom.ds.user.Passwords
+import scala.slick.session.Session
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,18 +18,18 @@ import com.phantom.ds.user.Passwords
  */
 trait BaseDAOSpec extends Specification with DatabaseSupport {
 
-  implicit val session = db.createSession
-
   object withSetupTeardown extends BeforeAfter {
     def before {
-      try {
+      db.withTransaction { implicit session : Session =>
         dataAccessLayer.drop
+        dataAccessLayer.create
       }
-      dataAccessLayer.create
     }
 
     def after {
-      dataAccessLayer.drop
+      db.withTransaction { implicit session : Session =>
+        dataAccessLayer.drop
+      }
     }
   }
 

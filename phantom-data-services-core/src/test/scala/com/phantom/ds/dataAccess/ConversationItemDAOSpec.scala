@@ -1,8 +1,5 @@
 package com.phantom.ds.dataAccess
 
-import org.specs2.specification.BeforeAfter
-import org.specs2.mutable.Specification
-import com.phantom.dataAccess.DatabaseSupport
 import com.phantom.model.ConversationItem
 
 /**

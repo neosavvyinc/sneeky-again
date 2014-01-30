@@ -38,7 +38,7 @@ object TwilioService {
         } yield results.failed
       }
 
-      private def updateInvitationCount(stubUsers : Seq[StubUser]) : Future[Unit] = {
+      private def updateInvitationCount(stubUsers : Seq[StubUser]) : Future[Int] = {
         stubUsersDao.updateInvitationCount(stubUsers)
       }
 

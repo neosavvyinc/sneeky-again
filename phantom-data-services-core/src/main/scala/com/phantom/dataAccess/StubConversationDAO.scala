@@ -11,10 +11,12 @@ class StubConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Ex
 
   def insertAll(conversations : Seq[StubConversation]) : Future[Seq[StubConversation]] = {
     future {
-      val b = StubConversationTable.forInsert.insertAll(conversations : _*)
-      b.zip(conversations).map {
-        case (id, conversation) =>
-          conversation.copy(id = Some(id))
+      db.withTransaction { implicit session =>
+        val b = StubConversationTable.forInsert.insertAll(conversations : _*)
+        b.zip(conversations).map {
+          case (id, conversation) =>
+            conversation.copy(id = Some(id))
+        }
       }
     }
   }
@@ -23,8 +25,9 @@ class StubConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Ex
 
   def findByFromUserId(id : Long) : Future[Seq[StubConversation]] = {
     future {
-      byFromUser(id).list
+      db.withSession { implicit session =>
+        byFromUser(id).list
+      }
     }
   }
-
 }
