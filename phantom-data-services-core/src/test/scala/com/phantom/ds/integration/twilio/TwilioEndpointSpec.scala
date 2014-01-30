@@ -23,15 +23,6 @@ class TwilioEndpointSpec extends Specification
   sequential
 
   "Twilio Endpoint" should {
-
-    "be able to receive registation verification callbacks" in {
-      val registration = RegistrationVerification("sid", "sid", "internet", "us", "message", 1)
-      Post("/integration/registration", registration) ~> twilioRoute ~> check {
-        probe.expectMsg(registration)
-        status mustEqual OK
-      }
-    }
-
     "be able to receive invitation status callbacks" in {
       val registration = InviteMessageStatus("sid", "good")
       Post("/integration/invitation", registration) ~> twilioRoute ~> check {

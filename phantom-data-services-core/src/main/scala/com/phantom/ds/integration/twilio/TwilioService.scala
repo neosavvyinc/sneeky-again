@@ -4,41 +4,55 @@ import scala.concurrent.{ ExecutionContext, Future }
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.DSConfiguration
 import com.phantom.dataAccess.DatabaseSupport
-import java.util.UUID
+import com.twilio.sdk.resource.instance.Sms
+import com.phantom.model.{ StubConversation, StubUser }
 
 trait TwilioService {
-  def verifyRegistration(response : RegistrationVerification) : Future[Unit]
-  def sendInvitations(contacts : List[String]) : Future[Unit]
+  def sendInvitationsToUnidentifiedUsers(invite : SendInvite) : Future[Seq[String]]
+  def sendInvitationsToStubUsers(stubUsers : Seq[StubUser]) : Future[Seq[StubUser]]
   def recordInvitationStatus(status : InviteMessageStatus) : Future[Unit]
 }
 
 object TwilioService {
-  def apply(implicit ec : ExecutionContext) : TwilioService =
+  def apply(sender : TwilioMessageSender)(implicit ec : ExecutionContext) : TwilioService =
 
     new TwilioService with DatabaseSupport with Logging with DSConfiguration {
 
-      def verifyRegistration(response : RegistrationVerification) : Future[Unit] = {
-        log.error(s"received $response")
-        val uuidOpt = UUIDExtractor.extractUUID(response)
-        uuidOpt.map(updateUserStatus(_, response)).getOrElse(logBadVerification(response))
+      def sendInvitationsToUnidentifiedUsers(invite : SendInvite) : Future[Seq[String]] = {
+        val seqd = invite.contacts.toSeq
+        val resultsF = sender.sendInvitations(seqd).map(x => toResults(seqd.zip(x)))
+        for {
+          results <- resultsF
+          _ <- createStubAccounts(results.passed, invite.from, invite.imageText, invite.imageUrl)
+        } yield results.failed
       }
 
-      private def updateUserStatus(uuid : UUID, message : RegistrationVerification) : Future[Unit] = {
-        val updated = phantomUsers.verifyUser(uuid)
-        updated.map { x =>
-          if (x != 1) {
-            log.error(s"uuid : $uuid extracted from $message is either not valid, or the user is already verified.")
-          }
-        }
+      //not sure how to handle failed known stub users...in theory..they shouldn't exist
+      //blacklisted might be the only real case to look out for
+      def sendInvitationsToStubUsers(stubUsers : Seq[StubUser]) : Future[Seq[StubUser]] = {
+        val resultsF = sender.sendInvitations(stubUsers.map(_.phoneNumber)).map(x => toResults(stubUsers.zip(x)))
+
+        for {
+          results <- resultsF
+          _ <- updateInvitationCount(results.passed)
+        } yield results.failed
       }
 
-      private def logBadVerification(response : RegistrationVerification) : Future[Unit] = {
-        Future.successful(log.error(s"invalid UUID detected for $response"))
+      private def updateInvitationCount(stubUsers : Seq[StubUser]) : Future[Unit] = {
+        stubUsersDao.updateInvitationCount(stubUsers)
       }
 
-      // for now..this could probably its own actor w/ a router on it
-      def sendInvitations(contacts : List[String]) : Future[Unit] = {
-        Future.successful()
+      private def createStubAccounts(contacts : Seq[String], fromUser : Long, imageText : String, imageUrl : String) : Future[Seq[StubUser]] = {
+        val stagedStubs = contacts.map(x => StubUser(None, x, 1))
+        for {
+          stubUsers <- stubUsersDao.insertAll(stagedStubs)
+          _ <- createStubConversations(stubUsers, fromUser, imageText, imageUrl)
+        } yield stubUsers
+      }
+
+      private def createStubConversations(stubUsers : Seq[StubUser], fromUser : Long, imageText : String, imageUrl : String) : Future[Seq[StubConversation]] = {
+        val stagedConversations = stubUsers.map(x => StubConversation(None, fromUser, x.id.get, imageText, imageUrl))
+        stubConversationsDao.insertAll(stagedConversations)
       }
 
       //TODO FIX ME..i do nothing good
@@ -49,5 +63,17 @@ object TwilioService {
           }
         }
       }
+
+      private def toResults[T](seq : Seq[(T, Either[TwilioSendFail, Sms])]) : Results[T] = {
+        seq.foldLeft(Results[T]()) { (acc, i) =>
+          i match {
+            case (x, Left(y : NonTwilioException)) => acc.copy(failed = acc.failed :+ x)
+            case (x, Left(_))                      => acc.copy(twilioRejected = acc.twilioRejected :+ x)
+            case (x, Right(_))                     => acc.copy(passed = acc.passed :+ x)
+          }
+        }
+      }
     }
 }
+
+case class Results[T](failed : Seq[T] = Seq(), twilioRejected : Seq[T] = Seq(), passed : Seq[T] = Seq())

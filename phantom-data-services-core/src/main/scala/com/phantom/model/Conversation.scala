@@ -18,7 +18,14 @@ case class Conversation(id : Option[Long],
                         toUser : Long,
                         fromUser : Long)
 
-case class ConversationInsertResponse(id : Long)
+case class ConversationSummary(mostRecent : ConversationItem)
+
+case class ConversationDetail(id : Long,
+                              conversationItems : List[ConversationItem])
+
+//case class Feed(conversations : List[Conversation])
+
+case class ConversationInsertResponse(createdCount : Long)
 
 case class ConversationUpdateResponse(id : Long)
 

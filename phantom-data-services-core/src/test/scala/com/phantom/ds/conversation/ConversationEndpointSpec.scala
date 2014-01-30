@@ -9,6 +9,11 @@ import com.phantom.ds.framework.Logging
 import com.phantom.ds.PhantomEndpointSpec
 import scala.concurrent.{ Promise, Future, future }
 import spray.http.{ BodyPart, MultipartFormData }
+import com.phantom.ds.dataAccess.BaseDAOSpec
+import com.phantom.ds.framework.auth.PassThroughRequestAuthenticator
+import com.phantom.model.{ Conversation, ConversationItem, BlockUserByConversationResponse }
+import akka.testkit.TestProbe
+import akka.actor.ActorRef
 import java.io.{ FileInputStream, FileOutputStream }
 import com.phantom.model.{ ConversationItem, PhantomUser, BlockUserByConversationResponse, Conversation }
 import java.util.UUID
@@ -28,12 +33,17 @@ class ConversationEndpointSpec extends Specification
     with Specs2RouteTest
     with Logging
     with ConversationEndpoint
-    with DatabaseSupport
+    with PassThroughRequestAuthenticator
     with BaseDAOSpec {
 
   sequential
 
   def actorRefFactory = system
+
+  val probe = TestProbe()
+  val appleProbe = TestProbe()
+  val twilioActor : ActorRef = probe.ref
+  val appleActor : ActorRef = appleProbe.ref
 
   "Conversation Service" should {
 
@@ -56,12 +66,13 @@ class ConversationEndpointSpec extends Specification
 
     }
 
-    "return just one conversation with all 1's" in withSetupTeardown {
+    "return conversations by fromUser id" in withSetupTeardown {
       insertTestConverationsWithItems
-
-      Get("/conversation/1") ~> conversationRoute ~> check {
+      //userid?  this should not be using userid this should should be session based
+      Get(s"/conversation/2") ~> conversationRoute ~> check {
         assertPayload[List[(Conversation, List[ConversationItem])]] { response =>
-          response.length must be equalTo (2)
+          response must have size 1
+          response.head._2 must have size 3
         }
       }
     }
@@ -92,12 +103,19 @@ class ConversationEndpointSpec extends Specification
           "imageText" -> BodyPart("This is the image text"),
           "userid" -> BodyPart("1"),
           "image" -> BodyPart(stream),
-          "toUsers" -> BodyPart("1,2,3")
+          "toUsers" -> BodyPart("111111,222222,333333")
         )
       }
 
       Post("/conversation/start", multipartFormWithData) ~> conversationRoute ~> check {
         status === OK
+        val conversations = conversationDao.findByFromUserId(1)
+        conversations.foreach { x =>
+          val items = conversationItemDao.findByConversationId(x.id.get)
+          items should have size 1
+          items.head.imageText must beEqualTo("This is the image text")
+        }
+        conversations should have size 3
       }
 
     }

@@ -1,7 +1,8 @@
-package com.phantom.ds.integration.twilio
+package com.phantom.ds.registration
 
 import java.util.UUID
 import scala.util.Try
+import com.phantom.model.RegistrationVerification
 
 object UUIDExtractor {
 

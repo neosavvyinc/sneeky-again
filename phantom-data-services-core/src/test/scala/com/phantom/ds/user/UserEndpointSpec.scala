@@ -4,15 +4,12 @@ import com.phantom.model._
 import com.phantom.ds.framework.httpx._
 
 import org.specs2._
-import concurrent.duration._
 import mutable.Specification
 import spray.testkit.Specs2RouteTest
 import com.phantom.ds.PhantomEndpointSpec
 import org.joda.time.LocalDate
 import com.phantom.ds.framework.auth.{ PassThroughEntryPointAuthenticator, PassThroughRequestAuthenticator }
 import com.phantom.ds.dataAccess.BaseDAOSpec
-import scala.concurrent.duration
-import java.util.concurrent.TimeUnit
 
 class UserEndpointSpec extends Specification
     with PhantomEndpointSpec
@@ -29,35 +26,6 @@ class UserEndpointSpec extends Specification
   sequential
 
   "User Service" should {
-
-    "be able to register a user" in withSetupTeardown {
-
-      implicit val routeTestTimeout = RouteTestTimeout(duration.FiniteDuration(5, TimeUnit.SECONDS))
-
-      val newUser = UserRegistration("adamparrish@something.com", birthday, "mypassword")
-      Post("/users/register", newUser) ~> userRoute ~> check {
-        assertPayload[RegistrationResponse] { response =>
-          response.sessionUUID must not be null
-          response.verificationUUID must not be null
-        }
-      }
-    }
-
-    "fail if registering a user with a duplicate email" in withSetupTeardown {
-      val newUser = UserRegistration("adamparrish@something.com", birthday, "somethingelse")
-      createVerifiedUser(newUser.email, newUser.password)
-
-      Post("/users/register", newUser) ~> userRoute ~> check {
-        assertFailure(101)
-      }
-    }
-
-    "fail if registering user doesn't meet password complexity" in withSetupTeardown {
-      val newUser = UserRegistration("adamparrish@something.com", birthday, "s")
-      Post("/users/register", newUser) ~> userRoute ~> check {
-        assertFailure(105)
-      }
-    }
 
     "fail logging in if a user does not exist" in withSetupTeardown {
       val newUser = UserLogin("crazy@abc.xyz", "mypassword")

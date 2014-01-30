@@ -1,9 +1,7 @@
 package com.phantom.ds.conversation
 
-import scala.concurrent.{ Promise, Future, future, ExecutionContext }
-import scala.util.{ Success, Failure }
+import scala.concurrent.{ Promise, Future, ExecutionContext, future }
 import com.phantom.model._
-import scala.collection.mutable.{ Map => MMap }
 import com.phantom.dataAccess.DatabaseSupport
 import scala.slick.session.Session
 import java.io.{ File, FileOutputStream }
@@ -13,7 +11,12 @@ import com.phantom.model.ConversationUpdateResponse
 import com.phantom.model.Conversation
 import com.phantom.model.ConversationItem
 import com.phantom.model.ConversationInsertResponse
+import com.phantom.ds.framework.Logging
+import akka.actor.ActorRef
+import com.phantom.ds.integration.twilio.{ SendInvite, SendInviteToStubUsers }
+import com.phantom.ds.integration.apple.SendConversationNotification
 import com.phantom.ds.framework.exception.PhantomException
+import scala.util.{ Failure, Success }
 
 /**
  * Created by Neosavvy
@@ -24,10 +27,15 @@ import com.phantom.ds.framework.exception.PhantomException
  */
 trait ConversationService {
 
+  //  * Get my feed
+  //    * Request
+  //    * UserId
+  //    * Response
+  //    * List of conversations
   def findFeed(userId : Long) : Future[List[(Conversation, List[ConversationItem])]]
 
   def startConversation(fromUserId : Long,
-                        toUserIds : List[Long],
+                        contactNumbers : Set[String],
                         imageText : String,
                         imageUrl : String) : Future[ConversationInsertResponse]
 
@@ -43,38 +51,80 @@ trait ConversationService {
 
 object ConversationService extends DSConfiguration {
 
-  def apply()(implicit ec : ExecutionContext) = new ConversationService with DatabaseSupport {
-    def findFeed(userId : Long) : Future[List[(Conversation, List[ConversationItem])]] = {
+  def apply(twilioActor : ActorRef, appleActor : ActorRef)(implicit ec : ExecutionContext) = new ConversationService with DatabaseSupport with Logging {
 
-      val returnValue : List[(Conversation, List[ConversationItem])] =
-        conversations.findConversationsAndItems(userId)
-      Future.successful(returnValue)
+    def findFeed(userId : Long) : Future[List[(Conversation, List[ConversationItem])]] = {
+      future {
+        conversationDao.findConversationsAndItems(userId)
+      }
     }
 
     def startConversation(fromUserId : Long,
-                          toUserIds : List[Long],
+                          contactNumbers : Set[String],
                           imageText : String,
                           imageUrl : String) : Future[ConversationInsertResponse] = {
+      for {
+        (nonUsers, users) <- partitionUsers(contactNumbers)
+        (nonStubUsers, stubUsers) <- partitionStubUsers(nonUsers)
+        response <- createConversationRoots(users, stubUsers, fromUserId, imageText, imageUrl)
+        _ <- sendInvitations(nonStubUsers, stubUsers, fromUserId, imageText, imageUrl)
+        _ <- sendConversationNotifications(users)
+      } yield response
 
-      val session : Session = db.createSession
-      var count = 0
+    }
 
-      session.withTransaction {
-        val startedConversations : List[Conversation] = for (toUserId <- toUserIds) yield Conversation(None, toUserId, fromUserId)
-        val conversationsFromDB : List[Conversation] = startedConversations.map {
-          conversation => conversations.insert(conversation)
-        }
+    private def partitionUsers(contactNumbers : Set[String]) : Future[(Set[String], Seq[PhantomUser])] = {
+      partition(phantomUsersDao.findByPhoneNumbers(contactNumbers), contactNumbers)
+    }
 
-        conversationsFromDB.foreach {
-          conversation => conversationItems.insert(ConversationItem(None, conversation.id.get, imageUrl, imageText))
-        }
+    private def partitionStubUsers(contactNumbers : Set[String]) : Future[(Set[String], Seq[StubUser])] = {
+      partition(stubUsersDao.findByPhoneNumbers(contactNumbers), contactNumbers)
+    }
 
-        count = startedConversations.size
+    private def partition[T <: Phantom](phantomsF : Future[List[T]], contactNumbers : Set[String]) : Future[(Set[String], Seq[T])] = {
+      phantomsF.map { users =>
+        val existingNumbers = users.map(_.phoneNumber).toSet
+        val nonUsers = contactNumbers.diff(existingNumbers)
+        (nonUsers, users)
       }
+    }
 
+    private def createConversationRoots(users : Seq[PhantomUser], stubUsers : Seq[StubUser], fromUserId : Long, imageText : String, imageUrl : String) : Future[ConversationInsertResponse] = {
+      val conversations = users.map(x => Conversation(None, x.id.getOrElse(-1), fromUserId))
+      val stubConversations = stubUsers.map(x => StubConversation(None, fromUserId, x.id.getOrElse(-1), imageText, imageUrl))
+      val session : Session = db.createSession
+
+      val b = session.withTransaction {
+        for {
+          createdConversations <- conversationDao.insertAll(conversations)
+          createdConversationItems <- conversationItemDao.insertAll(createConversationItemRoots(createdConversations, fromUserId, imageText, imageUrl))
+          createdStubConversations <- stubConversationsDao.insertAll(stubConversations)
+        } yield ConversationInsertResponse(createdConversations.size + createdStubConversations.size)
+      }
       session.close()
+      b
+    }
 
-      Future.successful(ConversationInsertResponse(count))
+    private def createConversationItemRoots(conversations : Seq[Conversation], fromUserId : Long, imageText : String, imageUrl : String) : Seq[ConversationItem] = {
+      conversations.map(x => ConversationItem(None, x.id.getOrElse(-1), imageUrl, imageText))
+    }
+
+    private def sendConversationNotifications(phantomUsers : Seq[PhantomUser]) : Future[Unit] = {
+
+      Future.successful(if (!phantomUsers.isEmpty) { appleActor ! SendConversationNotification(phantomUsers) })
+    }
+
+    private def sendInvitations(contacts : Set[String], stubUsers : Seq[StubUser], fromUser : Long, imageText : String, imageUrl : String) : Future[Unit] = {
+      //intentionally not creating a future here..as sending msgs in non blocking
+      Future.successful {
+        val invitable = stubUsers.filter(_.invitationCount < UserConfiguration.invitationMax)
+        if (!invitable.isEmpty) {
+          twilioActor ! SendInviteToStubUsers(invitable)
+        }
+        if (!contacts.isEmpty) {
+          twilioActor ! SendInvite(contacts, fromUser, imageText, imageUrl)
+        }
+      }
     }
 
     def respondToConversation(conversationId : Long,
@@ -84,7 +134,7 @@ object ConversationService extends DSConfiguration {
       val session : Session = db.createSession
       session.withTransaction {
 
-        conversationItems.insert(ConversationItem(None, conversationId, imageUrl, imageText))
+        conversationItemDao.insert(ConversationItem(None, conversationId, imageUrl, imageText))
 
         Future.successful(ConversationUpdateResponse(1))
       }
@@ -117,7 +167,7 @@ object ConversationService extends DSConfiguration {
 
       future {
         val contact = for {
-          c <- conversations.findById(id)
+          c <- conversationDao.findById(id)
           cb <- contacts.findByContactId(c.toUser, c.fromUser)
           n <- contacts.update(cb.copy(contactType = "block"))
         } yield cb

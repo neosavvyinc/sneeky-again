@@ -4,7 +4,8 @@ import akka.actor.{ Props, ActorSystem }
 import akka.io.IO
 import spray.can.Http
 import com.phantom.ds.framework.auth._
-import com.phantom.ds.integration.twilio.{ TwilioService, TwilioActor }
+import com.phantom.ds.integration.twilio.{ TwiioMessageSender, TwilioService, TwilioActor }
+import com.phantom.ds.integration.apple.AppleActor
 
 object Boot extends App with DSConfiguration {
 
@@ -22,11 +23,15 @@ object Boot extends App with DSConfiguration {
 
   private def getActor = {
     if (AuthConfiguration.authEnabled) {
-      system.actorOf(Props(new PhantomRouteActor(twilioActor) with MockSessionRepository with PhantomRequestAuthenticator with PhantomEntryPointAuthenticator), "service")
+      system.actorOf(Props(new PhantomRouteActor(twilioActor, appleActor) with PhantomRequestAuthenticator with PhantomEntryPointAuthenticator), "service")
     } else {
-      system.actorOf(Props(new PhantomRouteActor(twilioActor) with PassThroughRequestAuthenticator with PassThroughEntryPointAuthenticator), "service")
+      system.actorOf(Props(new PhantomRouteActor(twilioActor, appleActor) with PassThroughRequestAuthenticator with PassThroughEntryPointAuthenticator), "service")
     }
   }
 
-  private def twilioActor = system.actorOf(Props(new TwilioActor(TwilioService(executor))))
+  private def twilioActor = system.actorOf(Props(new TwilioActor(twilioService)))
+
+  private def appleActor = system.actorOf(Props(new AppleActor))
+
+  private def twilioService = TwilioService(TwiioMessageSender(TwilioConfiguration.accountSid, TwilioConfiguration.authToken, TwilioConfiguration.phoneNumber))(executor)
 }

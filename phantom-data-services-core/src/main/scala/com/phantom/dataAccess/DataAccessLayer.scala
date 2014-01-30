@@ -3,10 +3,6 @@ package com.phantom.dataAccess
 import com.phantom.model._
 
 import scala.slick.driver.ExtendedProfile
-import scala.slick.session.{ Session, Database }
-
-import scala._
-import org.joda.time.LocalDate
 import com.phantom.ds.framework.Logging
 
 trait Profile {
@@ -18,7 +14,9 @@ class DataAccessLayer(override val profile : ExtendedProfile) extends Profile wi
     with ConversationComponent
     with ConversationItemComponent
     with ContactComponent
-    with UserSessionComponent {
+    with UserSessionComponent
+    with StubUserComponent
+    with StubConversationComponent {
 
   import profile.simple._
 
@@ -27,7 +25,9 @@ class DataAccessLayer(override val profile : ExtendedProfile) extends Profile wi
       ConversationTable.ddl ++
       ConversationItemTable.ddl ++
       ContactTable.ddl ++
-      SessionTable.ddl
+      SessionTable.ddl ++
+      StubUserTable.ddl ++
+      StubConversationTable.ddl
 
   ddl.createStatements.foreach(println)
 
@@ -44,7 +44,6 @@ class DataAccessLayer(override val profile : ExtendedProfile) extends Profile wi
       ddl.drop
     } catch {
       case e : Exception => {
-        new Exception("could not drop table... dang")
         println(">>>> COULD NOT DROP TABLES:")
         println(e)
       }

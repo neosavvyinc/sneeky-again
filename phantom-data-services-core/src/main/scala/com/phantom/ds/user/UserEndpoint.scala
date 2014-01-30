@@ -13,32 +13,18 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
   val userService = UserService()
 
   val userRoute =
-    pathPrefix("users" / "register") {
+    pathPrefix("users" / "login") {
       authenticate(enter _) {
         bool =>
           post {
             respondWithMediaType(`application/json`)
-            entity(as[UserRegistration]) {
+            entity(as[UserLogin]) {
               reg =>
-                log.trace(s"registering $reg")
-                complete(userService.register(reg))
+                complete(userService.login(reg))
             }
           }
       }
-
     } ~
-      pathPrefix("users" / "login") {
-        authenticate(enter _) {
-          bool =>
-            post {
-              respondWithMediaType(`application/json`)
-              entity(as[UserLogin]) {
-                reg =>
-                  complete(userService.login(reg))
-              }
-            }
-        }
-      } ~
       pathPrefix("users" / "logout") {
         authenticate(request _) { user =>
           get {
