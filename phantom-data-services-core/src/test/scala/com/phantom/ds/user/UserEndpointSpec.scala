@@ -74,6 +74,16 @@ class UserEndpointSpec extends Specification
       }
     }
 
+    //    "be able to update a user's contacts" in withSetupTeardown {
+    //      createVerifiedUser("adamparrish@something.com", "mypassword")
+    //      insertContacts
+    //      Post("/users/1/contacts", List("", "")) ~> userRoute ~> check {
+    //        assertPayload[List[Long]] { response =>
+    //          response.size must not be equalTo(0)
+    //        }
+    //      }
+    //    }
+
     /*"return a NonexistantUserException if you try to update contacts for a nonexistant user" in withSetupTeardown {
       val phoneNumbers = List("(614)499-3676", "(614)519-2050", "(614)206-1266")
       Post("/users/1/contacts", phoneNumbers) ~> userRoute ~> check {

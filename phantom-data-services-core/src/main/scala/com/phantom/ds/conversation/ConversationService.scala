@@ -6,6 +6,7 @@ import com.phantom.dataAccess.DatabaseSupport
 import scala.slick.session.Session
 import java.io.{ File, FileOutputStream }
 import com.phantom.ds.DSConfiguration
+import com.phantom.model.BlockUserByConversationResponse
 import com.phantom.model.ConversationUpdateResponse
 import com.phantom.model.Conversation
 import com.phantom.model.ConversationItem
@@ -14,6 +15,7 @@ import com.phantom.ds.framework.Logging
 import akka.actor.ActorRef
 import com.phantom.ds.integration.twilio.{ SendInvite, SendInviteToStubUsers }
 import com.phantom.ds.integration.apple.SendConversationNotification
+import com.phantom.ds.framework.exception.PhantomException
 
 /**
  * Created by Neosavvy
@@ -35,6 +37,14 @@ trait ConversationService {
                         contactNumbers : Set[String],
                         imageText : String,
                         imageUrl : String) : Future[ConversationInsertResponse]
+
+  def respondToConversation(conversationId : Long,
+                            imageText : String,
+                            imageUrl : String) : Future[ConversationUpdateResponse]
+
+  def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String
+
+  def blockByConversationId(id : Long) : Future[BlockUserByConversationResponse]
 
 }
 
@@ -148,6 +158,26 @@ object ConversationService extends DSConfiguration {
 
       imageUrl
 
+    }
+
+    def blockByConversationId(id : Long) : Future[BlockUserByConversationResponse] = {
+
+      val blockUserPromise : Promise[BlockUserByConversationResponse] = Promise()
+
+      future {
+        val contact = for {
+          c <- conversations.findById(id)
+          cb <- contacts.findByContactId(c.toUser, c.fromUser)
+          n <- contacts.update(cb.copy(contactType = "block"))
+        } yield cb
+
+        contact.onComplete {
+          case Success(c : Contact) => blockUserPromise.success(BlockUserByConversationResponse(c.id.get, true))
+          case Failure(ex)          => blockUserPromise.failure(PhantomException.contactNotUpdated)
+        }
+      }
+
+      blockUserPromise.future
     }
   }
 

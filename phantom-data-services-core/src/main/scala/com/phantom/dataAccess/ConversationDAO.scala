@@ -10,12 +10,19 @@ package com.phantom.dataAccess
 
 import scala.slick.session.Database
 import com.phantom.model.{ ConversationItem, Conversation }
+<<<<<<< HEAD
 import scala.concurrent.{ Future, ExecutionContext, future }
 import com.phantom.ds.framework.Logging
 
 class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionContext)
     extends BaseDAO(dal, db)
     with Logging {
+=======
+import com.phantom.ds.framework.exception.PhantomException
+import scala.concurrent.{ Future, ExecutionContext, future }
+
+class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionContext) extends BaseDAO(dal, db) {
+>>>>>>> master
   import dal._
   import dal.profile.simple._
 
@@ -43,10 +50,15 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     val deleteQuery = Query(ConversationTable) filter { _.id === conversationId }
     deleteQuery delete
   }
-  def findById(conversationId : Long) : Conversation = {
-    val items = Query(ConversationTable) filter { _.id === conversationId }
-    items.first
+  def findById(conversationId : Long) : Future[Conversation] = {
+    future {
+      val q = Query(ConversationTable) filter { _.id === conversationId }
+      q.firstOption
+        .map((c : Conversation) => c)
+        .getOrElse(throw PhantomException.nonExistentConversation)
+    }
   }
+
   def updateById(conversation : Conversation) : Int = {
     val updateQuery = Query(ConversationTable) filter { _.id === conversation.id }
     updateQuery.update(conversation)

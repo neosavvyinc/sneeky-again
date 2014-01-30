@@ -29,7 +29,8 @@ case class ConversationInsertResponse(createdCount : Long)
 
 case class ConversationUpdateResponse(id : Long)
 
-case class BlockUserByConversationResponse(id : Long)
+case class BlockUserByConversationResponse(id : Long,
+                                           success : Boolean)
 
 trait ConversationComponent { this : Profile with UserComponent =>
 

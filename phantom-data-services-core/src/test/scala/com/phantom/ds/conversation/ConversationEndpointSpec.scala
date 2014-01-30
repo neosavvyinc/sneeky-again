@@ -7,12 +7,19 @@ import org.specs2.mutable.Specification
 import spray.testkit.Specs2RouteTest
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.PhantomEndpointSpec
+import scala.concurrent.{ Promise, Future, future }
 import spray.http.{ BodyPart, MultipartFormData }
 import com.phantom.ds.dataAccess.BaseDAOSpec
 import com.phantom.ds.framework.auth.PassThroughRequestAuthenticator
 import com.phantom.model.{ Conversation, ConversationItem, BlockUserByConversationResponse }
 import akka.testkit.TestProbe
 import akka.actor.ActorRef
+import java.io.{ FileInputStream, FileOutputStream }
+import com.phantom.model.{ ConversationItem, PhantomUser, BlockUserByConversationResponse, Conversation }
+import java.util.UUID
+import org.joda.time.LocalDate
+import com.phantom.dataAccess.DatabaseSupport
+import com.phantom.ds.dataAccess.BaseDAOSpec
 
 /**
  * Created by Neosavvy
@@ -39,6 +46,26 @@ class ConversationEndpointSpec extends Specification
   val appleActor : ActorRef = appleProbe.ref
 
   "Conversation Service" should {
+    
+    "support blocking a user by providing a conversation id" in withSetupTeardown {
+      import scala.concurrent.duration._
+
+      // using "executor" ExecutionContext from RouteTest trait
+      val f = future {
+        insertTestConverationsWithItems
+        insertTestContacts
+      }(executor)
+
+      val waitForIt = scala.concurrent.Await.result(f, FiniteDuration(5, SECONDS))
+
+      Post("/conversation/block/1") ~> conversationRoute ~> check {
+        assertPayload[BlockUserByConversationResponse] { response =>
+          response.id must be equalTo 1L
+        }
+      }
+
+    }
+    
     "return conversations by fromUser id" in withSetupTeardown {
       insertTestConverationsWithItems
       //userid?  this should not be using userid this should should be session based
@@ -50,7 +77,7 @@ class ConversationEndpointSpec extends Specification
       }
     }
 
-    "support receiving a multi-part form post to start or update a conversation, if no image it throws error" in {
+    "support receiving a multi-part form post to start or update a conversation, if no image it throws error" in withSetupTeardown {
 
       val multipartForm = MultipartFormData {
         Map(
@@ -65,6 +92,7 @@ class ConversationEndpointSpec extends Specification
 
     }
 
+    "support receiving a multi-part form post to start a conversation with image" in withSetupTeardown {
     "support receiving a multi-part form post to start a conversation with image" in withSetupTeardown {
       insertTestUsers
 
@@ -93,7 +121,7 @@ class ConversationEndpointSpec extends Specification
 
     }
 
-    "support receiving a multi-part form post to update a conversation with image" in {
+    "support receiving a multi-part form post to update a conversation with image" in withSetupTeardown {
       insertTestConverationsWithItems
 
       val in4 = this.getClass().getClassLoader().getResourceAsStream("testFile.png")
@@ -113,15 +141,6 @@ class ConversationEndpointSpec extends Specification
 
     }
 
-    "support blocking a user by providing a conversation id" in {
-
-      Post("/conversation/block/1") ~> conversationRoute ~> check {
-        assertPayload[BlockUserByConversationResponse] { response =>
-          response.id must be equalTo 1L
-        }
-      }
-
-    }.pendingUntilFixed("This is unimplemented")
   }
 
 }

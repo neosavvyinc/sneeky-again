@@ -2,8 +2,6 @@ package com.phantom.ds.conversation
 
 import spray.http.MediaTypes._
 import com.phantom.ds.DataHttpService
-import com.phantom.model._
-import com.phantom.ds.framework.httpx._
 
 import com.phantom.ds.framework.auth.RequestAuthenticator
 import com.phantom.model.BlockUserByConversationResponse
@@ -89,13 +87,11 @@ trait ConversationEndpoint extends DataHttpService {
             post {
               respondWithMediaType(`application/json`) {
                 complete {
-                  BlockUserByConversationResponse(1)
+                  conversationService.blockByConversationId(id)
                 }
               }
             }
         }
       }
-
     }
-
 }

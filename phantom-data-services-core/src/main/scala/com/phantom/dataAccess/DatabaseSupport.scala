@@ -4,16 +4,20 @@ import scala.slick.driver.MySQLDriver
 import scala.slick.session.{ Database, Session }
 import com.phantom.ds.DSConfiguration
 import scala.concurrent.ExecutionContext
+import java.util.Properties
 
 trait DatabaseSupport extends DSConfiguration {
 
   private implicit def executionContext : ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
+  var dbProps = new Properties()
+  dbProps.setProperty("autoReconnect", "true")
+
   val db = Database.forURL(
     DBConfiguration.url,
     DBConfiguration.user,
     DBConfiguration.pass,
-    null,
+    dbProps,
     DBConfiguration.driver
   )
 

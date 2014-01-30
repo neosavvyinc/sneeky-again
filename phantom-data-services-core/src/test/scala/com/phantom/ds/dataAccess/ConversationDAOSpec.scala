@@ -62,6 +62,7 @@ class ConversationDAOSpec extends BaseDAOSpec {
       (conversationDao.findById(1).id.get must equalTo(1)) and
         (conversationDao.findById(1).toUser must equalTo(1)) and
         (conversationDao.findById(1).fromUser must equalTo(2))
+      conversations.findById(1) must be_==(Conversation(Some(1), 1, 2)).await
     }
 
     "support inserting then updating a row" in withSetupTeardown {
@@ -69,14 +70,12 @@ class ConversationDAOSpec extends BaseDAOSpec {
 
       val inserted : Conversation = conversationDao.insert(new Conversation(None, 1, 2))
 
-      val numRowsAffected : Int = conversationDao.updateById(new Conversation(inserted.id, 4, 5))
+      val numRowsAffected : Int = conversations.updateById(new Conversation(inserted.id, 4, 5))
+      numRowsAffected must equalTo(1)
 
-      val insertedFromDb : Conversation = conversationDao.findById(inserted.id.get)
+      val insertedFromDb = conversations.findById(inserted.id.get)
+      insertedFromDb must be_==(Conversation(Some(1), 4, 5)).await
 
-      (numRowsAffected must equalTo(1)) and
-        (insertedFromDb.id.get must equalTo(1)) and
-        (insertedFromDb.fromUser must equalTo(5)) and
-        (insertedFromDb.toUser must equalTo(4))
     }
   }
 
