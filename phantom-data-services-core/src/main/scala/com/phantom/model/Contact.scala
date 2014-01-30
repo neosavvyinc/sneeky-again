@@ -28,9 +28,7 @@ trait ContactComponent { this : Profile with UserComponent =>
 
     def owner = foreignKey("OWNER_FK", ownerId, UserTable)(_.id)
     def contact = foreignKey("CONTACT_FK", contactId, UserTable)(_.id)
-
-    //def idx_a = index("idx_a", (contactId, contactType), unique = true)
-    //def idx_b = index("idx_b", (contactType, contactId), unique = true)
+    def uniqueContact = index("uniqueContact", (ownerId, contactId), unique = true)
   }
 
 }

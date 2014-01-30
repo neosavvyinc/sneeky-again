@@ -76,7 +76,7 @@ object UserService {
         val res = for {
           d <- contacts.deleteAll(id)(session)
           ids <- phantomUsers.findPhantomUserIdsByPhone(contactList)
-          insert <- contacts.insertList(id, ids)
+          insert <- contacts.insertAll(ids.map(Contact(None, id, _, "friend")))
         } yield insert
 
         res.onComplete {
