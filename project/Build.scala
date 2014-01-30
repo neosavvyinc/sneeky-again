@@ -142,6 +142,7 @@ object Formatting {
 object Assembly {
   val prefs = Set(jarName in assembly := "phantom.jar",
     mainClass in assembly := None,
+    test in assembly := {},
     mergeStrategy in assembly <<= (mergeStrategy in assembly) {(old) =>
     {
       case "logback.properties" =>  MergeStrategy.discard
