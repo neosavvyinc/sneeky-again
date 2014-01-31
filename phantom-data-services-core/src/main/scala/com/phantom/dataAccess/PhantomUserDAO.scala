@@ -75,9 +75,11 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
 
   def find(id : Long) : Future[PhantomUser] = {
     //log.info(s"finding contacts for user with id => $id")
-    Query(UserTable).filter(_.id is id)
-      .firstOption.map { u : PhantomUser => Future.successful(u) }
-      .getOrElse(Future.failed(PhantomException.nonExistentUser))
+    future {
+      Query(UserTable).filter(_.id is id)
+        .firstOption.map { u : PhantomUser => u }
+        .getOrElse(throw PhantomException.nonExistentUser)
+    }
   }
 
   def findByPhoneNumbers(phoneNumbers : Set[String]) : Future[List[PhantomUser]] = {
@@ -88,39 +90,46 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
   }
 
   def findContacts(id : Long) : Future[List[PhantomUser]] = {
-    val q = for {
-      u <- UserTable
-      c <- ContactTable if u.id === c.contactId && c.ownerId === id
-    } yield u
+    future {
+      val q = for {
+        u <- UserTable
+        c <- ContactTable if u.id === c.contactId && c.ownerId === id
+      } yield u
 
-    q.list match {
-      case u : List[PhantomUser] => Future.successful(u)
-      case _                     => Future.failed(new Exception())
+      q.list match {
+        case u : List[PhantomUser] => u
+        case _                     => throw PhantomException.nonExistentContact
+      }
     }
   }
 
-  def findBlockedContacts(id : Long) = {
+  def blockedContactsQuery(id : Long) = {
     for {
       c <- ContactTable if c.contactType === "block" && c.ownerId === id
     } yield c.contactType
   }
 
-  def findPhantomUserIdsByPhone(contacts : List[String]) : Future[List[Long]] = {
+  def findPhantomUserIdsByPhone(contacts : List[String]) : Future[(List[Long], List[String])] = {
     future {
       val q = for {
         u <- UserTable if u.phoneNumber inSet contacts
       } yield u
 
-      q.list.map(_.id.get)
+      val users = q.list
+      val notFound = contacts.partition(users.map(_.phoneNumber).contains(_))
+
+      (users.map(_.id.get), notFound._2)
     }
   }
 
   def clearBlockList(id : Long) : Future[StatusCode] = {
-
-    findBlockedContacts(id).update("friend") match {
-      case 0 => Future.successful(StatusCodes.NotModified)
-      case _ => Future.successful(StatusCodes.OK)
+    future {
+      blockedContactsQuery(id).update("friend") match {
+        case 0 => StatusCodes.NotModified
+        case _ => StatusCodes.OK
+      }
     }
+
   }
 }
 
