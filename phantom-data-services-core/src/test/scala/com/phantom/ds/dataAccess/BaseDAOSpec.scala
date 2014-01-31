@@ -7,7 +7,6 @@ import com.phantom.model._
 import org.joda.time.{ DateTimeZone, LocalDate }
 import java.util.UUID
 import com.phantom.ds.user.Passwords
-import scala.slick.session.Session
 
 /**
  * Created with IntelliJ IDEA.

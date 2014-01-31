@@ -20,11 +20,15 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
 
   def insert(user : PhantomUser) : PhantomUser = {
     db.withTransaction { implicit session =>
-      log.trace(s"inserting user: $user")
-      val id = UserTable.forInsert.insert(user)
-      log.trace(s"id $id")
-      user.copy(id = Some(id))
+      insertNoTransact(user)
     }
+  }
+
+  private def insertNoTransact(user : PhantomUser)(implicit session : Session) : PhantomUser = {
+    log.trace(s"inserting user: $user")
+    val id = UserTable.forInsert.insert(user)
+    log.trace(s"id $id")
+    user.copy(id = Some(id))
   }
 
   private val byEmailQuery = for (email <- Parameters[String]; u <- UserTable if u.email is email) yield u
@@ -50,8 +54,8 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
-  private def createUserRecord(reg : UserRegistration) = {
-    insert(PhantomUser(None, UUID.randomUUID, reg.email, Passwords.getSaltedHash(reg.password), reg.birthday, true, ""))
+  private def createUserRecord(reg : UserRegistration)(implicit session : Session) = {
+    insertNoTransact(PhantomUser(None, UUID.randomUUID, reg.email, Passwords.getSaltedHash(reg.password), reg.birthday, true, ""))
   }
 
   def login(loginRequest : UserLogin) : Future[PhantomUser] = {
