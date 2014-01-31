@@ -109,13 +109,16 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     } yield c.contactType
   }
 
-  def findPhantomUserIdsByPhone(contacts : List[String]) : Future[List[Long]] = {
+  def findPhantomUserIdsByPhone(contacts : List[String]) : Future[(List[Long], List[String])] = {
     future {
       val q = for {
         u <- UserTable if u.phoneNumber inSet contacts
       } yield u
 
-      q.list.map(_.id.get)
+      val users = q.list
+      val notFound = contacts.partition(users.map(_.phoneNumber).contains(_))
+
+      (users.map(_.id.get), notFound._2)
     }
   }
 
