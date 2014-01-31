@@ -7,6 +7,10 @@ trait DSConfiguration {
   lazy val cfg = ConfigFactory.load().getConfig("com.phantom.ds")
 
   object DBConfiguration {
+    val statementCacheSize = dbCfg.getInt("statementCacheSize")
+    val minConnectionsPerPartition = dbCfg.getInt("minConnectionsPerPartition")
+    val maxConnectionsPerPartition = dbCfg.getInt("maxConnectionsPerPartition")
+    val numPartitions = dbCfg.getInt("numPartitions")
 
     val driver = dbCfg.getString("driver")
     val url = dbCfg.getString("url")

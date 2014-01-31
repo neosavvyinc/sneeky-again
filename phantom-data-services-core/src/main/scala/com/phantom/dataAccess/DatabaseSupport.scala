@@ -6,8 +6,9 @@ import com.phantom.ds.DSConfiguration
 import scala.concurrent.ExecutionContext
 import java.util.Properties
 import com.jolbox.bonecp.{ BoneCPConfig, BoneCPDataSource }
+import com.phantom.ds.framework.Logging
 
-trait DatabaseSupport extends DSConfiguration {
+trait DatabaseSupport extends DSConfiguration with Logging {
 
   private implicit def executionContext : ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
@@ -17,9 +18,12 @@ trait DatabaseSupport extends DSConfiguration {
     dsConfig.setJdbcUrl(DBConfiguration.url)
     dsConfig.setUser(DBConfiguration.user)
     dsConfig.setPassword(DBConfiguration.pass)
-    dsConfig.setMinConnectionsPerPartition(5)
-    dsConfig.setMaxConnectionsPerPartition(20)
-    dsConfig.setPartitionCount(1)
+    dsConfig.setMinConnectionsPerPartition(DBConfiguration.minConnectionsPerPartition)
+    dsConfig.setMaxConnectionsPerPartition(DBConfiguration.maxConnectionsPerPartition)
+    dsConfig.setStatementsCacheSize(DBConfiguration.statementCacheSize)
+    dsConfig.setPartitionCount(DBConfiguration.numPartitions)
+
+    debug(dsConfig.toString)
 
     val ds = new BoneCPDataSource(dsConfig)
     Database forDataSource (ds)
