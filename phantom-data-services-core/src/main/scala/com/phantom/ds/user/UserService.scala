@@ -1,6 +1,6 @@
 package com.phantom.ds.user
 
-import scala.concurrent.{ Promise, ExecutionContext, Future }
+import scala.concurrent.{ Promise, ExecutionContext, Future, future }
 import scala.util.{ Success, Failure }
 import spray.http.StatusCode
 import com.phantom.model._
@@ -16,7 +16,7 @@ trait UserService {
   def logout(sessionId : String) : Future[Int]
   def findById(id : Long) : Future[PhantomUser]
   def findContactsById(id : Long) : Future[List[PhantomUser]]
-  def updateContacts(id : Long, contacts : List[String]) : Future[List[Long]]
+  def updateContacts(id : Long, contacts : List[String]) : Future[List[Contact]]
   def clearBlockList(id : Long) : Future[StatusCode]
 }
 
@@ -48,24 +48,30 @@ object UserService {
       phantomUsersDao.findContacts(id)
     }
 
-    def updateContacts(id : Long, contactList : List[String]) : Future[List[Long]] = {
+    def updateContacts(id : Long, contactList : List[String]) : Future[List[Contact]] = {
       val session = db.createSession
-      val updatedContacts : Promise[List[Long]] = Promise()
+      val updatedContacts : Promise[List[Contact]] = Promise()
 
-      session.withTransaction {
-        val res = for {
-          d <- contacts.deleteAll(id)(session)
-          ids <- phantomUsersDao.findPhantomUserIdsByPhone(contactList)
-          insert <- contacts.insertAll(ids.map(Contact(None, id, _, "friend")))
-        } yield insert
+      future {
+        // TO DO
+        // need to partition phone number request, update contacts for all
+        // users that exist, then take numbersNotFound and create stub users
+        session.withTransaction {
+          val res = for {
+            d <- contacts.deleteAll(id)(session)
+            (ids : List[Long], numbersNotFound : List[String]) <- phantomUsersDao.findPhantomUserIdsByPhone(contactList)
+            bogus <- future { println(numbersNotFound) } // do something with this list, create stub users???
+            insert <- contacts.insertAll(ids.map(Contact(None, id, _, "friend")))
+          } yield insert
 
-        res.onComplete {
-          case Success(contacts : List[Contact]) => {
-            updatedContacts.success(contacts.map(_.contactId))
-          }
-          case Failure(ex) => {
-            session.rollback()
-            updatedContacts.failure(ex)
+          res.onComplete {
+            case Success(contacts : List[Contact]) => updatedContacts.success(contacts)
+            case Failure(ex) => {
+              session.rollback()
+              updatedContacts.failure(ex)
+            }
+            // compiler complains of non-exhaustive pattern match without this. can we ever hit this though?
+            case _ => updatedContacts.failure(new Exception("unidentified exception : updateContacts"))
           }
         }
       }

@@ -38,20 +38,18 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
       } ~
       pathPrefix("users" / LongNumber / "contacts") { id =>
         authenticate(request _) { user =>
-          get {
+          post {
             respondWithMediaType(`application/json`) {
-              complete(userService.findContactsById(id))
-            }
-          } ~
-            post {
-              respondWithMediaType(`application/json`) {
-                entity(as[List[String]]) { contacts /* list of phone numbers */ =>
-                  complete {
-                    userService.updateContacts(id, contacts)
+              entity(as[Map[String, List[String]]]) { phoneNumbers =>
+                complete {
+                  phoneNumbers.isDefinedAt("numbers") match {
+                    case true  => userService.updateContacts(id, phoneNumbers("numbers"))
+                    case false => "Invalid Dictionary Key"
                   }
                 }
               }
             }
+          }
         }
       } ~
       pathPrefix("users" / LongNumber / "clearblocklist") { id =>
