@@ -11,9 +11,6 @@ trait DatabaseSupport extends DSConfiguration {
 
   private implicit def executionContext : ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  var dbProps = new Properties()
-  dbProps.setProperty("autoReconnect", "true")
-
   val db = {
     val dsConfig = new BoneCPConfig
     dsConfig.setJdbcUrl(DBConfiguration.url)

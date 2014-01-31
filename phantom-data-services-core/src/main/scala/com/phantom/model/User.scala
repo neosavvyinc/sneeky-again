@@ -100,7 +100,7 @@ trait UserComponent { this : Profile =>
 
     def * = id.? ~ uuid ~ email ~ password ~ birthday ~ active ~ phoneNumber ~ status <> (PhantomUser, PhantomUser.unapply _)
     def forInsert = * returning id
-    def phoneUnique = index("phoneUnique", phoneNumber, unique = true)
+    //    def phoneUnique = index("phoneUnique", phoneNumber, unique = true)
 
   }
 }
