@@ -38,20 +38,15 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
       } ~
       pathPrefix("users" / LongNumber / "contacts") { id =>
         authenticate(request _) { user =>
-          get {
+          post {
             respondWithMediaType(`application/json`) {
-              complete(userService.findContactsById(id))
-            }
-          } ~
-            post {
-              respondWithMediaType(`application/json`) {
-                entity(as[List[String]]) { phoneNumbers =>
-                  complete {
-                    userService.updateContacts(id, phoneNumbers)
-                  }
+              entity(as[List[String]]) { phoneNumbers =>
+                complete {
+                  userService.updateContacts(id, phoneNumbers)
                 }
               }
             }
+          }
         }
       } ~
       pathPrefix("users" / LongNumber / "clearblocklist") { id =>
