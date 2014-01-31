@@ -45,9 +45,9 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
           } ~
             post {
               respondWithMediaType(`application/json`) {
-                entity(as[List[String]]) { contacts /* list of phone numbers */ =>
+                entity(as[List[String]]) { phoneNumbers =>
                   complete {
-                    userService.updateContacts(id, contacts)
+                    userService.updateContacts(id, phoneNumbers)
                   }
                 }
               }

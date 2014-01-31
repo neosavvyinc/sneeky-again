@@ -79,6 +79,7 @@ package object httpx {
     implicit val inviteMessageStatusFormat = jsonFormat2(InviteMessageStatus)
 
     implicit val conversationFormat = jsonFormat3(Conversation)
+    implicit val contactFormat = jsonFormat4(Contact)
 
     implicit val conversationItemFormat = jsonFormat4(ConversationItem)
 

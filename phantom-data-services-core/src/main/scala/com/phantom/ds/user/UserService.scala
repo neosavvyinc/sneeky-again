@@ -16,7 +16,7 @@ trait UserService {
   def logout(sessionId : String) : Future[Unit]
   def findById(id : Long) : Future[PhantomUser]
   def findContactsById(id : Long) : Future[List[PhantomUser]]
-  def updateContacts(id : Long, contacts : List[String]) : Future[List[Long]]
+  def updateContacts(id : Long, contacts : List[String]) : Future[List[Contact]]
   def clearBlockList(id : Long) : Future[StatusCode]
 }
 
@@ -48,9 +48,9 @@ object UserService {
       phantomUsersDao.findContacts(id)
     }
 
-    def updateContacts(id : Long, contactList : List[String]) : Future[List[Long]] = {
+    def updateContacts(id : Long, contactList : List[String]) : Future[List[Contact]] = {
       val session = db.createSession
-      val updatedContacts : Promise[List[Long]] = Promise()
+      val updatedContacts : Promise[List[Contact]] = Promise()
 
       future {
         // TO DO
@@ -65,9 +65,7 @@ object UserService {
           } yield insert
 
           res.onComplete {
-            case Success(contacts : List[Contact]) => {
-              updatedContacts.success(contacts.map(_.contactId))
-            }
+            case Success(contacts : List[Contact]) => updatedContacts.success(contacts)
             case Failure(ex) => {
               session.rollback()
               updatedContacts.failure(ex)
