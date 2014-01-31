@@ -4,6 +4,7 @@ import com.phantom.model._
 
 import scala.slick.driver.ExtendedProfile
 import com.phantom.ds.framework.Logging
+import java.io.{ PrintWriter, File }
 
 trait Profile {
   val profile : ExtendedProfile
@@ -29,7 +30,17 @@ class DataAccessLayer(override val profile : ExtendedProfile) extends Profile wi
       StubUserTable.ddl ++
       StubConversationTable.ddl
 
-  ddl.createStatements.foreach(println)
+  val writer = new PrintWriter(new File("schema.ddl"))
+  ddl.createStatements.foreach(x => {
+    writer.write(x + "\n")
+  })
+  writer.close()
+
+  val dropWriter = new PrintWriter(new File("drop.ddl"))
+  ddl.dropStatements.foreach(x => {
+    dropWriter.write(x + "\n")
+  })
+  dropWriter.close();
 
   def create(db : Database) : Unit = {
     db.withTransaction { implicit session : Session =>

@@ -13,6 +13,7 @@ trait DatabaseSupport extends DSConfiguration {
 
   val db = {
     val dsConfig = new BoneCPConfig
+    dsConfig.setPoolName("mainPool")
     dsConfig.setJdbcUrl(DBConfiguration.url)
     dsConfig.setUser(DBConfiguration.user)
     dsConfig.setPassword(DBConfiguration.pass)
@@ -33,8 +34,5 @@ trait DatabaseSupport extends DSConfiguration {
   val stubConversationsDao = new StubConversationDAO(dataAccessLayer, db)
   val contacts = new ContactDAO(dataAccessLayer, db)
   val sessions = new SessionDAO(dataAccessLayer, db)
-
-  //umm.....we should move this :)
-  dataAccessLayer.create(db)
 
 }
