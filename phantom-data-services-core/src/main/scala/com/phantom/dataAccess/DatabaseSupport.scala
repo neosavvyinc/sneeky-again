@@ -22,6 +22,7 @@ trait DatabaseSupport extends DSConfiguration with Logging {
     dsConfig.setMaxConnectionsPerPartition(DBConfiguration.maxConnectionsPerPartition)
     dsConfig.setStatementsCacheSize(DBConfiguration.statementCacheSize)
     dsConfig.setPartitionCount(DBConfiguration.numPartitions)
+    dsConfig.setPoolAvailabilityThreshold(5)
 
     debug(dsConfig.toString)
 
