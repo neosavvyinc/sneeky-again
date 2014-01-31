@@ -13,7 +13,7 @@ import com.phantom.model.PhantomUser
 import com.phantom.model.UserRegistration
 
 class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionContext) extends BaseDAO(dal, db)
-with Logging {
+    with Logging {
 
   import dal._
   import dal.profile.simple._
@@ -76,7 +76,7 @@ with Logging {
   def verifyUser(uuid : UUID) : Future[Int] = {
     future {
       db.withTransaction { implicit session =>
-      //inefficient
+        //inefficient
         val q = for { u <- UserTable if u.uuid === uuid && u.status === (Unverified : UserStatus) } yield u.status
         q.update(Verified)
       }
@@ -86,7 +86,7 @@ with Logging {
   def find(id : Long) : Future[PhantomUser] = {
 
     db.withSession { implicit session =>
-    //log.info(s"finding contacts for user with id => $id")
+      //log.info(s"finding contacts for user with id => $id")
       Query(UserTable).filter(_.id is id)
         .firstOption.map { u : PhantomUser => Future.successful(u) }
         .getOrElse(Future.failed(PhantomException.nonExistentUser))
@@ -123,15 +123,17 @@ with Logging {
   }
 
   def findPhantomUserIdsByPhone(contacts : List[String]) : Future[(List[Long], List[String])] = {
-    future {
-      val q = for {
-        u <- UserTable if u.phoneNumber inSet contacts
-      } yield u
+    db.withSession { implicit session =>
+      future {
+        val q = for {
+          u <- UserTable if u.phoneNumber inSet contacts
+        } yield u
 
-      val users = q.list
-      val notFound = contacts.partition(users.map(_.phoneNumber).contains(_))
+        val users = q.list
+        val notFound = contacts.partition(users.map(_.phoneNumber).contains(_))
 
-      (users.map(_.id.get), notFound._2)
+        (users.map(_.id.get), notFound._2)
+      }
     }
   }
 
