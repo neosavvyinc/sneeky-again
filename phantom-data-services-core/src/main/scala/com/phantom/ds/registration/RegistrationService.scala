@@ -36,7 +36,7 @@ object RegistrationService {
       }
 
       private def updateUserStatus(uuid : UUID, message : RegistrationVerification) : Future[Unit] = {
-        val updated = phantomUsersDao.verifyUser(uuid)
+        val updated = phantomUsersDao.verifyUser(uuid, message.from)
         updated.map { x =>
           if (x != 1) {
             log.error(s"uuid : $uuid extracted from $message is either not valid, or the user is already verified.")

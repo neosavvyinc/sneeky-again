@@ -71,7 +71,7 @@ class RegistrationEndpointSpec extends Specification
         Map(
           "AccountSid" -> BodyPart("ACCT_SID"),
           "MessageSid" -> BodyPart("MSG_SID"),
-          "From" -> BodyPart("FROM"),
+          "From" -> BodyPart("9197419597"),
           "To" -> BodyPart("TO"),
           "Body" -> BodyPart(s"This is a text ##$uuid## end"),
           "NumMedia" -> BodyPart("0")

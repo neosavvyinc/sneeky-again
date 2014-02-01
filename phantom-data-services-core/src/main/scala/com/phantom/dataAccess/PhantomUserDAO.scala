@@ -73,12 +73,14 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
-  def verifyUser(uuid : UUID) : Future[Int] = {
+  def verifyUser(uuid : UUID, phoneNumber : String) : Future[Int] = {
     future {
       db.withTransaction { implicit session =>
         //inefficient
-        val q = for { u <- UserTable if u.uuid === uuid && u.status === (Unverified : UserStatus) } yield u.status
-        q.update(Verified)
+        val q = for {
+          u <- UserTable if u.uuid === uuid && u.status === (Unverified : UserStatus)
+        } yield u.status ~ u.phoneNumber
+        q.update(Verified, phoneNumber)
       }
     }
   }
