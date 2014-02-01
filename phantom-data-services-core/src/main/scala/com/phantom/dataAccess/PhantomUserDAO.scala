@@ -38,7 +38,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
   def register(registrationRequest : UserRegistration) : Future[PhantomUser] = {
     log.trace(s"registering $registrationRequest")
     future {
-      db.withTransaction { implicit session =>
+      db.withSession { implicit session =>
         log.trace("checking for existing user")
         val ex = existsQuery(registrationRequest.email).firstOption
         val mapped = ex.map { e =>
