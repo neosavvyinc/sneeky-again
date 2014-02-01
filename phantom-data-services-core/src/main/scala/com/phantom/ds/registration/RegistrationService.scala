@@ -29,6 +29,9 @@ object RegistrationService {
       def verifyRegistration(response : RegistrationVerification) : Future[Unit] = {
         log.error(s"received $response")
         val uuidOpt = UUIDExtractor.extractUUID(response)
+
+        log.debug(s"receied the uuid: " + uuidOpt)
+
         uuidOpt.map(updateUserStatus(_, response)).getOrElse(logBadVerification(response))
       }
 

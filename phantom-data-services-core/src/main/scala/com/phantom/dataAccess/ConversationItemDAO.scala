@@ -16,33 +16,38 @@ class ConversationItemDAO(dal : DataAccessLayer, db : Database)(implicit ec : Ex
   import dal._
   import dal.profile.simple._
 
-  def createDB = dal.create
-  def dropDB = dal.drop
-  def purgeDB = dal.purge
-
   def insert(conversationItem : ConversationItem) : ConversationItem = {
-    val id = ConversationItemTable.forInsert.insert(conversationItem)
-    new ConversationItem(Some(id), conversationItem.conversationId, conversationItem.imageUrl, conversationItem.imageText)
+    db.withTransaction { implicit session =>
+      val id = ConversationItemTable.forInsert.insert(conversationItem)
+      new ConversationItem(Some(id), conversationItem.conversationId, conversationItem.imageUrl, conversationItem.imageText)
+    }
+
   }
 
   def insertAll(conversationItems : Seq[ConversationItem]) : Future[Seq[ConversationItem]] = {
     future {
-      val b = ConversationItemTable.forInsert.insertAll(conversationItems : _*)
-      b.zip(conversationItems).map {
-        case (id, conversationItem) =>
-          conversationItem.copy(id = Some(id))
+      db.withTransaction { implicit session =>
+        val b = ConversationItemTable.forInsert.insertAll(conversationItems : _*)
+        b.zip(conversationItems).map {
+          case (id, conversationItem) =>
+            conversationItem.copy(id = Some(id))
+        }
       }
     }
   }
 
   def findByConversationId(conversationId : Long) : List[ConversationItem] = {
-    val items = Query(ConversationItemTable) filter { _.conversationId === conversationId }
-    items.list()
+    db.withSession { implicit session =>
+      val items = Query(ConversationItemTable) filter { _.conversationId === conversationId }
+      items.list()
+    }
   }
 
   def deleteByConversationId(conversationId : Long) : Int = {
-    val deleteQuery = Query(ConversationItemTable) filter { _.conversationId === conversationId }
-    deleteQuery delete
+    db.withTransaction { implicit session =>
+      val deleteQuery = Query(ConversationItemTable) filter { _.conversationId === conversationId }
+      deleteQuery delete
+    }
   }
 
 }

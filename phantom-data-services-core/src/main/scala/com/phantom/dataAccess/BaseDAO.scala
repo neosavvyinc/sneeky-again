@@ -1,9 +1,17 @@
 package com.phantom.dataAccess
 
 import scala.slick.session.Database
+import scala.concurrent.{ Future, ExecutionContext, future }
 
 class BaseDAO(dal : DataAccessLayer, db : Database) {
-  import scala.slick.session.Session
 
-  implicit val implicitSession : Session = db.createSession
+  def transact[T](f : => T)(implicit ec : ExecutionContext) : Future[T] = {
+    future {
+      db.withTransaction {
+        implicit session =>
+          f
+      }
+    }
+  }
+
 }

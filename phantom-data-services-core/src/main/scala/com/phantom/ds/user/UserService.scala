@@ -13,7 +13,7 @@ import java.util.UUID
 trait UserService {
 
   def login(loginRequest : UserLogin) : Future[LoginSuccess]
-  def logout(sessionId : String) : Future[Unit]
+  def logout(sessionId : String) : Future[Int]
   def findById(id : Long) : Future[PhantomUser]
   def findContactsById(id : Long) : Future[List[PhantomUser]]
   def updateContacts(id : Long, contacts : List[String]) : Future[List[Contact]]
@@ -32,7 +32,7 @@ object UserService {
       } yield LoginSuccess(session.sessionId)
     }
 
-    def logout(sessionId : String) : Future[Unit] = {
+    def logout(sessionId : String) : Future[Int] = {
       sessions.removeSession(UUID.fromString(sessionId))
     }
 

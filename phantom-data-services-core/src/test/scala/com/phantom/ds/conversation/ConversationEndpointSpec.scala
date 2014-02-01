@@ -7,18 +7,12 @@ import org.specs2.mutable.Specification
 import spray.testkit.Specs2RouteTest
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.PhantomEndpointSpec
-import scala.concurrent.{ Promise, Future, future }
+import scala.concurrent.future
 import spray.http.{ BodyPart, MultipartFormData }
-import com.phantom.ds.dataAccess.BaseDAOSpec
 import com.phantom.ds.framework.auth.PassThroughRequestAuthenticator
-import com.phantom.model.{ Conversation, ConversationItem, BlockUserByConversationResponse }
 import akka.testkit.TestProbe
 import akka.actor.ActorRef
-import java.io.{ FileInputStream, FileOutputStream }
-import com.phantom.model.{ ConversationItem, PhantomUser, BlockUserByConversationResponse, Conversation }
-import java.util.UUID
-import org.joda.time.LocalDate
-import com.phantom.dataAccess.DatabaseSupport
+import com.phantom.model.{ ConversationItem, BlockUserByConversationResponse, Conversation }
 import com.phantom.ds.dataAccess.BaseDAOSpec
 
 /**

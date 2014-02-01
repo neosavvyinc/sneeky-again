@@ -88,6 +88,7 @@ object Shared {
   val Slick = Seq(
     "com.typesafe.slick" %% "slick" % SlickVersion,
     "mysql" % "mysql-connector-java" % "5.1.22",
+    "com.jolbox" % "bonecp" % "0.7.1.RELEASE",
     "com.github.tototoshi" %% "slick-joda-mapper" % "0.4.0"
   )
 

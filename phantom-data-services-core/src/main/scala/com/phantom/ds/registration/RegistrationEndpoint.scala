@@ -27,12 +27,20 @@ trait RegistrationEndpoint extends DataHttpService
     } ~
       pathPrefix("users" / "verification") {
         post {
-          entity(as[RegistrationVerification]) {
-            reg =>
-              complete {
-                registrationService.verifyRegistration(reg)
-              }
-          }
+          formFields(
+            'AccountSid.as[String],
+            'MessageSid.as[String],
+            'From.as[String],
+            'To.as[String],
+            'Body.as[String],
+            'NumMedia.as[Int]) {
+              (messageSid, accountSid, from, to, body, numMedia) =>
+                complete {
+                  registrationService.verifyRegistration(
+                    RegistrationVerification(messageSid, accountSid, from, to, body, numMedia))
+                }
+            }
         }
+
       }
 }

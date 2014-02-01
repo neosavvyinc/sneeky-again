@@ -17,18 +17,14 @@ import com.phantom.ds.user.Passwords
  */
 trait BaseDAOSpec extends Specification with DatabaseSupport {
 
-  implicit val session = db.createSession
-
   object withSetupTeardown extends BeforeAfter {
     def before {
-      try {
-        dataAccessLayer.drop
-      }
-      dataAccessLayer.create
+      dataAccessLayer.drop(db)
+      dataAccessLayer.create(db)
     }
 
     def after {
-      dataAccessLayer.drop
+      dataAccessLayer.drop(db)
     }
   }
 
