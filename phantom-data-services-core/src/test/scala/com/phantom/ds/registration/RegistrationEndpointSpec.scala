@@ -13,6 +13,7 @@ import scala.concurrent.duration._
 import com.phantom.model.RegistrationResponse
 import com.phantom.model.UserRegistration
 import spray.http.StatusCodes._
+import spray.http.{ BodyPart, MultipartFormData }
 
 class RegistrationEndpointSpec extends Specification
     with PhantomEndpointSpec
@@ -63,14 +64,25 @@ class RegistrationEndpointSpec extends Specification
 
       val user = createUnverifiedUser("email@email.com", "password")
       user.id must not beNone
-      val regResponse = reg("pre", user.uuid.toString, "post")
 
-      Post("/users/verification", regResponse) ~> registrationRoute ~> check {
+      val uuid = user.uuid.toString
+
+      val multipartForm = MultipartFormData {
+        Map(
+          "AccountSid" -> BodyPart("ACCT_SID"),
+          "MessageSid" -> BodyPart("MSG_SID"),
+          "From" -> BodyPart("FROM"),
+          "To" -> BodyPart("TO"),
+          "Body" -> BodyPart(s"This is a text ##$uuid## end"),
+          "NumMedia" -> BodyPart("0")
+        )
+      }
+      Post("/users/verification", multipartForm) ~> registrationRoute ~> check {
         status == OK
         val updatedUser = Await.result(phantomUsersDao.find(user.id.get), FiniteDuration(5, SECONDS))
         updatedUser.status must be equalTo Verified
       }
-    }.pendingUntilFixed("This will need to be updated to support form fields instead of json")
+    }
 
   }
 
