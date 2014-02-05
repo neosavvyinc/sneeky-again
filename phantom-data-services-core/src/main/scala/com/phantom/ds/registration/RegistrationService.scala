@@ -1,11 +1,15 @@
 package com.phantom.ds.registration
 
-import com.phantom.model.{ RegistrationVerification, PhantomSession, RegistrationResponse, UserRegistration }
-import scala.concurrent.{ ExecutionContext, Future }
+import com.phantom.model._
+import scala.concurrent.{ ExecutionContext, Future, future }
 import com.phantom.dataAccess.DatabaseSupport
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.user.Passwords
 import java.util.UUID
+import com.phantom.model.RegistrationVerification
+import com.phantom.model.RegistrationResponse
+import com.phantom.model.UserRegistration
+import scala.slick.session.Session
 
 trait RegistrationService {
 
@@ -27,20 +31,43 @@ object RegistrationService {
       }
 
       def verifyRegistration(response : RegistrationVerification) : Future[Unit] = {
-        log.error(s"received $response")
         val uuidOpt = UUIDExtractor.extractUUID(response)
 
-        log.debug(s"receied the uuid: " + uuidOpt)
+        log.debug(s"received the uuid: " + uuidOpt)
 
         uuidOpt.map(updateUserStatus(_, response)).getOrElse(logBadVerification(response))
       }
 
       private def updateUserStatus(uuid : UUID, message : RegistrationVerification) : Future[Unit] = {
-        val updated = phantomUsersDao.verifyUser(uuid)
-        updated.map { x =>
-          if (x != 1) {
-            log.error(s"uuid : $uuid extracted from $message is either not valid, or the user is already verified.")
+        future {
+          db.withTransaction { implicit session : Session =>
+            for {
+              verified <- phantomUsersDao.verifyUserOperation(uuid, message.from)
+              convertedCount <- convertStubUser(verified, message.from)
+            } yield convertedCount
           }
+        }
+      }
+
+      private def convertStubUser(userId : Long, phoneNumber : String)(implicit session : Session) : Option[Int] = {
+        val stubUserOpt = stubUsersDao.findByPhoneNumberOperation(phoneNumber)
+        stubUserOpt.map { stubUser =>
+          val stubConversations = stubConversationsDao.findByToStubUserIdOperation(stubUser.id.get)
+          val realConversations = conversationDao.insertAllOperation(stubConversationtoReal(stubConversations, userId))
+          conversationItemDao.insertAllOperation(stubConversationsToItems(stubConversations.zip(realConversations)))
+          stubUsersDao.deleteOperation(stubUser.id.get)
+          stubConversationsDao.deleteOperation(stubConversations.map(_.id.get))
+        }
+      }
+
+      private def stubConversationtoReal(conversations : Seq[StubConversation], toUserId : Long) : Seq[Conversation] = {
+        conversations.map(x => Conversation(None, toUserId, x.fromUser))
+      }
+
+      private def stubConversationsToItems(paired : Seq[(StubConversation, Conversation)]) : Seq[ConversationItem] = {
+        paired.map {
+          case (stub, real) =>
+            ConversationItem(None, real.id.get, stub.imageUrl, stub.imageText)
         }
       }
 

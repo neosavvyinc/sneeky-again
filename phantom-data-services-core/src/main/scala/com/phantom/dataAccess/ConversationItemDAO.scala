@@ -27,12 +27,16 @@ class ConversationItemDAO(dal : DataAccessLayer, db : Database)(implicit ec : Ex
   def insertAll(conversationItems : Seq[ConversationItem]) : Future[Seq[ConversationItem]] = {
     future {
       db.withTransaction { implicit session =>
-        val b = ConversationItemTable.forInsert.insertAll(conversationItems : _*)
-        b.zip(conversationItems).map {
-          case (id, conversationItem) =>
-            conversationItem.copy(id = Some(id))
-        }
+        insertAllOperation(conversationItems)
       }
+    }
+  }
+
+  def insertAllOperation(conversationItems : Seq[ConversationItem])(implicit session : Session) : Seq[ConversationItem] = {
+    val b = ConversationItemTable.forInsert.insertAll(conversationItems : _*)
+    b.zip(conversationItems).map {
+      case (id, conversationItem) =>
+        conversationItem.copy(id = Some(id))
     }
   }
 

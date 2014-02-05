@@ -11,6 +11,8 @@ class StubUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
   import dal._
   import dal.profile.simple._
 
+  private val byPhoneNumberQuery = for (phoneNumber <- Parameters[String]; u <- StubUserTable if u.phoneNumber is phoneNumber) yield u
+
   def insertAll(stubUsers : Seq[StubUser]) : Future[Seq[StubUser]] = {
     future {
       db.withTransaction { implicit session =>
@@ -43,4 +45,11 @@ class StubUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
       }
     }
   }
+
+  //the following are not within futures as they are only used by RegistrationService within a future/transaction
+
+  def findByPhoneNumberOperation(phoneNumber : String)(implicit session : Session) : Option[StubUser] = byPhoneNumberQuery(phoneNumber).firstOption
+
+  def deleteOperation(id : Long)(implicit session : Session) : Int = (for (u <- StubUserTable if u.id is id) yield u).delete
+
 }

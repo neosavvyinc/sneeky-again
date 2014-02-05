@@ -9,6 +9,8 @@ class StubConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Ex
   import dal._
   import dal.profile.simple._
 
+  private val byStubUserId = for (stubUserId <- Parameters[Long]; c <- StubConversationTable if c.toStubUser is stubUserId) yield c
+
   def insertAll(conversations : Seq[StubConversation]) : Future[Seq[StubConversation]] = {
     future {
       db.withTransaction { implicit session =>
@@ -30,4 +32,10 @@ class StubConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Ex
       }
     }
   }
+
+  //the following are not in futures as they are only used by RegService which execs within a future and transaction
+
+  def findByToStubUserIdOperation(id : Long)(implicit session : Session) : Seq[StubConversation] = byStubUserId(id).list
+
+  def deleteOperation(ids : Seq[Long])(implicit session : Session) : Int = (for (c <- StubConversationTable if c.id inSet ids) yield c).delete
 }

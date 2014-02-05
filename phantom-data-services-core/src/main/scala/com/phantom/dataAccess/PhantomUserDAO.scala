@@ -73,14 +73,17 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
-  def verifyUser(uuid : UUID) : Future[Int] = {
-    future {
-      db.withTransaction { implicit session =>
-        //inefficient
-        val q = for { u <- UserTable if u.uuid === uuid && u.status === (Unverified : UserStatus) } yield u.status
-        q.update(Verified)
-      }
+  def verifyUserOperation(uuid : UUID, phoneNumber : String)(implicit session : Session) : Option[Long] = {
+    //inefficient
+    val uOpt = (for { u <- UserTable if u.uuid === uuid && u.status === (Unverified : UserStatus) } yield u).firstOption
+    uOpt.foreach { phantomUser =>
+      val upQuery = for { u <- UserTable if u.id is phantomUser.id.get } yield u.status ~ u.phoneNumber
+      upQuery.update(Verified, phoneNumber)
     }
+    if (uOpt.isEmpty) {
+      log.warn(s"$uuid does not match any unverified users")
+    }
+    uOpt.map(_.id.get)
   }
 
   def find(id : Long) : Future[PhantomUser] = {

@@ -138,5 +138,5 @@ class ConversationServiceSpec extends Specification
 
   }
 
-  def after : Any = system.shutdown _
+  override def after : Any = system.shutdown _
 }

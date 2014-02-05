@@ -1,6 +1,6 @@
 package com.phantom.ds.dataAccess
 
-import org.specs2.mutable.Specification
+import org.specs2.mutable.{ After, Specification }
 import com.phantom.dataAccess.DatabaseSupport
 import org.specs2.specification.BeforeAfter
 import com.phantom.model._
@@ -15,7 +15,7 @@ import com.phantom.ds.user.Passwords
  * Time: 9:34 PM
  * To change this template use File | Settings | File Templates.
  */
-trait BaseDAOSpec extends Specification with DatabaseSupport {
+trait BaseDAOSpec extends Specification with DatabaseSupport with After {
 
   object withSetupTeardown extends BeforeAfter {
     def before {
@@ -27,6 +27,8 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
       dataAccessLayer.drop(db)
     }
   }
+
+  override def after : Any = source.close _
 
   def setupConversationItems(convId : Long) : List[ConversationItem] = {
     val item1 = new ConversationItem(

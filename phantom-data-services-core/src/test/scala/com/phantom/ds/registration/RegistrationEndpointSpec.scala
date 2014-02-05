@@ -13,6 +13,8 @@ import scala.concurrent.duration._
 import com.phantom.model.RegistrationResponse
 import com.phantom.model.UserRegistration
 import spray.http.StatusCodes._
+import spray.http.FormData
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class RegistrationEndpointSpec extends Specification
     with PhantomEndpointSpec
@@ -65,13 +67,56 @@ class RegistrationEndpointSpec extends Specification
       user.id must not beNone
       val regResponse = reg("pre", user.uuid.toString, "post")
 
-      Post("/users/verification", regResponse) ~> registrationRoute ~> check {
+      val formData = FormData(Map("AccountSid" -> regResponse.accountSid,
+        "MessageSid" -> regResponse.messageSid,
+        "From" -> "987654321",
+        "To" -> regResponse.to,
+        "Body" -> regResponse.body,
+        "NumMedia" -> regResponse.numMedia.toString))
+
+      Post("/users/verification", formData) ~> registrationRoute ~> check {
         status == OK
         val updatedUser = Await.result(phantomUsersDao.find(user.id.get), FiniteDuration(5, SECONDS))
         updatedUser.status must be equalTo Verified
+        updatedUser.phoneNumber must be equalTo "987654321"
       }
-    }.pendingUntilFixed("This will need to be updated to support form fields instead of json")
+    }
 
+    "be able to convert a StubUser" in withSetupTeardown {
+      val fromUser = createVerifiedUser("n@n.com", "password").id.get
+      val user = createUnverifiedUser("email@email.com", "password")
+      val stubUser = await(stubUsersDao.insertAll(Seq(StubUser(None, "987654321", 0))))
+      await(stubConversationsDao.insertAll(Seq(StubConversation(None, fromUser, stubUser.head.id.get, "text", "url"))))
+      val regResponse = reg("pre", user.uuid.toString, "post")
+
+      val formData = FormData(Map("AccountSid" -> regResponse.accountSid,
+        "MessageSid" -> regResponse.messageSid,
+        "From" -> "987654321",
+        "To" -> regResponse.to,
+        "Body" -> regResponse.body,
+        "NumMedia" -> regResponse.numMedia.toString))
+
+      Post("/users/verification", formData) ~> registrationRoute ~> check {
+        status == OK
+        val updatedUser = await(phantomUsersDao.find(user.id.get))
+        updatedUser.status must be equalTo Verified
+        updatedUser.phoneNumber must be equalTo "987654321"
+        val stubUsers = await(stubUsersDao.findByPhoneNumbers(Set("987654321")))
+        stubUsers must beEmpty
+        val stubConversations = await(stubConversationsDao.findByFromUserId(fromUser))
+        stubConversations must beEmpty
+
+        val conversations = conversationDao.findConversationsAndItems(fromUser)
+        conversations.foreach {
+          case (c, items) =>
+            items must have size 1
+            items.head.imageText must be equalTo "text"
+            items.head.imageUrl must be equalTo "url"
+            c.fromUser must be equalTo fromUser
+            c.toUser must be equalTo user.id.get
+        }
+        conversations must have size 1
+      }
+    }
   }
-
 }

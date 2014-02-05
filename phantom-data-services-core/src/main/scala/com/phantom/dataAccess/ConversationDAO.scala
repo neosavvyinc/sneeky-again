@@ -31,13 +31,17 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
   def insertAll(conversations : Seq[Conversation]) : Future[Seq[Conversation]] = {
     future {
       db.withTransaction { implicit session =>
-        log.trace(s"inserting $conversations")
-        val b = ConversationTable.forInsert.insertAll(conversations : _*)
-        b.zip(conversations).map {
-          case (id, conversation) =>
-            conversation.copy(id = Some(id))
-        }
+        insertAllOperation(conversations)
       }
+    }
+  }
+
+  def insertAllOperation(conversations : Seq[Conversation])(implicit session : Session) : Seq[Conversation] = {
+    log.trace(s"inserting $conversations")
+    val b = ConversationTable.forInsert.insertAll(conversations : _*)
+    b.zip(conversations).map {
+      case (id, conversation) =>
+        conversation.copy(id = Some(id))
     }
   }
 
