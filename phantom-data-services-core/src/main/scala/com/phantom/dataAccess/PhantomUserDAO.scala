@@ -18,6 +18,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
   import dal._
   import dal.profile.simple._
 
+  //only used by tests
   def insert(user : PhantomUser) : PhantomUser = {
     db.withTransaction { implicit session =>
       insertNoTransact(user)
@@ -105,6 +106,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
+  //future me
   def findContacts(id : Long) : Future[List[PhantomUser]] = {
     db.withSession { implicit session =>
       val q = for {
@@ -119,6 +121,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
+  //future me
   def findBlockedContacts(id : Long) = {
     for {
       c <- ContactTable if c.contactType === "block" && c.ownerId === id
@@ -140,6 +143,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
+  //TODO future me
   def clearBlockList(id : Long) : Future[StatusCode] = {
 
     db.withTransaction { implicit session =>

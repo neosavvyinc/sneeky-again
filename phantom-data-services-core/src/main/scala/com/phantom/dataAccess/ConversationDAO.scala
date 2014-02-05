@@ -21,6 +21,7 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
   import dal._
   import dal.profile.simple._
 
+  //only used by tests
   def insert(conversationItem : Conversation) : Conversation = {
     db.withTransaction { implicit session =>
       val id = ConversationTable.forInsert.insert(conversationItem)
@@ -45,6 +46,7 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
+  //only used by tests
   def findByFromUserId(fromUserId : Long) : List[Conversation] = {
     db.withSession { implicit session =>
       val items = Query(ConversationTable) filter { _.fromUser === fromUserId }
@@ -52,12 +54,14 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
+  //only used by tests
   def deleteById(conversationId : Long) : Int = {
     db.withTransaction { implicit session =>
       val deleteQuery = Query(ConversationTable) filter { _.id === conversationId }
       deleteQuery delete
     }
   }
+
   def findById(conversationId : Long) : Future[Conversation] = {
     future {
       db.withSession { implicit session =>
@@ -69,6 +73,7 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
+  //only used by tests
   def updateById(conversation : Conversation) : Int = {
     db.withSession { implicit session =>
       val updateQuery = Query(ConversationTable) filter { _.id === conversation.id }

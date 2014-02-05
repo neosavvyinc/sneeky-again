@@ -1,6 +1,8 @@
 package com.phantom.ds.dataAccess
 
 import com.phantom.model.ConversationItem
+import com.phantom.ds.TestUtils
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * Created with IntelliJ IDEA.
@@ -9,7 +11,7 @@ import com.phantom.model.ConversationItem
  * Time: 8:39 PM
  * To change this template use File | Settings | File Templates.
  */
-class ConversationItemDAOSpec extends BaseDAOSpec {
+class ConversationItemDAOSpec extends BaseDAOSpec with TestUtils {
 
   sequential
 
@@ -22,7 +24,7 @@ class ConversationItemDAOSpec extends BaseDAOSpec {
         None, 1, "imageUrl", "imageText"
       )
 
-      val ret = conversationItemDao.insert(item)
+      val ret = await(conversationItemDao.insert(item))
 
       (ret.id.get must equalTo(1)) and
         (ret.conversationId must equalTo(1)) and

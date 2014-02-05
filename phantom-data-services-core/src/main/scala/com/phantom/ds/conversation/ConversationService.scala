@@ -130,15 +130,7 @@ object ConversationService extends DSConfiguration {
     def respondToConversation(conversationId : Long,
                               imageText : String,
                               imageUrl : String) : Future[ConversationUpdateResponse] = {
-
-      val session : Session = db.createSession
-      session.withTransaction {
-
-        conversationItemDao.insert(ConversationItem(None, conversationId, imageUrl, imageText))
-
-        Future.successful(ConversationUpdateResponse(1))
-      }
-
+      conversationItemDao.insert(ConversationItem(None, conversationId, imageUrl, imageText)).map(x => ConversationUpdateResponse(1))
     }
 
     def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String = {

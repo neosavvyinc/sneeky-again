@@ -22,6 +22,7 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     (s, u) <- SessionTable innerJoin UserTable on ((sess, user) => sess.userId === user.id && sess.userId === id)
   } yield s
 
+  //TODO future me
   def findFromSession(session : UUID) : Option[PhantomUser] = {
     db.withSession { implicit s =>
       userBySessionId(session).firstOption

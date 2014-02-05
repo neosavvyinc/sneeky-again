@@ -16,12 +16,13 @@ class ConversationItemDAO(dal : DataAccessLayer, db : Database)(implicit ec : Ex
   import dal._
   import dal.profile.simple._
 
-  def insert(conversationItem : ConversationItem) : ConversationItem = {
-    db.withTransaction { implicit session =>
-      val id = ConversationItemTable.forInsert.insert(conversationItem)
-      new ConversationItem(Some(id), conversationItem.conversationId, conversationItem.imageUrl, conversationItem.imageText)
+  def insert(conversationItem : ConversationItem) : Future[ConversationItem] = {
+    future {
+      db.withTransaction { implicit session =>
+        val id = ConversationItemTable.forInsert.insert(conversationItem)
+        new ConversationItem(Some(id), conversationItem.conversationId, conversationItem.imageUrl, conversationItem.imageText)
+      }
     }
-
   }
 
   def insertAll(conversationItems : Seq[ConversationItem]) : Future[Seq[ConversationItem]] = {
@@ -40,6 +41,7 @@ class ConversationItemDAO(dal : DataAccessLayer, db : Database)(implicit ec : Ex
     }
   }
 
+  //only used by tests
   def findByConversationId(conversationId : Long) : List[ConversationItem] = {
     db.withSession { implicit session =>
       val items = Query(ConversationItemTable) filter { _.conversationId === conversationId }
@@ -47,6 +49,7 @@ class ConversationItemDAO(dal : DataAccessLayer, db : Database)(implicit ec : Ex
     }
   }
 
+  //only used by tests
   def deleteByConversationId(conversationId : Long) : Int = {
     db.withTransaction { implicit session =>
       val deleteQuery = Query(ConversationItemTable) filter { _.conversationId === conversationId }
