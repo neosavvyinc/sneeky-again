@@ -21,6 +21,7 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
   import dal._
   import dal.profile.simple._
 
+  //ONLY USED BY TESTS
   def insert(conversationItem : Conversation) : Conversation = {
     db.withTransaction { implicit session =>
       val id = ConversationTable.forInsert.insert(conversationItem)
@@ -28,19 +29,16 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
-  def insertAll(conversations : Seq[Conversation]) : Future[Seq[Conversation]] = {
-    future {
-      db.withTransaction { implicit session =>
-        log.trace(s"inserting $conversations")
-        val b = ConversationTable.forInsert.insertAll(conversations : _*)
-        b.zip(conversations).map {
-          case (id, conversation) =>
-            conversation.copy(id = Some(id))
-        }
-      }
+  def insertAllOperation(conversations : Seq[Conversation])(implicit session : Session) : Seq[Conversation] = {
+    log.trace(s"inserting $conversations")
+    val b = ConversationTable.forInsert.insertAll(conversations : _*)
+    b.zip(conversations).map {
+      case (id, conversation) =>
+        conversation.copy(id = Some(id))
     }
   }
 
+  //ONLY USED BY TESTS
   def findByFromUserId(fromUserId : Long) : List[Conversation] = {
     db.withSession { implicit session =>
       val items = Query(ConversationTable) filter { _.fromUser === fromUserId }
@@ -48,12 +46,14 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
+  //ONLY USED BY TESTS
   def deleteById(conversationId : Long) : Int = {
     db.withTransaction { implicit session =>
       val deleteQuery = Query(ConversationTable) filter { _.id === conversationId }
       deleteQuery delete
     }
   }
+
   def findById(conversationId : Long) : Future[Conversation] = {
     future {
       db.withSession { implicit session =>
@@ -65,6 +65,7 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
+  //ONLY USED BY TESTS
   def updateById(conversation : Conversation) : Int = {
     db.withSession { implicit session =>
       val updateQuery = Query(ConversationTable) filter { _.id === conversation.id }

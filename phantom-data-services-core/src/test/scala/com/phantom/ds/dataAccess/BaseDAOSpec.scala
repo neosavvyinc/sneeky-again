@@ -1,12 +1,14 @@
 package com.phantom.ds.dataAccess
 
-import org.specs2.mutable.Specification
+import org.specs2.mutable.{ After, Specification }
 import com.phantom.dataAccess.DatabaseSupport
 import org.specs2.specification.BeforeAfter
 import com.phantom.model._
 import org.joda.time.{ DateTimeZone, LocalDate }
 import java.util.UUID
 import com.phantom.ds.user.Passwords
+import com.phantom.ds.TestUtils
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * Created with IntelliJ IDEA.
@@ -15,7 +17,7 @@ import com.phantom.ds.user.Passwords
  * Time: 9:34 PM
  * To change this template use File | Settings | File Templates.
  */
-trait BaseDAOSpec extends Specification with DatabaseSupport {
+trait BaseDAOSpec extends Specification with DatabaseSupport with After with TestUtils {
 
   object withSetupTeardown extends BeforeAfter {
     def before {
@@ -27,6 +29,8 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
       dataAccessLayer.drop(db)
     }
   }
+
+  override def after : Any = source.close _
 
   def setupConversationItems(convId : Long) : List[ConversationItem] = {
     val item1 = new ConversationItem(
@@ -115,12 +119,7 @@ trait BaseDAOSpec extends Specification with DatabaseSupport {
     val conv2item2 = new ConversationItem(None, 2, "imageUrl2", "imageText2")
     val conv2item3 = new ConversationItem(None, 2, "imageUrl3", "imageText3")
 
-    conversationItemDao.insert(conv1item1)
-    conversationItemDao.insert(conv1item2)
-    conversationItemDao.insert(conv1item3)
-    conversationItemDao.insert(conv2item1)
-    conversationItemDao.insert(conv2item2)
-    conversationItemDao.insert(conv2item3)
+    await(conversationItemDao.insertAll(Seq(conv1item1, conv1item2, conv1item3, conv2item1, conv2item2, conv2item3)))
   }
 
   def insertTestUsersAndConversations {

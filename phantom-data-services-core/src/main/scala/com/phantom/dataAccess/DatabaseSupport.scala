@@ -4,7 +4,6 @@ import scala.slick.driver.MySQLDriver
 import scala.slick.session.Database
 import com.phantom.ds.DSConfiguration
 import scala.concurrent.ExecutionContext
-import java.util.Properties
 import com.jolbox.bonecp.{ BoneCPConfig, BoneCPDataSource }
 import com.phantom.ds.framework.Logging
 
@@ -12,7 +11,7 @@ trait DatabaseSupport extends DSConfiguration with Logging {
 
   private implicit def executionContext : ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  val db = {
+  val source = {
     val dsConfig = new BoneCPConfig
     dsConfig.setPoolName("mainPool")
     dsConfig.setJdbcUrl(DBConfiguration.url)
@@ -23,12 +22,10 @@ trait DatabaseSupport extends DSConfiguration with Logging {
     dsConfig.setStatementsCacheSize(DBConfiguration.statementCacheSize)
     dsConfig.setPartitionCount(DBConfiguration.numPartitions)
     dsConfig.setPoolAvailabilityThreshold(5)
-
-    debug(dsConfig.toString)
-
-    val ds = new BoneCPDataSource(dsConfig)
-    Database forDataSource (ds)
+    new BoneCPDataSource(dsConfig)
   }
+
+  val db = Database.forDataSource(source)
 
   // again, creating a DAL requires a Profile, which in this case is the MySQLDriver
   val dataAccessLayer = new DataAccessLayer(MySQLDriver)

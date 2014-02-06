@@ -97,6 +97,7 @@ object Shared {
     scalaVersion := "2.10.3",
     scalacOptions := Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
     parallelExecution in Test := false,
+    fork in Test := true,
     shellPrompt := ShellPrompt.buildShellPrompt
   ) ++ net.virtualvoid.sbt.graph.Plugin.graphSettings ++ SbtScalariform.scalariformSettings ++ Formatting.prefs
 

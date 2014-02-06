@@ -13,6 +13,8 @@ import scala.concurrent.duration._
 import com.phantom.model.RegistrationResponse
 import com.phantom.model.UserRegistration
 import spray.http.StatusCodes._
+import spray.http.FormData
+import scala.concurrent.ExecutionContext.Implicits.global
 import spray.http.{ BodyPart, MultipartFormData }
 
 class RegistrationEndpointSpec extends Specification
@@ -64,26 +66,58 @@ class RegistrationEndpointSpec extends Specification
 
       val user = createUnverifiedUser("email@email.com", "password")
       user.id must not beNone
+      val regResponse = reg("pre", user.uuid.toString, "post")
 
-      val uuid = user.uuid.toString
+      val formData = FormData(Map("AccountSid" -> regResponse.accountSid,
+        "MessageSid" -> regResponse.messageSid,
+        "From" -> "987654321",
+        "To" -> regResponse.to,
+        "Body" -> regResponse.body,
+        "NumMedia" -> regResponse.numMedia.toString))
 
-      val multipartForm = MultipartFormData {
-        Map(
-          "AccountSid" -> BodyPart("ACCT_SID"),
-          "MessageSid" -> BodyPart("MSG_SID"),
-          "From" -> BodyPart("9197419597"),
-          "To" -> BodyPart("TO"),
-          "Body" -> BodyPart(s"This is a text ##$uuid## end"),
-          "NumMedia" -> BodyPart("0")
-        )
-      }
-      Post("/users/verification", multipartForm) ~> registrationRoute ~> check {
+      Post("/users/verification", formData) ~> registrationRoute ~> check {
         status == OK
         val updatedUser = Await.result(phantomUsersDao.find(user.id.get), FiniteDuration(5, SECONDS))
         updatedUser.status must be equalTo Verified
+        updatedUser.phoneNumber must be equalTo "987654321"
       }
     }
 
-  }
+    "be able to convert a StubUser" in withSetupTeardown {
+      val fromUser = createVerifiedUser("n@n.com", "password").id.get
+      val user = createUnverifiedUser("email@email.com", "password")
+      val stubUser = await(stubUsersDao.insertAll(Seq(StubUser(None, "987654321", 0))))
+      await(stubConversationsDao.insertAll(Seq(StubConversation(None, fromUser, stubUser.head.id.get, "text", "url"))))
+      val regResponse = reg("pre", user.uuid.toString, "post")
 
+      val formData = FormData(Map("AccountSid" -> regResponse.accountSid,
+        "MessageSid" -> regResponse.messageSid,
+        "From" -> "987654321",
+        "To" -> regResponse.to,
+        "Body" -> regResponse.body,
+        "NumMedia" -> regResponse.numMedia.toString))
+
+      Post("/users/verification", formData) ~> registrationRoute ~> check {
+        status == OK
+        val updatedUser = await(phantomUsersDao.find(user.id.get))
+        updatedUser.status must be equalTo Verified
+        updatedUser.phoneNumber must be equalTo "987654321"
+        val stubUsers = await(stubUsersDao.findByPhoneNumbers(Set("987654321")))
+        stubUsers must beEmpty
+        val stubConversations = await(stubConversationsDao.findByFromUserId(fromUser))
+        stubConversations must beEmpty
+
+        val conversations = conversationDao.findConversationsAndItems(fromUser)
+        conversations.foreach {
+          case (c, items) =>
+            items must have size 1
+            items.head.imageText must be equalTo "text"
+            items.head.imageUrl must be equalTo "url"
+            c.fromUser must be equalTo fromUser
+            c.toUser must be equalTo user.id.get
+        }
+        conversations must have size 1
+      }
+    }
+  }
 }

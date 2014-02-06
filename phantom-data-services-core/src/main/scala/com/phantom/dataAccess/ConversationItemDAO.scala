@@ -16,26 +16,33 @@ class ConversationItemDAO(dal : DataAccessLayer, db : Database)(implicit ec : Ex
   import dal._
   import dal.profile.simple._
 
-  def insert(conversationItem : ConversationItem) : ConversationItem = {
-    db.withTransaction { implicit session =>
-      val id = ConversationItemTable.forInsert.insert(conversationItem)
-      new ConversationItem(Some(id), conversationItem.conversationId, conversationItem.imageUrl, conversationItem.imageText)
-    }
-
-  }
-
-  def insertAll(conversationItems : Seq[ConversationItem]) : Future[Seq[ConversationItem]] = {
+  def insert(conversationItem : ConversationItem) : Future[ConversationItem] = {
     future {
       db.withTransaction { implicit session =>
-        val b = ConversationItemTable.forInsert.insertAll(conversationItems : _*)
-        b.zip(conversationItems).map {
-          case (id, conversationItem) =>
-            conversationItem.copy(id = Some(id))
-        }
+        val id = ConversationItemTable.forInsert.insert(conversationItem)
+        new ConversationItem(Some(id), conversationItem.conversationId, conversationItem.imageUrl, conversationItem.imageText)
       }
     }
   }
 
+  //ONLY USED BY TESTS
+  def insertAll(conversationItems : Seq[ConversationItem]) : Future[Seq[ConversationItem]] = {
+    future {
+      db.withTransaction { implicit session =>
+        insertAllOperation(conversationItems)
+      }
+    }
+  }
+
+  def insertAllOperation(conversationItems : Seq[ConversationItem])(implicit session : Session) : Seq[ConversationItem] = {
+    val b = ConversationItemTable.forInsert.insertAll(conversationItems : _*)
+    b.zip(conversationItems).map {
+      case (id, conversationItem) =>
+        conversationItem.copy(id = Some(id))
+    }
+  }
+
+  //ONLY USED BY TESTS
   def findByConversationId(conversationId : Long) : List[ConversationItem] = {
     db.withSession { implicit session =>
       val items = Query(ConversationItemTable) filter { _.conversationId === conversationId }
@@ -43,6 +50,7 @@ class ConversationItemDAO(dal : DataAccessLayer, db : Database)(implicit ec : Ex
     }
   }
 
+  //ONLY USED BY TESTS
   def deleteByConversationId(conversationId : Long) : Int = {
     db.withTransaction { implicit session =>
       val deleteQuery = Query(ConversationItemTable) filter { _.conversationId === conversationId }

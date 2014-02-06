@@ -9,6 +9,7 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
   import dal._
   import dal.profile.simple._
 
+  //ONLY USED BY TESTS
   def insert(contact : Contact) : Future[Contact] = {
     future {
       db.withTransaction { implicit session =>
@@ -20,6 +21,7 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     }
   }
 
+  //TODO OPERATION ME
   def insertAll(contacts : Seq[Contact]) : Future[Seq[Contact]] = {
     future {
       db.withTransaction { implicit session =>
@@ -56,6 +58,7 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     }
   }
 
+  //TODO OPERATION ME
   def deleteAll(id : Long)(session : scala.slick.session.Session) : Future[Int] = {
     future {
       db.withTransaction { implicit session =>
@@ -64,6 +67,7 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     }
   }
 
+  //ONLY USED BY TESTS
   def findAll : Future[List[Contact]] = {
     future {
       db.withSession { implicit session =>

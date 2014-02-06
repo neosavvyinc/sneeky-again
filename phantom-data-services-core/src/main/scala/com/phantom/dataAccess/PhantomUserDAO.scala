@@ -18,6 +18,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
   import dal._
   import dal.profile.simple._
 
+  //ONLY USED BY TESTS
   def insert(user : PhantomUser) : PhantomUser = {
     db.withTransaction { implicit session =>
       insertNoTransact(user)
@@ -35,23 +36,18 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
 
   private val existsQuery = for (email <- Parameters[String]; u <- UserTable if u.email is email) yield u.exists
 
-  def register(registrationRequest : UserRegistration) : Future[PhantomUser] = {
+  def registerOperation(registrationRequest : UserRegistration)(implicit session : Session) : PhantomUser = {
     log.trace(s"registering $registrationRequest")
-    future {
-      db.withSession { implicit session =>
-        log.trace("checking for existing user")
-        val ex = existsQuery(registrationRequest.email).firstOption
-        val mapped = ex.map { e =>
-          if (e) {
-            log.trace(s"duplicate email detected when registering $registrationRequest")
-            throw PhantomException.duplicateUser
-          } else {
-            createUserRecord(registrationRequest)
-          }
-        }
-        mapped.getOrElse(createUserRecord(registrationRequest))
+    val ex = existsQuery(registrationRequest.email).firstOption
+    val mapped = ex.map { e =>
+      if (e) {
+        log.trace(s"duplicate email detected when registering $registrationRequest")
+        throw PhantomException.duplicateUser
+      } else {
+        createUserRecord(registrationRequest)
       }
     }
+    mapped.getOrElse(createUserRecord(registrationRequest))
   }
 
   private def createUserRecord(reg : UserRegistration)(implicit session : Session) = {
@@ -73,18 +69,20 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
-  def verifyUser(uuid : UUID, phoneNumber : String) : Future[Int] = {
-    future {
-      db.withTransaction { implicit session =>
-        //inefficient
-        val q = for {
-          u <- UserTable if u.uuid === uuid && u.status === (Unverified : UserStatus)
-        } yield u.status ~ u.phoneNumber
-        q.update(Verified, phoneNumber)
-      }
+  def verifyUserOperation(uuid : UUID, phoneNumber : String)(implicit session : Session) : Option[Long] = {
+    //inefficient
+    val uOpt = (for { u <- UserTable if u.uuid === uuid && u.status === (Unverified : UserStatus) } yield u).firstOption
+    uOpt.foreach { phantomUser =>
+      val upQuery = for { u <- UserTable if u.id is phantomUser.id.get } yield u.status ~ u.phoneNumber
+      upQuery.update(Verified, phoneNumber)
     }
+    if (uOpt.isEmpty) {
+      log.warn(s"$uuid does not match any unverified users")
+    }
+    uOpt.map(_.id.get)
   }
 
+  //TODO: FUTURE ME
   def find(id : Long) : Future[PhantomUser] = {
 
     db.withSession { implicit session =>
@@ -104,6 +102,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
+  //TODO: future me
   def findContacts(id : Long) : Future[List[PhantomUser]] = {
     db.withSession { implicit session =>
       val q = for {
@@ -118,6 +117,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
+  //TODO future me
   def findBlockedContacts(id : Long) = {
     for {
       c <- ContactTable if c.contactType === "block" && c.ownerId === id
@@ -139,6 +139,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
+  //TODO future me
   def clearBlockList(id : Long) : Future[StatusCode] = {
 
     db.withTransaction { implicit session =>
