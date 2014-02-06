@@ -39,7 +39,7 @@ trait ConversationEndpoint extends DataHttpService {
       val ByteJsonFormat = null
 
       import spray.httpx.encoding.NoEncoding
-
+      //TODO: remove user id, make this session based
       pathPrefix(conversation) {
         path("start") {
           post {
@@ -61,7 +61,7 @@ trait ConversationEndpoint extends DataHttpService {
       val ByteJsonFormat = null
 
       import spray.httpx.encoding.{ NoEncoding, Gzip }
-
+      //TODO ADD AUTH AND VALIDATION(IE: not responding toa conversation they are not a member of)
       pathPrefix(conversation) {
         path("respond") {
           post {
@@ -80,6 +80,7 @@ trait ConversationEndpoint extends DataHttpService {
       }
     } ~ {
       pathPrefix(conversation) {
+        //TODO:  ADD AUTH AND VALIDATION
         path("block" / IntNumber) {
           id =>
             post {
