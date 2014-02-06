@@ -77,6 +77,7 @@ package object httpx {
     implicit val loginSuccessFormat = jsonFormat1(LoginSuccess)
     implicit val registrationVerificationFormat = jsonFormat6(RegistrationVerification)
     implicit val inviteMessageStatusFormat = jsonFormat2(InviteMessageStatus)
+    implicit val sessionIdwithPushNotifier = jsonFormat2(SessionIDWithPushNotifier)
 
     implicit val conversationFormat = jsonFormat3(Conversation)
     implicit val contactFormat = jsonFormat4(Contact)

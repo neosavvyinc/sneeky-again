@@ -29,6 +29,9 @@ case class LoginSuccess(sessionUUID : UUID)
 
 case class PhantomUserDeleteMe(id : String)
 
+case class SessionIDWithPushNotifier(sessionUUID : UUID,
+                                     pushNotifier : String)
+
 sealed trait UserStatus
 
 object UserStatus {
