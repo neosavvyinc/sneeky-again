@@ -17,7 +17,7 @@ object UUIDExtractor extends Logging {
    *
    * "This is a message to the user [UUID]"
    */
-  private val regex = "##"
+  private val regex = """[\[\]]"""
 
   def extractUUID(regVer : RegistrationVerification) : Option[UUID] = {
 

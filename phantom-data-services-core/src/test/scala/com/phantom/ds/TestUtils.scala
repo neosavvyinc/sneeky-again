@@ -7,8 +7,7 @@ import scala.concurrent.duration._
 trait TestUtils {
 
   def reg(pre : String, uuid : String, post : String) = {
-    val delim = "##"
-    RegistrationVerification("", "", "", "", s"$pre$delim$uuid$delim$post", 1)
+    RegistrationVerification("", "", "", "", s"$pre[$uuid]$post", 1)
   }
 
   def await[T](f : => Future[T])(implicit ec : ExecutionContext) : T = {
