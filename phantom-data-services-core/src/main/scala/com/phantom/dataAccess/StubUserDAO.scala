@@ -13,15 +13,18 @@ class StubUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
 
   private val byPhoneNumberQuery = for (phoneNumber <- Parameters[String]; u <- StubUserTable if u.phoneNumber is phoneNumber) yield u
 
+  //ONLY USED BY TESTS
   def insertAll(stubUsers : Seq[StubUser]) : Future[Seq[StubUser]] = {
     future {
-      db.withTransaction { implicit session =>
-        val b = StubUserTable.forInsert.insertAll(stubUsers : _*)
-        b.zip(stubUsers).map {
-          case (id, stubUser) =>
-            stubUser.copy(id = Some(id))
-        }
-      }
+      db.withTransaction { implicit session => insertAllOperation(stubUsers) }
+    }
+  }
+
+  def insertAllOperation(stubUsers : Seq[StubUser])(implicit session : Session) = {
+    val b = StubUserTable.forInsert.insertAll(stubUsers : _*)
+    b.zip(stubUsers).map {
+      case (id, stubUser) =>
+        stubUser.copy(id = Some(id))
     }
   }
 

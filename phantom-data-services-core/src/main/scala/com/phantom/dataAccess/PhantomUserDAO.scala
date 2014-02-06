@@ -18,7 +18,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
   import dal._
   import dal.profile.simple._
 
-  //only used by tests
+  //ONLY USED BY TESTS
   def insert(user : PhantomUser) : PhantomUser = {
     db.withTransaction { implicit session =>
       insertNoTransact(user)
@@ -36,23 +36,18 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
 
   private val existsQuery = for (email <- Parameters[String]; u <- UserTable if u.email is email) yield u.exists
 
-  def register(registrationRequest : UserRegistration) : Future[PhantomUser] = {
+  def registerOperation(registrationRequest : UserRegistration)(implicit session : Session) : PhantomUser = {
     log.trace(s"registering $registrationRequest")
-    future {
-      db.withSession { implicit session =>
-        log.trace("checking for existing user")
-        val ex = existsQuery(registrationRequest.email).firstOption
-        val mapped = ex.map { e =>
-          if (e) {
-            log.trace(s"duplicate email detected when registering $registrationRequest")
-            throw PhantomException.duplicateUser
-          } else {
-            createUserRecord(registrationRequest)
-          }
-        }
-        mapped.getOrElse(createUserRecord(registrationRequest))
+    val ex = existsQuery(registrationRequest.email).firstOption
+    val mapped = ex.map { e =>
+      if (e) {
+        log.trace(s"duplicate email detected when registering $registrationRequest")
+        throw PhantomException.duplicateUser
+      } else {
+        createUserRecord(registrationRequest)
       }
     }
+    mapped.getOrElse(createUserRecord(registrationRequest))
   }
 
   private def createUserRecord(reg : UserRegistration)(implicit session : Session) = {
@@ -87,6 +82,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     uOpt.map(_.id.get)
   }
 
+  //TODO: FUTURE ME
   def find(id : Long) : Future[PhantomUser] = {
 
     db.withSession { implicit session =>
@@ -106,7 +102,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
-  //future me
+  //TODO: future me
   def findContacts(id : Long) : Future[List[PhantomUser]] = {
     db.withSession { implicit session =>
       val q = for {
@@ -121,7 +117,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
-  //future me
+  //TODO future me
   def findBlockedContacts(id : Long) = {
     for {
       c <- ContactTable if c.contactType === "block" && c.ownerId === id

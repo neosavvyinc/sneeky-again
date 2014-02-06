@@ -39,11 +39,13 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
 
   def createSession(session : PhantomSession) : Future[PhantomSession] = {
     future {
-      db.withTransaction { implicit s =>
-        SessionTable.insert(session)
-        session
-      }
+      db.withTransaction { implicit s => createSessionOperation(session) }
     }
+  }
+
+  def createSessionOperation(session : PhantomSession)(implicit s : Session) : PhantomSession = {
+    SessionTable.insert(session)
+    session
   }
 
   def removeSession(sessionId : UUID) : Future[Int] = {

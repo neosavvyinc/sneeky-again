@@ -3,7 +3,6 @@ package com.phantom.ds.conversation
 import scala.concurrent.{ Promise, Future, ExecutionContext, future }
 import com.phantom.model._
 import com.phantom.dataAccess.DatabaseSupport
-import scala.slick.session.Session
 import java.io.{ File, FileOutputStream }
 import com.phantom.ds.DSConfiguration
 import com.phantom.model.BlockUserByConversationResponse
@@ -70,7 +69,6 @@ object ConversationService extends DSConfiguration {
         _ <- sendInvitations(nonStubUsers, stubUsers, fromUserId, imageText, imageUrl)
         _ <- sendConversationNotifications(users)
       } yield response
-
     }
 
     private def partitionUsers(contactNumbers : Set[String]) : Future[(Set[String], Seq[PhantomUser])] = {
@@ -90,19 +88,16 @@ object ConversationService extends DSConfiguration {
     }
 
     private def createConversationRoots(users : Seq[PhantomUser], stubUsers : Seq[StubUser], fromUserId : Long, imageText : String, imageUrl : String) : Future[ConversationInsertResponse] = {
-      val conversations = users.map(x => Conversation(None, x.id.getOrElse(-1), fromUserId))
-      val stubConversations = stubUsers.map(x => StubConversation(None, fromUserId, x.id.getOrElse(-1), imageText, imageUrl))
-      val session : Session = db.createSession
-
-      val b = session.withTransaction {
-        for {
-          createdConversations <- conversationDao.insertAll(conversations)
-          createdConversationItems <- conversationItemDao.insertAll(createConversationItemRoots(createdConversations, fromUserId, imageText, imageUrl))
-          createdStubConversations <- stubConversationsDao.insertAll(stubConversations)
-        } yield ConversationInsertResponse(createdConversations.size + createdStubConversations.size)
+      future {
+        db.withTransaction { implicit session =>
+          val conversations = users.map(x => Conversation(None, x.id.getOrElse(-1), fromUserId))
+          val stubConversations = stubUsers.map(x => StubConversation(None, fromUserId, x.id.getOrElse(-1), imageText, imageUrl))
+          val createdConversations = conversationDao.insertAllOperation(conversations)
+          val createdConversationItems = conversationItemDao.insertAllOperation(createConversationItemRoots(createdConversations, fromUserId, imageText, imageUrl))
+          val createdStubConversations = stubConversationsDao.insertAllOperation(stubConversations)
+          ConversationInsertResponse(createdConversations.size + createdStubConversations.size)
+        }
       }
-      session.close()
-      b
     }
 
     private def createConversationItemRoots(conversations : Seq[Conversation], fromUserId : Long, imageText : String, imageUrl : String) : Seq[ConversationItem] = {

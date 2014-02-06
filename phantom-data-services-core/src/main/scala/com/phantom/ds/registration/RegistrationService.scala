@@ -25,9 +25,18 @@ object RegistrationService {
       def register(registrationRequest : UserRegistration) : Future[RegistrationResponse] = {
         for {
           _ <- Passwords.validate(registrationRequest.password)
-          user <- phantomUsersDao.register(registrationRequest)
-          session <- sessions.createSession(PhantomSession.newSession(user))
-        } yield RegistrationResponse(user.uuid, session.sessionId)
+          registrationResponse <- doRegistration(registrationRequest)
+        } yield registrationResponse
+      }
+
+      private def doRegistration(registrationRequest : UserRegistration) : Future[RegistrationResponse] = {
+        future {
+          db.withTransaction { implicit s =>
+            val user = phantomUsersDao.registerOperation(registrationRequest)
+            val session = sessions.createSessionOperation(PhantomSession.newSession(user))
+            RegistrationResponse(user.uuid, session.sessionId)
+          }
+        }
       }
 
       def verifyRegistration(response : RegistrationVerification) : Future[Unit] = {

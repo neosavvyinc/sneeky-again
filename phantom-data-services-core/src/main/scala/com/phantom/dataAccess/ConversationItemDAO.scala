@@ -25,6 +25,7 @@ class ConversationItemDAO(dal : DataAccessLayer, db : Database)(implicit ec : Ex
     }
   }
 
+  //ONLY USED BY TESTS
   def insertAll(conversationItems : Seq[ConversationItem]) : Future[Seq[ConversationItem]] = {
     future {
       db.withTransaction { implicit session =>
@@ -41,7 +42,7 @@ class ConversationItemDAO(dal : DataAccessLayer, db : Database)(implicit ec : Ex
     }
   }
 
-  //only used by tests
+  //ONLY USED BY TESTS
   def findByConversationId(conversationId : Long) : List[ConversationItem] = {
     db.withSession { implicit session =>
       val items = Query(ConversationItemTable) filter { _.conversationId === conversationId }
@@ -49,7 +50,7 @@ class ConversationItemDAO(dal : DataAccessLayer, db : Database)(implicit ec : Ex
     }
   }
 
-  //only used by tests
+  //ONLY USED BY TESTS
   def deleteByConversationId(conversationId : Long) : Int = {
     db.withTransaction { implicit session =>
       val deleteQuery = Query(ConversationItemTable) filter { _.conversationId === conversationId }

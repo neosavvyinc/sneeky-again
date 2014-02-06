@@ -1,6 +1,6 @@
 package com.phantom.ds.integration.twilio
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ ExecutionContext, Future, future }
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.DSConfiguration
 import com.phantom.dataAccess.DatabaseSupport
@@ -44,15 +44,14 @@ object TwilioService {
 
       private def createStubAccounts(contacts : Seq[String], fromUser : Long, imageText : String, imageUrl : String) : Future[Seq[StubUser]] = {
         val stagedStubs = contacts.map(x => StubUser(None, x, 1))
-        for {
-          stubUsers <- stubUsersDao.insertAll(stagedStubs)
-          _ <- createStubConversations(stubUsers, fromUser, imageText, imageUrl)
-        } yield stubUsers
-      }
-
-      private def createStubConversations(stubUsers : Seq[StubUser], fromUser : Long, imageText : String, imageUrl : String) : Future[Seq[StubConversation]] = {
-        val stagedConversations = stubUsers.map(x => StubConversation(None, fromUser, x.id.get, imageText, imageUrl))
-        stubConversationsDao.insertAll(stagedConversations)
+        future {
+          db.withTransaction { implicit session =>
+            val stubUsers = stubUsersDao.insertAllOperation(stagedStubs)
+            val stagedConversations = stubUsers.map(x => StubConversation(None, fromUser, x.id.get, imageText, imageUrl))
+            stubConversationsDao.insertAllOperation(stagedConversations)
+            stubUsers
+          }
+        }
       }
 
       //TODO FIX ME..i do nothing good
