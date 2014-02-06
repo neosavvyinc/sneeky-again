@@ -124,7 +124,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     } yield c.contactType
   }
 
-  def findPhantomUserIdsByPhone(contacts : List[String]) : Future[(List[Long], List[String])] = {
+  def findPhantomUserIdsByPhone(contacts : List[String]) : Future[(List[PhantomUser], List[String])] = {
     db.withSession { implicit session =>
       future {
         val q = for {
@@ -134,7 +134,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
         val users = q.list
         val notFound = contacts.partition(users.map(_.phoneNumber).contains(_))
 
-        (users.map(_.id.get), notFound._2)
+        (users, notFound._2)
       }
     }
   }

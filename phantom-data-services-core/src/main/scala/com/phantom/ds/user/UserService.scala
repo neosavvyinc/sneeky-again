@@ -16,7 +16,7 @@ trait UserService {
   def logout(sessionId : String) : Future[Int]
   def findById(id : Long) : Future[PhantomUser]
   def findContactsById(id : Long) : Future[List[PhantomUser]]
-  def updateContacts(id : Long, contacts : List[String]) : Future[List[Contact]]
+  def updateContacts(id : Long, contacts : List[String]) : Future[List[PhantomUser]]
   def clearBlockList(id : Long) : Future[StatusCode]
 }
 
@@ -48,9 +48,9 @@ object UserService {
       phantomUsersDao.findContacts(id)
     }
 
-    def updateContacts(id : Long, contactList : List[String]) : Future[List[Contact]] = {
+    def updateContacts(id : Long, contactList : List[String]) : Future[List[PhantomUser]] = {
       val session = db.createSession
-      val updatedContacts : Promise[List[Contact]] = Promise()
+      val updatedContacts : Promise[List[PhantomUser]] = Promise()
 
       future {
         // TO DO
@@ -59,13 +59,13 @@ object UserService {
         session.withTransaction {
           val res = for {
             d <- contacts.deleteAll(id)(session)
-            (ids : List[Long], numbersNotFound : List[String]) <- phantomUsersDao.findPhantomUserIdsByPhone(contactList)
+            (users : List[PhantomUser], numbersNotFound : List[String]) <- phantomUsersDao.findPhantomUserIdsByPhone(contactList)
             bogus <- future { println(numbersNotFound) } // do something with this list, create stub users???
-            insert <- contacts.insertAll(ids.map(Contact(None, id, _, "friend")))
-          } yield insert
+            insert <- contacts.insertAll(users.map(u => Contact(None, id, u.id.get, "friend")))
+          } yield users
 
           res.onComplete {
-            case Success(contacts : List[Contact]) => updatedContacts.success(contacts)
+            case Success(users : List[PhantomUser]) => updatedContacts.success(users)
             case Failure(ex) => {
               session.rollback()
               updatedContacts.failure(ex)

@@ -36,14 +36,14 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
           }
         }
       } ~
-      pathPrefix("users" / LongNumber / "contacts") { id =>
+      pathPrefix("users" / "contacts") {
         authenticate(request _) { user =>
           post {
             respondWithMediaType(`application/json`) {
               entity(as[Map[String, List[String]]]) { phoneNumbers =>
                 complete {
                   phoneNumbers.isDefinedAt("numbers") match {
-                    case true  => userService.updateContacts(id, phoneNumbers("numbers"))
+                    case true  => userService.updateContacts(user.id.get, phoneNumbers("numbers"))
                     case false => "Invalid Dictionary Key"
                   }
                 }
