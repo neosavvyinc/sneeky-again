@@ -107,7 +107,7 @@ class RegistrationEndpointSpec extends Specification
         val stubConversations = await(stubConversationsDao.findByFromUserId(fromUser))
         stubConversations must beEmpty
 
-        val conversations = conversationDao.findConversationsAndItems(fromUser)
+        val conversations = await(conversationDao.findConversationsAndItems(fromUser))
         conversations.foreach {
           case (c, items) =>
             items must have size 1

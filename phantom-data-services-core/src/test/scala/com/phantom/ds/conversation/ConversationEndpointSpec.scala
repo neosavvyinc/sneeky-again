@@ -9,11 +9,12 @@ import com.phantom.ds.framework.Logging
 import com.phantom.ds.PhantomEndpointSpec
 import scala.concurrent.future
 import spray.http.{ BodyPart, MultipartFormData }
-import com.phantom.ds.framework.auth.PassThroughRequestAuthenticator
+import com.phantom.ds.framework.auth.SuppliedUserRequestAuthenticator
 import akka.testkit.TestProbe
 import akka.actor.ActorRef
 import com.phantom.model.{ ConversationItem, BlockUserByConversationResponse, Conversation }
 import com.phantom.ds.dataAccess.BaseDAOSpec
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * Created by Neosavvy
@@ -27,7 +28,7 @@ class ConversationEndpointSpec extends Specification
     with Specs2RouteTest
     with Logging
     with ConversationEndpoint
-    with PassThroughRequestAuthenticator
+    with SuppliedUserRequestAuthenticator
     with BaseDAOSpec {
 
   sequential
@@ -57,16 +58,27 @@ class ConversationEndpointSpec extends Specification
           response.id must be equalTo 1L
         }
       }
-
     }
 
-    "return conversations by fromUser id" in withSetupTeardown {
+    "return a user's feed" in withSetupTeardown {
       insertTestConverationsWithItems
-      //userid?  this should not be using userid this should should be session based
-      Get(s"/conversation/2") ~> conversationRoute ~> check {
+      val toUserConv = conversationDao.insert(Conversation(None, 2L, 1L))
+      val item = ConversationItem(None, toUserConv.id.get, "", "")
+      await(conversationItemDao.insertAll(Seq(item, item, item)))
+      val user = await(phantomUsersDao.find(2L))
+      authedUser = Some(user) //yick
+      Get(s"/conversation") ~> conversationRoute ~> check {
         assertPayload[List[(Conversation, List[ConversationItem])]] { response =>
-          response must have size 1
-          response.head._2 must have size 3
+
+          response.foreach {
+            case (conv, items) => {
+              (conv.fromUser must be equalTo 2) or (conv.toUser must be equalTo 2)
+              items must have size 3
+            }
+
+          }
+
+          response must have size 2
         }
       }
     }
