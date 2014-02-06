@@ -15,6 +15,7 @@ import com.phantom.model.UserRegistration
 import spray.http.StatusCodes._
 import spray.http.FormData
 import scala.concurrent.ExecutionContext.Implicits.global
+import spray.http.{ BodyPart, MultipartFormData }
 
 class RegistrationEndpointSpec extends Specification
     with PhantomEndpointSpec
