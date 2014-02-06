@@ -67,17 +67,19 @@ case class PhantomUser(id : Option[Long],
                        birthday : LocalDate,
                        active : Boolean,
                        phoneNumber : String,
-                       status : UserStatus = Unverified) extends Phantom
+                       status : UserStatus = Unverified,
+                       settingPushSounds : Boolean,
+                       settingPushNewPicture : Boolean) extends Phantom
 
 object PhantomSession {
 
   def newSession(user : PhantomUser) : PhantomSession = {
     val now = DateTime.now(DateTimeZone.UTC)
-    PhantomSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now)
+    PhantomSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now, null)
   }
 }
 
-case class PhantomSession(sessionId : UUID, userId : Long, created : DateTime, lastAccessed : DateTime)
+case class PhantomSession(sessionId : UUID, userId : Long, created : DateTime, lastAccessed : DateTime, applePushID : String)
 
 trait UserComponent { this : Profile =>
 
@@ -97,8 +99,10 @@ trait UserComponent { this : Profile =>
     def active = column[Boolean]("ACTIVE")
     def phoneNumber = column[String]("PHONE_NUMBER")
     def status = column[UserStatus]("STATUS")
+    def appleNoteSound = column[String]("SOUND_NOTIF")
+    def appleNoteNewPicture = column[String]("NEW_PICTURE_NOTIF")
 
-    def * = id.? ~ uuid ~ email ~ password ~ birthday ~ active ~ phoneNumber ~ status <> (PhantomUser, PhantomUser.unapply _)
+    def * = id.? ~ uuid ~ email ~ password ~ birthday ~ active ~ phoneNumber ~ status ~ appleNoteSound ~ appleNoteNewPicture <> (PhantomUser, PhantomUser.unapply _)
     def forInsert = * returning id
     //    def phoneUnique = index("phoneUnique", phoneNumber, unique = true)
 
@@ -115,7 +119,8 @@ trait UserSessionComponent { this : Profile with UserComponent =>
     def userId = column[Long]("USERID")
     def created = column[DateTime]("CREATED")
     def lastAccessed = column[DateTime]("LASTACCESSED")
-    def * = sessionId ~ userId ~ created ~ lastAccessed <> (PhantomSession.apply _, PhantomSession.unapply _)
+    def applePushID = column[String]("APPLE_PUSH_ID")
+    def * = sessionId ~ userId ~ created ~ lastAccessed ~ applePushID <> (PhantomSession.apply _, PhantomSession.unapply _)
 
     def owner = foreignKey("USER_FK", userId, UserTable)(_.id)
     //def userUnqiue = index("userUnique", userId, unique = true)
