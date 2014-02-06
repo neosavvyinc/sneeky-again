@@ -35,7 +35,7 @@ class UserLogoutSpec extends Specification
       val uuid = UUID.randomUUID()
       val s = uuid.toString
       val u = phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, "email", "", LocalDate.now, true, "", Verified))
-      Await.result(sessions.createSession(PhantomSession(uuid, u.id.get, sessionCreated, sessionCreated)), waitPeriod)
+      Await.result(sessions.createSession(PhantomSession(uuid, u.id.get, sessionCreated, sessionCreated, None)), waitPeriod)
       val h = hashValues(d, s)
       val url = s"/users/logout?$hashP=$h&$dateP=$d&$sessionIdP=$s"
       Get(url) ~> userRoute ~> check {
