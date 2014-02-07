@@ -22,13 +22,11 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
   }
 
   //TODO OPERATION ME
-  def insertAll(contacts : Seq[Contact]) : Future[Seq[Contact]] = {
-    future {
-      db.withTransaction { implicit session =>
-        val c = ContactTable.forInsert.insertAll(contacts : _*)
-        c.zip(contacts).map {
-          case (id, contact) => contact.copy(id = Some(id))
-        }
+  def insertAll(contacts : Seq[Contact]) : Seq[Contact] = {
+    db.withTransaction { implicit session =>
+      val c = ContactTable.forInsert.insertAll(contacts : _*)
+      c.zip(contacts).map {
+        case (id, contact) => contact.copy(id = Some(id))
       }
     }
   }
@@ -59,20 +57,16 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
   }
 
   //TODO OPERATION ME
-  def deleteAll(id : Long)(session : scala.slick.session.Session) : Future[Int] = {
-    future {
-      db.withTransaction { implicit session =>
-        Query(ContactTable).filter(_.ownerId === id).delete(session)
-      }
+  def deleteAll(id : Long)(session : scala.slick.session.Session) : Int = {
+    db.withTransaction { implicit session =>
+      Query(ContactTable).filter(_.ownerId === id).delete(session)
     }
   }
 
   //ONLY USED BY TESTS
-  def findAll : Future[List[Contact]] = {
-    future {
-      db.withSession { implicit session =>
-        Query(ContactTable).list
-      }
+  def findAll : List[Contact] = {
+    db.withSession { implicit session =>
+      Query(ContactTable).list
     }
   }
 
