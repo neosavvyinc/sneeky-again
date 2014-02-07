@@ -9,6 +9,7 @@ import java.util.UUID
 import com.phantom.ds.user.Passwords
 import com.phantom.ds.TestUtils
 import scala.concurrent.ExecutionContext.Implicits.global
+import com.phantom.ds.framework.Logging
 
 /**
  * Created with IntelliJ IDEA.
@@ -45,8 +46,9 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with After with Tes
     List(item1, item2, item3)
   }
 
-  def createVerifiedUser(email : String, password : String, phoneNumber : String = "") = {
-    phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, email, Passwords.getSaltedHash(password), LocalDate.now(DateTimeZone.UTC), true, phoneNumber, Verified))
+  def createVerifiedUser(email : String, password : String, phoneNumber : String = "") : PhantomUser = {
+    val user = PhantomUser(None, UUID.randomUUID, email, Passwords.getSaltedHash(password), LocalDate.now(DateTimeZone.UTC), true, phoneNumber, Verified)
+    phantomUsersDao.insert(user)
   }
 
   def createUnverifiedUser(email : String, password : String) = {

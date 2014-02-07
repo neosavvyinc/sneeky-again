@@ -29,6 +29,9 @@ case class LoginSuccess(sessionUUID : UUID)
 
 case class PhantomUserDeleteMe(id : String)
 
+case class SessionIDWithPushNotifier(sessionUUID : UUID,
+                                     pushNotifier : String)
+
 sealed trait UserStatus
 
 object UserStatus {
@@ -73,11 +76,11 @@ object PhantomSession {
 
   def newSession(user : PhantomUser) : PhantomSession = {
     val now = DateTime.now(DateTimeZone.UTC)
-    PhantomSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now)
+    PhantomSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now, None)
   }
 }
 
-case class PhantomSession(sessionId : UUID, userId : Long, created : DateTime, lastAccessed : DateTime)
+case class PhantomSession(sessionId : UUID, userId : Long, created : DateTime, lastAccessed : DateTime, applePushID : Option[String] = None)
 
 trait UserComponent { this : Profile =>
 
@@ -97,6 +100,8 @@ trait UserComponent { this : Profile =>
     def active = column[Boolean]("ACTIVE")
     def phoneNumber = column[String]("PHONE_NUMBER")
     def status = column[UserStatus]("STATUS")
+    def appleNoteSound = column[String]("SOUND_NOTIF")
+    def appleNoteNewPicture = column[String]("NEW_PICTURE_NOTIF")
 
     def * = id.? ~ uuid ~ email ~ password ~ birthday ~ active ~ phoneNumber ~ status <> (PhantomUser, PhantomUser.unapply _)
     def forInsert = * returning id
@@ -115,7 +120,8 @@ trait UserSessionComponent { this : Profile with UserComponent =>
     def userId = column[Long]("USERID")
     def created = column[DateTime]("CREATED")
     def lastAccessed = column[DateTime]("LASTACCESSED")
-    def * = sessionId ~ userId ~ created ~ lastAccessed <> (PhantomSession.apply _, PhantomSession.unapply _)
+    def applePushID = column[String]("APPLE_PUSH_ID", O.Nullable)
+    def * = sessionId ~ userId ~ created ~ lastAccessed ~ applePushID.? <> (PhantomSession.apply _, PhantomSession.unapply _)
 
     def owner = foreignKey("USER_FK", userId, UserTable)(_.id)
     //def userUnqiue = index("userUnique", userId, unique = true)

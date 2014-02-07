@@ -10,6 +10,9 @@ import com.phantom.ds.PhantomEndpointSpec
 import org.joda.time.LocalDate
 import com.phantom.ds.framework.auth.{ PassThroughEntryPointAuthenticator, PassThroughRequestAuthenticator }
 import com.phantom.ds.dataAccess.BaseDAOSpec
+import javax.xml.transform.OutputKeys
+import spray.http.StatusCodes
+import java.util.UUID
 
 class UserEndpointSpec extends Specification
     with PhantomEndpointSpec
@@ -71,6 +74,17 @@ class UserEndpointSpec extends Specification
             }
           }
         }
+      }
+    }
+
+    "sending a push notifier up with a session id to save to a session" in withSetupTeardown {
+
+      createVerifiedUser("adam@somewheres.com", "anything")
+
+      Post("/users/pushNotifier", SessionIDWithPushNotifier(
+        UUID.fromString("38400000-8cf0-11bd-b23e-10b96e4ef00d"),
+        "anysessionid")) ~> userRoute ~> check {
+        status == StatusCodes.OK
       }
     }
 

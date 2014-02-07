@@ -39,7 +39,9 @@ class ConversationItemDAOSpec extends BaseDAOSpec with TestUtils {
 
       val list = setupConversationItems(1)
 
-      conversationItemDao.insertAll(list)
+      await {
+        conversationItemDao.insertAll(list)
+      }
 
       val itemsFromDb = conversationItemDao.findByConversationId(1)
 

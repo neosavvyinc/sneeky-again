@@ -16,7 +16,7 @@ trait UserService {
   def logout(sessionId : String) : Future[Int]
   def findById(id : Long) : Future[PhantomUser]
   def findContactsById(id : Long) : Future[List[PhantomUser]]
-  def updateContacts(id : Long, contacts : List[String]) : Future[List[Contact]]
+  def updateContacts(id : Long, contacts : List[String]) : Future[List[PhantomUser]]
   def clearBlockList(id : Long) : Future[StatusCode]
 }
 
@@ -48,39 +48,29 @@ object UserService {
       phantomUsersDao.findContacts(id)
     }
 
-    def updateContacts(id : Long, contactList : List[String]) : Future[List[Contact]] = {
+    def updateContacts(id : Long, contactList : List[String]) : Future[List[PhantomUser]] = {
       val session = db.createSession
-      val updatedContacts : Promise[List[Contact]] = Promise()
 
       future {
+        contacts.deleteAll(id)(session)
+        val (users : List[PhantomUser], numbersNotFound : List[String]) = phantomUsersDao.findPhantomUserIdsByPhone(contactList)
+        contacts.insertAll(users.map(u => Contact(None, id, u.id.get, "friend")))
+
         // TO DO
         // need to partition phone number request, update contacts for all
         // users that exist, then take numbersNotFound and create stub users
-        session.withTransaction {
-          val res = for {
-            d <- contacts.deleteAll(id)(session)
-            (ids : List[Long], numbersNotFound : List[String]) <- phantomUsersDao.findPhantomUserIdsByPhone(contactList)
-            bogus <- future { println(numbersNotFound) } // do something with this list, create stub users???
-            insert <- contacts.insertAll(ids.map(Contact(None, id, _, "friend")))
-          } yield insert
-
-          res.onComplete {
-            case Success(contacts : List[Contact]) => updatedContacts.success(contacts)
-            case Failure(ex) => {
-              session.rollback()
-              updatedContacts.failure(ex)
-            }
-            // compiler complains of non-exhaustive pattern match without this. can we ever hit this though?
-            case _ => updatedContacts.failure(new Exception("unidentified exception : updateContacts"))
-          }
-        }
+        users
       }
-
-      updatedContacts.future
     }
 
     def clearBlockList(id : Long) : Future[StatusCode] = {
-      phantomUsersDao.clearBlockList(id)
+      future {
+        phantomUsersDao.clearBlockList(id)
+      }
+    }
+
+    def updatePushNotifier(sessionUUID : UUID, applePushToken : String) : Future[Boolean] = {
+      Future.successful(sessions.updatePushNotifier(sessionUUID, applePushToken))
     }
   }
 
