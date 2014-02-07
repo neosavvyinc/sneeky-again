@@ -29,14 +29,14 @@ class ContactDAOSpec extends BaseDAOSpec {
           Contact(Some(1), 1, 2, "friend"),
           Contact(Some(2), 1, 3, "friend")
         )
-      ).await
+      )
 
       contacts.findAll must be_==(
         List(
           Contact(Some(1), 1, 2, "friend"),
           Contact(Some(2), 1, 3, "friend")
         )
-      ).await
+      )
     }
 
     "should support deleting a user's contacts" in withSetupTeardown {
@@ -51,7 +51,7 @@ class ContactDAOSpec extends BaseDAOSpec {
       insertTestUsers
       contacts.insertAll(cs)
 
-      contacts.deleteAll(1)(session) must be_==(2).await
+      contacts.deleteAll(1)(session) must be_==(2)
     }
 
     "should support finding a contact by contactId" in withSetupTeardown {

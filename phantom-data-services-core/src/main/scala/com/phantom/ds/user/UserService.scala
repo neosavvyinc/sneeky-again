@@ -50,37 +50,23 @@ object UserService {
 
     def updateContacts(id : Long, contactList : List[String]) : Future[List[PhantomUser]] = {
       val session = db.createSession
-      val updatedContacts : Promise[List[PhantomUser]] = Promise()
 
       future {
+        contacts.deleteAll(id)(session)
+        val (users : List[PhantomUser], numbersNotFound : List[String]) = phantomUsersDao.findPhantomUserIdsByPhone(contactList)
+        contacts.insertAll(users.map(u => Contact(None, id, u.id.get, "friend")))
+
         // TO DO
         // need to partition phone number request, update contacts for all
         // users that exist, then take numbersNotFound and create stub users
-        session.withTransaction {
-          val res = for {
-            d <- contacts.deleteAll(id)(session)
-            (users : List[PhantomUser], numbersNotFound : List[String]) <- phantomUsersDao.findPhantomUserIdsByPhone(contactList)
-            bogus <- future { println(numbersNotFound) } // do something with this list, create stub users???
-            insert <- contacts.insertAll(users.map(u => Contact(None, id, u.id.get, "friend")))
-          } yield users
-
-          res.onComplete {
-            case Success(users : List[PhantomUser]) => updatedContacts.success(users)
-            case Failure(ex) => {
-              session.rollback()
-              updatedContacts.failure(ex)
-            }
-            // compiler complains of non-exhaustive pattern match without this. can we ever hit this though?
-            case _ => updatedContacts.failure(new Exception("unidentified exception : updateContacts"))
-          }
-        }
+        users
       }
-
-      updatedContacts.future
     }
 
     def clearBlockList(id : Long) : Future[StatusCode] = {
-      phantomUsersDao.clearBlockList(id)
+      future {
+        phantomUsersDao.clearBlockList(id)
+      }
     }
   }
 

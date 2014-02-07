@@ -13,7 +13,7 @@ class PhantomUsersDAOSpec extends BaseDAOSpec {
 
       val res = phantomUsersDao.findPhantomUserIdsByPhone(List("5192050", "2061266"))
 
-      res must be_==((List[Long](2, 3), List[String]())).await
+      res must be_==((List[Long](2, 3), List[String]()))
     }
 
     "return a tuple of ids and non-found phone numbers" in withSetupTeardown {
@@ -22,7 +22,7 @@ class PhantomUsersDAOSpec extends BaseDAOSpec {
 
       val res = phantomUsersDao.findPhantomUserIdsByPhone(List("5192050", "2061266", "7777777"))
 
-      res must be_==((List[Long](2, 3), List[String]("7777777"))).await
+      res must be_==((List[Long](2, 3), List[String]("7777777")))
     }
   }
 }
