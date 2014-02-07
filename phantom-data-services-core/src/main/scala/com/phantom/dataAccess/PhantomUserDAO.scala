@@ -124,28 +124,24 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     } yield c.contactType
   }
 
-  def findPhantomUserIdsByPhone(contacts : List[String]) : Future[(List[Long], List[String])] = {
+  def findPhantomUserIdsByPhone(contacts : List[String]) : (List[PhantomUser], List[String]) = {
     db.withSession { implicit session =>
-      future {
-        val q = for {
-          u <- UserTable if u.phoneNumber inSet contacts
-        } yield u
+      val q = for {
+        u <- UserTable if u.phoneNumber inSet contacts
+      } yield u
 
-        val users = q.list
-        val notFound = contacts.partition(users.map(_.phoneNumber).contains(_))
+      val users = q.list
+      val notFound = contacts.partition(users.map(_.phoneNumber).contains(_))
 
-        (users.map(_.id.get), notFound._2)
-      }
+      (users, notFound._2)
     }
   }
 
-  //TODO future me
-  def clearBlockList(id : Long) : Future[StatusCode] = {
-
+  def clearBlockList(id : Long) : StatusCode = {
     db.withTransaction { implicit session =>
       findBlockedContacts(id).update("friend") match {
-        case 0 => Future.successful(StatusCodes.NotModified)
-        case _ => Future.successful(StatusCodes.OK)
+        case 0 => StatusCodes.NotModified
+        case _ => StatusCodes.OK
       }
     }
   }
