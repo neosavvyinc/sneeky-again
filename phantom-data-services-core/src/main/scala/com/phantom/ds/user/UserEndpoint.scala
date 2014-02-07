@@ -28,7 +28,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
     } ~
       pathPrefix("users" / "logout") {
         authenticate(request _) { user =>
-          get {
+          get { //todo:  authenticate should return case class of User/Session
             parameter('sessionId) { session =>
               respondWithMediaType(`application/json`) {
                 complete(userService.logout(session))
@@ -37,7 +37,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
           }
         }
       } ~
-      pathPrefix("users" / LongNumber / "contacts") { id =>
+      pathPrefix("users" / LongNumber / "contacts") { id =>  //TODO: remove userid..amake this session based
         authenticate(request _) { user =>
           post {
             respondWithMediaType(`application/json`) {
@@ -53,14 +53,14 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
           }
         }
       } ~
-      pathPrefix("users" / LongNumber / "clearblocklist") { id =>
+      pathPrefix("users" / LongNumber / "clearblocklist") { id =>  //TODO: remove userid..amake this session based
         post {
           respondWithMediaType(`application/json`) {
             complete(userService.clearBlockList(id))
           }
         }
       } ~
-      pathPrefix("users" / LongNumber) { id =>
+      pathPrefix("users" / LongNumber) { id => //TODO:  Is this needed?
         authenticate(request _) { user =>
           get {
             respondWithMediaType(`application/json`) {

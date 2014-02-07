@@ -3,7 +3,7 @@ package com.phantom.model
 import com.phantom.dataAccess.Profile
 import org.joda.time.LocalDate
 import java.sql.Date
-
+//TODO: case object type
 case class Contact(id : Option[Long],
                    ownerId : Long,
                    contactId : Long,

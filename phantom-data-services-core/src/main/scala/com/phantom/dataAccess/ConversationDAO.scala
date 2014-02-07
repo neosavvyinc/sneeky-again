@@ -73,37 +73,19 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
-  //TODO: you need to find all conversations for a user by looking at both from and to ids...
-  //copying this for now..will address this tomorrow
-  def findConversationsAndItems(fromUserId : Long) : List[(Conversation, List[ConversationItem])] = {
+  def findConversationsAndItems(userId : Long) : Future[List[(Conversation, List[ConversationItem])]] = {
+    future {
+      db.withSession { implicit session =>
+        val conversationPairs = (for {
+          c <- ConversationTable
+          ci <- ConversationItemTable if c.id === ci.conversationId && (c.fromUser === userId || c.toUser === userId)
+        } yield (c, ci)).list
 
-    db.withSession { implicit session =>
-      val conversationPairs = (for {
-        c <- ConversationTable
-        ci <- ConversationItemTable if c.id === ci.conversationId && c.fromUser === fromUserId
-      } yield (c, ci)).list
-
-      conversationPairs.groupBy(_._1).map {
-        case (convo, cItem) => (convo, cItem.map(_._2))
-      }.toList
-    }
-
-  }
-
-  //TODO:  FIX ME..I SHOULD BE THE SAME FUNCTION AS ABOVE
-  def findConversationsAndItemsToUser(toUserId : Long) : List[(Conversation, List[ConversationItem])] = {
-
-    db.withSession { implicit session =>
-      val conversationPairs = (for {
-        c <- ConversationTable
-        ci <- ConversationItemTable if c.id === ci.conversationId && c.toUser === toUserId
-      } yield (c, ci)).list
-
-      conversationPairs.groupBy(_._1).map {
-        case (convo, cItem) => (convo, cItem.map(_._2))
-      }.toList
+        conversationPairs.groupBy(_._1).map {
+          case (convo, cItem) => (convo, cItem.map(_._2))
+        }.toList
+      }
     }
   }
-
 }
 

@@ -25,7 +25,7 @@ trait RegistrationEndpoint extends DataHttpService
           }
       }
     } ~
-      pathPrefix("users" / "verification") {
+      pathPrefix("users" / "verification") {  //lack of auth..this is twilio based...TODO: investigate security options here
         post {
           formFields(
             'AccountSid.as[String],
