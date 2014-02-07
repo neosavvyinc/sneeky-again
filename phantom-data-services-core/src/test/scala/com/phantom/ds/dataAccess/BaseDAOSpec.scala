@@ -27,7 +27,7 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with After with Tes
     }
 
     def after {
-      //      dataAccessLayer.drop(db)
+      dataAccessLayer.drop(db)
     }
   }
 
