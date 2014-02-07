@@ -67,7 +67,7 @@ class ContactDAOSpec extends BaseDAOSpec {
       contacts.insert(Contact(None, 2, 3, "friend"))
 
       contacts.update(Contact(Some(1), 2, 3, "block")) must be_==(1).await
-      contacts.findAll must be_==(List(Contact(Some(1), 2, 3, "block"))).await
+      contacts.findAll must be_==(List(Contact(Some(1), 2, 3, "block")))
     }
   }
 }

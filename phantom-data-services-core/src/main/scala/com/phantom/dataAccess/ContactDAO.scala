@@ -64,11 +64,9 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
   }
 
   //ONLY USED BY TESTS
-  def findAll : Future[List[Contact]] = {
-    future {
-      db.withSession { implicit session =>
-        Query(ContactTable).list
-      }
+  def findAll : List[Contact] = {
+    db.withSession { implicit session =>
+      Query(ContactTable).list
     }
   }
 
