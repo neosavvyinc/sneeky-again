@@ -37,7 +37,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
           }
         }
       } ~
-      pathPrefix("users" / LongNumber / "contacts") { id =>  //TODO: remove userid..amake this session based
+      pathPrefix("users" / LongNumber / "contacts") { id => //TODO: remove userid..amake this session based
         authenticate(request _) { user =>
           post {
             respondWithMediaType(`application/json`) {
@@ -53,7 +53,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
           }
         }
       } ~
-      pathPrefix("users" / LongNumber / "clearblocklist") { id =>  //TODO: remove userid..amake this session based
+      pathPrefix("users" / LongNumber / "clearblocklist") { id => //TODO: remove userid..amake this session based
         post {
           respondWithMediaType(`application/json`) {
             complete(userService.clearBlockList(id))
@@ -77,7 +77,6 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
                 StatusCodes.OK
               }
           }
-
         }
       }
 }

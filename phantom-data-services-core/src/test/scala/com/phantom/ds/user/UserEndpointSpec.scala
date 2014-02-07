@@ -81,7 +81,9 @@ class UserEndpointSpec extends Specification
 
       createVerifiedUser("adam@somewheres.com", "anything")
 
-      Post("/users/pushNotifier", SessionIDWithPushNotifier(UUID.fromString("38400000-8cf0-11bd-b23e-10b96e4ef00d"), "anysessionid")) ~> userRoute ~> check {
+      Post("/users/pushNotifier", SessionIDWithPushNotifier(
+        UUID.fromString("38400000-8cf0-11bd-b23e-10b96e4ef00d"),
+        "anysessionid")) ~> userRoute ~> check {
         status == StatusCodes.OK
       }
     }
