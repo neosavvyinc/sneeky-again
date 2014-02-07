@@ -82,6 +82,10 @@ object UserService {
     def clearBlockList(id : Long) : Future[StatusCode] = {
       phantomUsersDao.clearBlockList(id)
     }
+
+    def updatePushNotifier(sessionUUID : UUID, applePushToken : String) : Future[Boolean] = {
+      Future.successful(sessions.updatePushNotifier(sessionUUID, applePushToken))
+    }
   }
 
 }

@@ -74,7 +74,10 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
           entity(as[SessionIDWithPushNotifier]) {
             sessionIDWithNotifier =>
               complete {
-                StatusCodes.OK
+                userService.updatePushNotifier(
+                  sessionIDWithNotifier.sessionUUID,
+                  sessionIDWithNotifier.pushNotifier
+                )
               }
           }
         }
