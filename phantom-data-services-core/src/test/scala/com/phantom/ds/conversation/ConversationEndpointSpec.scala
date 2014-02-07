@@ -7,15 +7,13 @@ import org.specs2.mutable.Specification
 import spray.testkit.Specs2RouteTest
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.PhantomEndpointSpec
-import scala.concurrent.future
 import spray.http.{ BodyPart, MultipartFormData }
 import com.phantom.ds.framework.auth.SuppliedUserRequestAuthenticator
 import akka.testkit.TestProbe
 import akka.actor.ActorRef
-import com.phantom.model.{ ConversationItem, BlockUserByConversationResponse, Conversation }
+import com.phantom.model.{ Contact, ConversationItem, BlockUserByConversationResponse, Conversation }
 import com.phantom.ds.dataAccess.BaseDAOSpec
 import scala.concurrent.ExecutionContext.Implicits.global
-
 /**
  * Created by Neosavvy
  *
@@ -42,31 +40,13 @@ class ConversationEndpointSpec extends Specification
 
   "Conversation Service" should {
 
-    "support blocking a user by providing a conversation id" in withSetupTeardown {
-      import scala.concurrent.duration._
-
-      // using "executor" ExecutionContext from RouteTest trait
-      val f = future {
-        insertTestConverationsWithItems
-        insertTestContacts
-      }(executor)
-
-      val waitForIt = scala.concurrent.Await.result(f, FiniteDuration(5, SECONDS))
-
-      Post("/conversation/block/1") ~> conversationRoute ~> check {
-        assertPayload[BlockUserByConversationResponse] { response =>
-          response.id must be equalTo 1L
-        }
-      }
-    }
-
     "return a user's feed" in withSetupTeardown {
       insertTestConverationsWithItems
       val toUserConv = conversationDao.insert(Conversation(None, 2L, 1L))
       val item = ConversationItem(None, toUserConv.id.get, "", "")
       await(conversationItemDao.insertAll(Seq(item, item, item)))
       val user = await(phantomUsersDao.find(2L))
-      authedUser = Some(user) //yick
+      authedUser = Some(user)
       Get(s"/conversation") ~> conversationRoute ~> check {
         assertPayload[List[(Conversation, List[ConversationItem])]] { response =>
 
@@ -75,7 +55,6 @@ class ConversationEndpointSpec extends Specification
               (conv.fromUser must be equalTo 2) or (conv.toUser must be equalTo 2)
               items must have size 3
             }
-
           }
 
           response must have size 2
@@ -146,6 +125,70 @@ class ConversationEndpointSpec extends Specification
 
     }
 
-  }
+    "support blocking a user by providing a conversation id for both from and to users" in withSetupTeardown {
 
+      insertTestConverationsWithItems
+      insertTestContacts
+
+      await(contacts.insert(Contact(None, 2, 1, "friend")))
+
+      val user1 = await(phantomUsersDao.find(1L))
+      val user2 = await(phantomUsersDao.find(2L))
+
+      authedUser = Some(user1)
+
+      Post("/conversation/block/1") ~> conversationRoute ~> check {
+        assertPayload[BlockUserByConversationResponse] { response =>
+          response.id must be equalTo 1L
+          val contact = await(contacts.findByContactId(1L, 2L))
+          contact.contactType must be equalTo "BLOCKED"
+        }
+      }
+
+      authedUser = Some(user2)
+
+      Post("/conversation/block/1") ~> conversationRoute ~> check {
+        assertPayload[BlockUserByConversationResponse] { response =>
+          response.id must be equalTo 1L
+          val contact = await(contacts.findByContactId(2L, 1L))
+          contact.contactType must be equalTo "BLOCKED"
+        }
+      }
+    }
+
+    "fail blocking if the user is not a member of the conversation" in withSetupTeardown {
+      insertTestConverationsWithItems
+      insertTestContacts
+      authedUser = Some(await(phantomUsersDao.find(3L)))
+      Post("/conversation/block/1") ~> conversationRoute ~> check {
+        assertFailure(203)
+      }
+
+    }
+
+    "create blocked contact if the contact doesn't exist" in withSetupTeardown {
+      insertTestConverationsWithItems
+      insertTestContacts
+
+      val user2 = await(phantomUsersDao.find(2L))
+      authedUser = Some(user2)
+
+      Post("/conversation/block/1") ~> conversationRoute ~> check {
+        assertPayload[BlockUserByConversationResponse] { response =>
+          response.id must be equalTo 1L
+          val contact = await(contacts.findByContactId(2L, 1L))
+          contact.contactType must be equalTo "BLOCKED"
+        }
+      }
+    }
+
+    "fail blocking if the conversation doesn't exist" in withSetupTeardown {
+      insertTestConverationsWithItems
+      insertTestContacts
+      authedUser = Some(await(phantomUsersDao.find(3L)))
+      Post("/conversation/block/100") ~> conversationRoute ~> check {
+        assertFailure(203)
+      }
+    }
+  }
 }

@@ -80,16 +80,16 @@ trait ConversationEndpoint extends DataHttpService {
       }
     } ~ {
       pathPrefix(conversation) {
-        //TODO:  ADD AUTH AND VALIDATION
-        path("block" / IntNumber) {
-          id =>
+        path("block" / IntNumber) { id =>
+          authenticate(request _) { user =>
             post {
               respondWithMediaType(`application/json`) {
                 complete {
-                  conversationService.blockByConversationId(id)
+                  conversationService.blockByConversationId(user.id.get, id)
                 }
               }
             }
+          }
         }
       }
     }

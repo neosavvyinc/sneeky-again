@@ -7,7 +7,7 @@ import java.sql.Date
 case class Contact(id : Option[Long],
                    ownerId : Long,
                    contactId : Long,
-                   contactType : String)
+                   contactType : String = "friend")
 
 trait ContactComponent { this : Profile with UserComponent =>
 

@@ -1,6 +1,6 @@
 package com.phantom.ds.conversation
 
-import scala.concurrent.{ Promise, Future, ExecutionContext, future }
+import scala.concurrent.{ Future, ExecutionContext, future }
 import com.phantom.model._
 import com.phantom.dataAccess.DatabaseSupport
 import java.io.{ File, FileOutputStream }
@@ -15,7 +15,7 @@ import akka.actor.ActorRef
 import com.phantom.ds.integration.twilio.{ SendInvite, SendInviteToStubUsers }
 import com.phantom.ds.integration.apple.SendConversationNotification
 import com.phantom.ds.framework.exception.PhantomException
-import scala.util.{ Failure, Success }
+import scala.slick.session.Session
 
 /**
  * Created by Neosavvy
@@ -26,11 +26,6 @@ import scala.util.{ Failure, Success }
  */
 trait ConversationService {
 
-  //  * Get my feed
-  //    * Request
-  //    * UserId
-  //    * Response
-  //    * List of conversations
   def findFeed(userId : Long) : Future[List[(Conversation, List[ConversationItem])]]
 
   def startConversation(fromUserId : Long,
@@ -44,7 +39,7 @@ trait ConversationService {
 
   def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String
 
-  def blockByConversationId(id : Long) : Future[BlockUserByConversationResponse]
+  def blockByConversationId(userId : Long, conversationId : Long) : Future[BlockUserByConversationResponse]
 
 }
 
@@ -146,26 +141,36 @@ object ConversationService extends DSConfiguration {
 
     }
 
-    //TODO: remove promise
-    def blockByConversationId(id : Long) : Future[BlockUserByConversationResponse] = {
-
-      val blockUserPromise : Promise[BlockUserByConversationResponse] = Promise()
-
+    def blockByConversationId(userId : Long, conversationId : Long) : Future[BlockUserByConversationResponse] = {
       future {
-        val contact = for {
-          c <- conversationDao.findById(id)
-          cb <- contacts.findByContactId(c.toUser, c.fromUser)
-          n <- contacts.update(cb.copy(contactType = "block"))
-        } yield cb
+        db.withTransaction { implicit session =>
 
-        contact.onComplete {
-          case Success(c : Contact) => blockUserPromise.success(BlockUserByConversationResponse(c.id.get, true))
-          case Failure(ex)          => blockUserPromise.failure(PhantomException.contactNotUpdated)
+          val updatedOpt = for {
+            conversation <- conversationDao.findByIdAndUserOperation(conversationId, userId)
+            updateCount <- Option(contacts.blockContactOperation(userId, getOtherUserId(conversation, userId)))
+          } yield (updateCount, conversation)
+
+          updatedOpt match {
+            case None => throw PhantomException.nonExistentConversation
+            case Some((0, conversation)) =>
+              backfillBlockedContact(userId, getOtherUserId(conversation, userId)); BlockUserByConversationResponse(conversation.id.get, true)
+            case Some((_, conversation)) => BlockUserByConversationResponse(conversation.id.get, true)
+          }
         }
       }
+    }
 
-      blockUserPromise.future
+    private def backfillBlockedContact(ownerId : Long, contactId : Long)(implicit session : Session) : Contact = {
+      contacts.insertOperation(Contact(None, ownerId, contactId, "BLOCKED"))
+    }
+
+    //no check to see if the userId is present in here..only called by the function above
+    private def getOtherUserId(conversation : Conversation, userId : Long) = {
+      if (conversation.fromUser == userId) {
+        conversation.toUser
+      } else {
+        conversation.fromUser
+      }
     }
   }
-
 }

@@ -12,12 +12,14 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
   //ONLY USED BY TESTS
   def insert(contact : Contact) : Future[Contact] = {
     future {
-      db.withTransaction { implicit session =>
-        ContactTable.forInsert.insert(contact) match {
-          case 0         => throw PhantomException.contactNotInserted
-          case id : Long => contact.copy(id = Some(id))
-        }
-      }
+      db.withTransaction { implicit session => insertOperation(contact) }
+    }
+  }
+
+  def insertOperation(contact : Contact)(implicit session : Session) : Contact = {
+    ContactTable.forInsert.insert(contact) match {
+      case 0         => throw PhantomException.contactNotInserted
+      case id : Long => contact.copy(id = Some(id))
     }
   }
 
@@ -56,6 +58,13 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
         q.update(contact.ownerId, contact.contactId, contact.contactType)
       }
     }
+  }
+
+  def blockContactOperation(ownerId : Long, contactId : Long)(implicit session : Session) : Int = {
+    val q = for {
+      c <- ContactTable if c.ownerId === ownerId && c.contactId === contactId
+    } yield c.contactType
+    q.update("BLOCKED")
   }
 
   //TODO OPERATION ME
