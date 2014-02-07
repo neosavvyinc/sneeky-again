@@ -8,6 +8,8 @@ import scala.util.Try
 import com.relayrides.pushy.apns._
 import util._
 
+// http://relayrides.github.io/pushy/
+
 trait AppleService {
   def pushManager : PushManager[SimpleApnsPushNotification]
 }
