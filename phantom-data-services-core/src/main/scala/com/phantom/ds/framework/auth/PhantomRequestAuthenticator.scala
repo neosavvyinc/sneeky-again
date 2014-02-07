@@ -57,3 +57,13 @@ trait PassThroughRequestAuthenticator extends PhantomRequestAuthenticator {
   }
 
 }
+
+///not a fan of this at all
+trait SuppliedUserRequestAuthenticator extends PhantomRequestAuthenticator {
+  // :( this hurts..cannot run in parallel w/ this ever
+  var authedUser : Option[PhantomUser] = Option.empty
+
+  override def request(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[PhantomUser]] = {
+    Future.successful(authedUser.toRight(AuthenticationFailedRejection(CredentialsRejected, Nil)))
+  }
+}

@@ -27,7 +27,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
     } ~
       pathPrefix("users" / "logout") {
         authenticate(request _) { user =>
-          get {
+          get { //todo:  authenticate should return case class of User/Session
             parameter('sessionId) { session =>
               respondWithMediaType(`application/json`) {
                 complete(userService.logout(session))

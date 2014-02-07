@@ -42,7 +42,7 @@ class ConversationServiceSpec extends Specification
       results.createdCount must beEqualTo(2)
 
       val userIds = Seq(user1.id, user2.id).flatten
-      val user1Conversation = conversationDao.findConversationsAndItems(starter.id.get)
+      val user1Conversation = await(conversationDao.findConversationsAndItems(starter.id.get))
 
       aProbe.expectMsg(SendConversationNotification(Seq(user1, user2)))
       tProbe.expectNoMsg()
@@ -99,7 +99,7 @@ class ConversationServiceSpec extends Specification
       val nums = Set("12", "34", "56", "78", "90", "09")
       val results = await(service.startConversation(starter.id.get, nums, "text", "url"))
 
-      val user1Conversation = conversationDao.findConversationsAndItems(starter.id.get)
+      val user1Conversation = await(conversationDao.findConversationsAndItems(starter.id.get))
       val userIds = Seq(user1.id, user2.id).flatten
 
       user1Conversation.foreach {

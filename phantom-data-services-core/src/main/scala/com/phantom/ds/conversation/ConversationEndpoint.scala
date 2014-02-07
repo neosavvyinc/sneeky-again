@@ -4,7 +4,6 @@ import spray.http.MediaTypes._
 import com.phantom.ds.DataHttpService
 
 import com.phantom.ds.framework.auth.RequestAuthenticator
-import com.phantom.model.BlockUserByConversationResponse
 import akka.actor.ActorRef
 
 /**
@@ -27,21 +26,20 @@ trait ConversationEndpoint extends DataHttpService {
   val conversationRoute =
 
     pathPrefix(conversation) {
-      path(IntNumber) {
-        id =>
-          get {
-            respondWithMediaType(`application/json`) {
-              complete(
-                conversationService.findFeed(id)
-              )
-            }
+      authenticate(request _) { user =>
+        get {
+          respondWithMediaType(`application/json`) {
+            complete(
+              conversationService.findFeed(user.id.get)
+            )
           }
+        }
       }
     } ~ {
       val ByteJsonFormat = null
 
-      import spray.httpx.encoding.{ NoEncoding, Gzip }
-
+      import spray.httpx.encoding.NoEncoding
+      //TODO: remove user id, make this session based
       pathPrefix(conversation) {
         path("start") {
           post {
@@ -63,7 +61,7 @@ trait ConversationEndpoint extends DataHttpService {
       val ByteJsonFormat = null
 
       import spray.httpx.encoding.{ NoEncoding, Gzip }
-
+      //TODO ADD AUTH AND VALIDATION(IE: not responding toa conversation they are not a member of)
       pathPrefix(conversation) {
         path("respond") {
           post {
@@ -82,6 +80,7 @@ trait ConversationEndpoint extends DataHttpService {
       }
     } ~ {
       pathPrefix(conversation) {
+        //TODO:  ADD AUTH AND VALIDATION
         path("block" / IntNumber) {
           id =>
             post {
