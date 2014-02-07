@@ -11,6 +11,6 @@ trait TestUtils {
   }
 
   def await[T](f : => Future[T])(implicit ec : ExecutionContext) : T = {
-    Await.result(f, 2.seconds)
+    Await.result(f, 5.seconds)
   }
 }

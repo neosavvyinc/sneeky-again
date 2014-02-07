@@ -6,6 +6,7 @@ import com.phantom.ds.framework.httpx._
 import spray.json._
 import com.phantom.ds.DataHttpService
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
+import spray.http.StatusCodes
 
 trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
   this : RequestAuthenticator with EntryPointAuthenticator =>
@@ -67,6 +68,19 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
             respondWithMediaType(`application/json`) {
               complete(userService.findById(user.id.get))
             }
+          }
+        }
+      } ~
+      pathPrefix("users" / "pushNotifier") {
+        post {
+          entity(as[SessionIDWithPushNotifier]) {
+            sessionIDWithNotifier =>
+              complete {
+                userService.updatePushNotifier(
+                  sessionIDWithNotifier.sessionUUID,
+                  sessionIDWithNotifier.pushNotifier
+                )
+              }
           }
         }
       }
