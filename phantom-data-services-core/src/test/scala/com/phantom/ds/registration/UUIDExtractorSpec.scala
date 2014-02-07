@@ -8,7 +8,7 @@ class UUIDExtractorSpec extends Specification with TestUtils {
 
   "The UUIDExtractor" should {
 
-    "fail if the message is not in the proper form of 'text##UUID##text" in {
+    "fail if the message is not in the proper form of 'text[UUID]text" in {
       failAllCases(bad)
       failAllCases(valid.toString)
       1 must beEqualTo(1)

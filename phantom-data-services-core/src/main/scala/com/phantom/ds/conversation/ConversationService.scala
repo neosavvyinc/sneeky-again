@@ -53,9 +53,7 @@ object ConversationService extends DSConfiguration {
   def apply(twilioActor : ActorRef, appleActor : ActorRef)(implicit ec : ExecutionContext) = new ConversationService with DatabaseSupport with Logging {
 
     def findFeed(userId : Long) : Future[List[(Conversation, List[ConversationItem])]] = {
-      future {
-        conversationDao.findConversationsAndItems(userId)
-      }
+      conversationDao.findConversationsAndItems(userId)
     }
 
     def startConversation(fromUserId : Long,
@@ -148,6 +146,7 @@ object ConversationService extends DSConfiguration {
 
     }
 
+    //TODO: remove promise
     def blockByConversationId(id : Long) : Future[BlockUserByConversationResponse] = {
 
       val blockUserPromise : Promise[BlockUserByConversationResponse] = Promise()
