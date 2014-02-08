@@ -11,9 +11,14 @@ import spray.http.{ BodyPart, MultipartFormData }
 import com.phantom.ds.framework.auth.SuppliedUserRequestAuthenticator
 import akka.testkit.TestProbe
 import akka.actor.ActorRef
-import com.phantom.model.{ Contact, ConversationItem, BlockUserByConversationResponse, Conversation }
+import com.phantom.model._
 import com.phantom.ds.dataAccess.BaseDAOSpec
 import scala.concurrent.ExecutionContext.Implicits.global
+import com.phantom.model.ConversationItem
+import com.phantom.model.Conversation
+import com.phantom.model.BlockUserByConversationResponse
+import com.phantom.model.Contact
+
 /**
  * Created by Neosavvy
  *
@@ -130,7 +135,7 @@ class ConversationEndpointSpec extends Specification
       insertTestConverationsWithItems
       insertTestContacts
 
-      await(contacts.insert(Contact(None, 2, 1, "friend")))
+      await(contacts.insert(Contact(None, 2, 1)))
 
       val user1 = await(phantomUsersDao.find(1L))
       val user2 = await(phantomUsersDao.find(2L))
@@ -141,7 +146,7 @@ class ConversationEndpointSpec extends Specification
         assertPayload[BlockUserByConversationResponse] { response =>
           response.id must be equalTo 1L
           val contact = await(contacts.findByContactId(1L, 2L))
-          contact.contactType must be equalTo "BLOCKED"
+          contact.contactType must be equalTo Blocked
         }
       }
 
@@ -151,7 +156,7 @@ class ConversationEndpointSpec extends Specification
         assertPayload[BlockUserByConversationResponse] { response =>
           response.id must be equalTo 1L
           val contact = await(contacts.findByContactId(2L, 1L))
-          contact.contactType must be equalTo "BLOCKED"
+          contact.contactType must be equalTo Blocked
         }
       }
     }
@@ -177,7 +182,7 @@ class ConversationEndpointSpec extends Specification
         assertPayload[BlockUserByConversationResponse] { response =>
           response.id must be equalTo 1L
           val contact = await(contacts.findByContactId(2L, 1L))
-          contact.contactType must be equalTo "BLOCKED"
+          contact.contactType must be equalTo Blocked
         }
       }
     }

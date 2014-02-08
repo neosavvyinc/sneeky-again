@@ -2,7 +2,7 @@ package com.phantom.dataAccess
 
 import scala.slick.session.Database
 import com.phantom.ds.framework.exception.PhantomException
-import com.phantom.model.Contact
+import com.phantom.model.{ Blocked, Contact }
 import scala.concurrent.{ ExecutionContext, Future, future }
 
 class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionContext) extends BaseDAO(dal, db) {
@@ -62,7 +62,7 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     val q = for {
       c <- ContactTable if c.ownerId === ownerId && c.contactId === contactId
     } yield c.contactType
-    q.update("BLOCKED")
+    q.update(Blocked)
   }
 
   //TODO OPERATION ME
@@ -76,6 +76,14 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
   def findAll : List[Contact] = {
     db.withSession { implicit session =>
       Query(ContactTable).list
+    }
+  }
+
+  //ONLY USED BY TESTS
+  def findAllForOwner(id : Long) : Seq[Contact] = {
+    db.withSession { implicit session =>
+      val q = for { c <- ContactTable if c.ownerId === id } yield c
+      q.list()
     }
   }
 

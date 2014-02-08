@@ -67,6 +67,15 @@ package object httpx {
       }
     }
 
+    implicit object ContactTypeFormat extends JsonFormat[ContactType] {
+      override def write(obj : ContactType) : JsValue = JsString(ContactType.toStringRep(obj))
+
+      override def read(json : JsValue) : ContactType = json match {
+        case JsString(x) => ContactType.fromStringRep(x)
+        case _           => deserializationError("Expected String value for ContactType")
+      }
+    }
+
     implicit val failureFormat = jsonFormat2(Failure)
     implicit val userRegistrationFormat = jsonFormat3(UserRegistration)
     implicit val userRegistrationResponseFormat = jsonFormat2(RegistrationResponse)

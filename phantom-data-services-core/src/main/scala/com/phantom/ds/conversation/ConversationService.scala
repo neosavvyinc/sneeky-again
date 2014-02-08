@@ -161,7 +161,7 @@ object ConversationService extends DSConfiguration {
     }
 
     private def backfillBlockedContact(ownerId : Long, contactId : Long)(implicit session : Session) : Contact = {
-      contacts.insertOperation(Contact(None, ownerId, contactId, "BLOCKED"))
+      contacts.insertOperation(Contact(None, ownerId, contactId, Blocked))
     }
 
     //no check to see if the userId is present in here..only called by the function above
