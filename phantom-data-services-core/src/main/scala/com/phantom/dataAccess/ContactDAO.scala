@@ -2,7 +2,7 @@ package com.phantom.dataAccess
 
 import scala.slick.session.Database
 import com.phantom.ds.framework.exception.PhantomException
-import com.phantom.model.Contact
+import com.phantom.model.{ Blocked, Contact }
 import scala.concurrent.{ ExecutionContext, Future, future }
 
 class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionContext) extends BaseDAO(dal, db) {
@@ -12,12 +12,14 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
   //ONLY USED BY TESTS
   def insert(contact : Contact) : Future[Contact] = {
     future {
-      db.withTransaction { implicit session =>
-        ContactTable.forInsert.insert(contact) match {
-          case 0         => throw PhantomException.contactNotInserted
-          case id : Long => contact.copy(id = Some(id))
-        }
-      }
+      db.withTransaction { implicit session => insertOperation(contact) }
+    }
+  }
+
+  def insertOperation(contact : Contact)(implicit session : Session) : Contact = {
+    ContactTable.forInsert.insert(contact) match {
+      case 0         => throw PhantomException.contactNotInserted
+      case id : Long => contact.copy(id = Some(id))
     }
   }
 
@@ -56,6 +58,13 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     }
   }
 
+  def blockContactOperation(ownerId : Long, contactId : Long)(implicit session : Session) : Int = {
+    val q = for {
+      c <- ContactTable if c.ownerId === ownerId && c.contactId === contactId
+    } yield c.contactType
+    q.update(Blocked)
+  }
+
   //TODO OPERATION ME
   def deleteAll(id : Long)(session : scala.slick.session.Session) : Int = {
     db.withTransaction { implicit session =>
@@ -67,6 +76,14 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
   def findAll : List[Contact] = {
     db.withSession { implicit session =>
       Query(ContactTable).list
+    }
+  }
+
+  //ONLY USED BY TESTS
+  def findAllForOwner(id : Long) : Seq[Contact] = {
+    db.withSession { implicit session =>
+      val q = for { c <- ContactTable if c.ownerId === id } yield c
+      q.list()
     }
   }
 

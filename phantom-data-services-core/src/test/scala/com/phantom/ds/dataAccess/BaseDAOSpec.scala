@@ -9,7 +9,6 @@ import java.util.UUID
 import com.phantom.ds.user.Passwords
 import com.phantom.ds.TestUtils
 import scala.concurrent.ExecutionContext.Implicits.global
-import com.phantom.ds.framework.Logging
 
 /**
  * Created with IntelliJ IDEA.
@@ -59,7 +58,7 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with After with Tes
     conversationDao.insert(Conversation(None, toId, fromId))
   }
 
-  def insertTestUsers {
+  def insertTestUsers() {
     val user1 = new PhantomUser(None, UUID.randomUUID(), "aparrish@neosavvy.com", "password", new LocalDate(1981, 8, 10), true, "111111")
     val user2 = new PhantomUser(None, UUID.randomUUID(), "ccaplinger@neosavvy.com", "password", new LocalDate(1986, 10, 12), true, "222222")
     val user3 = new PhantomUser(None, UUID.randomUUID(), "tewen@neosavvy.com", "password", new LocalDate(1987, 8, 16), true, "333333")
@@ -75,7 +74,7 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with After with Tes
 
   }
 
-  def insertUsersWithPhoneNumbersAndContacts = {
+  def insertUsersWithPhoneNumbersAndContacts() = {
 
     val user1 = PhantomUser(None, UUID.randomUUID(), "aparrish@neosavvy.com", "password", new LocalDate(1981, 8, 10), true, "4993676")
     val user2 = PhantomUser(None, UUID.randomUUID(), "ccaplinger@neosavvy.com", "password", new LocalDate(1986, 10, 12), true, "5192050")
@@ -86,20 +85,20 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with After with Tes
     phantomUsersDao.insert(user3)
     phantomUsersDao.insert(user4)
 
-    insertTestContacts
+    insertTestContacts()
   }
 
-  def insertTestContacts {
+  def insertTestContacts() {
     contacts.insertAll(
       Seq(
-        Contact(None, 1, 2, "friend"),
-        Contact(None, 1, 3, "friend"),
-        Contact(None, 1, 4, "friend")
+        Contact(None, 1, 2),
+        Contact(None, 1, 3),
+        Contact(None, 1, 4)
       )
     )
   }
 
-  def insertTestConversations {
+  def insertTestConversations() {
 
     val conv1 = new Conversation(None, 1, 2)
     val conv2 = new Conversation(None, 3, 4)
@@ -110,8 +109,8 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with After with Tes
 
   }
 
-  def insertTestConverationsWithItems {
-    insertTestUsersAndConversations
+  def insertTestConverationsWithItems() {
+    insertTestUsersAndConversations()
 
     val conv1item1 = new ConversationItem(None, 1, "imageUrl1", "imageText1")
     val conv1item2 = new ConversationItem(None, 1, "imageUrl2", "imageText2")
@@ -124,9 +123,9 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with After with Tes
     await(conversationItemDao.insertAll(Seq(conv1item1, conv1item2, conv1item3, conv2item1, conv2item2, conv2item3)))
   }
 
-  def insertTestUsersAndConversations {
-    insertTestUsers
-    insertTestConversations
+  def insertTestUsersAndConversations() {
+    insertTestUsers()
+    insertTestConversations()
   }
 
 }

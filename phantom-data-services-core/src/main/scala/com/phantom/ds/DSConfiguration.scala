@@ -24,10 +24,26 @@ trait DSConfiguration {
 
     val secret = authCfg.getString("secret")
     val requestTimeout = authCfg.getLong("requestTimeout")
-    val authEnabled = authCfg.getBoolean("enabled")
+    val mode = AuthenticationMode(authCfg.getString("mode"))
 
     private def authCfg = cfg.getConfig("auth")
   }
+
+  sealed trait AuthenticationMode
+
+  object AuthenticationMode {
+    def apply(mode : String) = mode.toLowerCase match {
+      case "nohash" => NonHashingAuthentication
+      case "none"   => NoAuthentication
+      case _        => FullAuthentication
+    }
+  }
+
+  case object FullAuthentication extends AuthenticationMode
+
+  case object NonHashingAuthentication extends AuthenticationMode
+
+  case object NoAuthentication extends AuthenticationMode
 
   object FileStoreConfiguration {
 

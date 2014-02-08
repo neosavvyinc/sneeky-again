@@ -39,19 +39,20 @@ trait ConversationEndpoint extends DataHttpService {
       val ByteJsonFormat = null
 
       import spray.httpx.encoding.NoEncoding
-      //TODO: remove user id, make this session based
       pathPrefix(conversation) {
         path("start") {
-          post {
-            formFields('image.as[Array[Byte]], 'imageText, 'userid.as[Long], 'toUsers.as[String]) { (image, imageText, userid, toUsers) =>
-              complete {
-                conversationService.startConversation(
-                  userid,
-                  toUsers.split(",").toSet,
-                  imageText,
-                  //todo: move this into the service, and future bound it
-                  conversationService.saveFileForConversationId(image, userid)
-                )
+          authenticate(request _) { user =>
+            post {
+              formFields('image.as[Array[Byte]], 'imageText, 'toUsers.as[String]) { (image, imageText, toUsers) =>
+                complete {
+                  conversationService.startConversation(
+                    user.id.get,
+                    toUsers.split(",").toSet,
+                    imageText,
+                    //todo: move this into the service, and future bound it
+                    conversationService.saveFileForConversationId(image, user.id.get)
+                  )
+                }
               }
             }
           }
@@ -61,18 +62,20 @@ trait ConversationEndpoint extends DataHttpService {
       val ByteJsonFormat = null
 
       import spray.httpx.encoding.{ NoEncoding, Gzip }
-      //TODO ADD AUTH AND VALIDATION(IE: not responding toa conversation they are not a member of)
+      //TODO are images required?
       pathPrefix(conversation) {
         path("respond") {
-          post {
-            formFields('image.as[Array[Byte]], 'imageText, 'convId.as[Long]) { (image, imageText, convId) =>
+          authenticate(request _) { user =>
+            post {
+              formFields('image.as[Array[Byte]], 'imageText, 'convId.as[Long]) { (image, imageText, convId) =>
+                complete {
+                  conversationService.respondToConversation(
+                    user.id.get,
+                    convId,
+                    imageText,
+                    image)
 
-              complete {
-                conversationService.respondToConversation(
-                  convId,
-                  imageText,
-                  conversationService.saveFileForConversationId(image, convId))
-
+                }
               }
             }
           }
@@ -80,16 +83,16 @@ trait ConversationEndpoint extends DataHttpService {
       }
     } ~ {
       pathPrefix(conversation) {
-        //TODO:  ADD AUTH AND VALIDATION
-        path("block" / IntNumber) {
-          id =>
+        path("block" / IntNumber) { id =>
+          authenticate(request _) { user =>
             post {
               respondWithMediaType(`application/json`) {
                 complete {
-                  conversationService.blockByConversationId(id)
+                  conversationService.blockByConversationId(user.id.get, id)
                 }
               }
             }
+          }
         }
       }
     }

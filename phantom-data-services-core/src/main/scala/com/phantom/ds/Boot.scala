@@ -6,8 +6,9 @@ import spray.can.Http
 import com.phantom.ds.framework.auth._
 import com.phantom.ds.integration.twilio.{ TwiioMessageSender, TwilioService, TwilioActor }
 import com.phantom.ds.integration.apple.AppleActor
+import com.phantom.ds.framework.Logging
 
-object Boot extends App with DSConfiguration {
+object Boot extends App with DSConfiguration with Logging {
 
   // we need an ActorSystem to host our application in
   implicit val system = ActorSystem("on-spray-can")
@@ -16,16 +17,18 @@ object Boot extends App with DSConfiguration {
 
   val phantomService = getActor
 
-  implicit val executor = scala.concurrent.ExecutionContext.Implicits.global
+  implicit val executor = scala.concurrent.ExecutionContext.Implicits.global //TODO <<<---change this to cachedThreadPool possibly
 
   // start a new HTTP server on port 8080 with our service actor as the handler
   IO(Http) ! Http.Bind(phantomService, interface = "0.0.0.0", port = 9090)
 
   private def getActor = {
-    if (AuthConfiguration.authEnabled) {
-      system.actorOf(Props(new PhantomRouteActor(twilioActor, appleActor) with PhantomRequestAuthenticator with PhantomEntryPointAuthenticator), "service")
-    } else {
-      system.actorOf(Props(new PhantomRouteActor(twilioActor, appleActor) with PassThroughRequestAuthenticator with PassThroughEntryPointAuthenticator), "service")
+    val mode = AuthConfiguration.mode
+    log.info(s"---->>>STARTING APPLICATION WITH AUTHENTICATION: $mode <<<------")
+    mode match {
+      case FullAuthentication       => system.actorOf(Props(new PhantomRouteActor(twilioActor, appleActor) with PhantomRequestAuthenticator with PhantomEntryPointAuthenticator), "service")
+      case NonHashingAuthentication => system.actorOf(Props(new PhantomRouteActor(twilioActor, appleActor) with NonHashingRequestAuthenticator with PassThroughEntryPointAuthenticator), "service")
+      case NoAuthentication         => system.actorOf(Props(new PhantomRouteActor(twilioActor, appleActor) with PassThroughRequestAuthenticator with PassThroughEntryPointAuthenticator), "service")
     }
   }
 

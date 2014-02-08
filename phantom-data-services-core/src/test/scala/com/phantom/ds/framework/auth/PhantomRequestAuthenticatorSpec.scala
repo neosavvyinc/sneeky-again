@@ -11,6 +11,8 @@ import scala.concurrent._
 import scala.concurrent.duration._
 
 class PhantomRequestAuthenticatorSpec extends Specification
+    with PhantomRequestAuthenticator
+    with PhantomEntryPointAuthenticator
     with AuthTestPoint
     with Specs2RouteTest
     with BaseDAOSpec

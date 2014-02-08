@@ -16,13 +16,9 @@ class ConversationItemDAO(dal : DataAccessLayer, db : Database)(implicit ec : Ex
   import dal._
   import dal.profile.simple._
 
-  def insert(conversationItem : ConversationItem) : Future[ConversationItem] = {
-    future {
-      db.withTransaction { implicit session =>
-        val id = ConversationItemTable.forInsert.insert(conversationItem)
-        new ConversationItem(Some(id), conversationItem.conversationId, conversationItem.imageUrl, conversationItem.imageText)
-      }
-    }
+  def insertOperation(conversationItem : ConversationItem)(implicit session : Session) : ConversationItem = {
+    val id = ConversationItemTable.forInsert.insert(conversationItem)
+    conversationItem.copy(id = Some(id))
   }
 
   //ONLY USED BY TESTS

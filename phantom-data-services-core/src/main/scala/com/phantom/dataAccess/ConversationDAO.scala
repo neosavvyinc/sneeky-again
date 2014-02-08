@@ -65,6 +65,15 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
+  private val byIdAndUserQuery = for {
+    (conversationId, userId) <- Parameters[(Long, Long)]
+    c <- ConversationTable if (c.id is conversationId) && ((c.fromUser is userId) || (c.toUser is userId))
+  } yield c
+
+  def findByIdAndUserOperation(conversationId : Long, userId : Long)(implicit session : Session) : Option[Conversation] = {
+    byIdAndUserQuery(conversationId, userId).firstOption
+  }
+
   //ONLY USED BY TESTS
   def updateById(conversation : Conversation) : Int = {
     db.withSession { implicit session =>

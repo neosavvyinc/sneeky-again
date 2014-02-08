@@ -5,10 +5,6 @@ import org.joda.time.{ DateTimeZone, DateTime, LocalDate }
 import scala.slick.lifted.ColumnOption.DBType
 import java.util.UUID
 
-package object PhantomUserTypes {
-  type PhoneNumber = String
-}
-
 case class UserRegistration(email : String,
                             birthday : LocalDate,
                             password : String)
@@ -80,7 +76,7 @@ object PhantomSession {
   }
 }
 
-case class PhantomSession(sessionId : UUID, userId : Long, created : DateTime, lastAccessed : DateTime, applePushID : Option[String])
+case class PhantomSession(sessionId : UUID, userId : Long, created : DateTime, lastAccessed : DateTime, applePushID : Option[String] = None)
 
 trait UserComponent { this : Profile =>
 

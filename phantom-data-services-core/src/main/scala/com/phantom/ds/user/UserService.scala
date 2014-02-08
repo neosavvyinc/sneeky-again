@@ -1,8 +1,6 @@
 package com.phantom.ds.user
 
-import scala.concurrent.{ Promise, ExecutionContext, Future, future }
-import scala.util.{ Success, Failure }
-import spray.http.StatusCode
+import scala.concurrent.{ ExecutionContext, Future, future }
 import com.phantom.model._
 import com.phantom.ds.framework.Logging
 import com.phantom.model.UserLogin
@@ -17,7 +15,7 @@ trait UserService {
   def findById(id : Long) : Future[PhantomUser]
   def findContactsById(id : Long) : Future[List[PhantomUser]]
   def updateContacts(id : Long, contacts : List[String]) : Future[List[PhantomUser]]
-  def clearBlockList(id : Long) : Future[StatusCode]
+  def clearBlockList(id : Long) : Future[Int]
 }
 
 object UserService {
@@ -48,13 +46,14 @@ object UserService {
       phantomUsersDao.findContacts(id)
     }
 
+    //TODO FIX ME..I DELETE BLOCKED USERS
     def updateContacts(id : Long, contactList : List[String]) : Future[List[PhantomUser]] = {
       val session = db.createSession
 
       future {
         contacts.deleteAll(id)(session)
         val (users : List[PhantomUser], numbersNotFound : List[String]) = phantomUsersDao.findPhantomUserIdsByPhone(contactList)
-        contacts.insertAll(users.map(u => Contact(None, id, u.id.get, "friend")))
+        contacts.insertAll(users.map(u => Contact(None, id, u.id.get)))
 
         // TO DO
         // need to partition phone number request, update contacts for all
@@ -63,14 +62,19 @@ object UserService {
       }
     }
 
-    def clearBlockList(id : Long) : Future[StatusCode] = {
+    def clearBlockList(id : Long) : Future[Int] = {
       future {
-        phantomUsersDao.clearBlockList(id)
+        db.withTransaction { implicit session =>
+          phantomUsersDao.clearBlockListOperation(id)
+        }
+
       }
     }
 
     def updatePushNotifier(sessionUUID : UUID, applePushToken : String) : Future[Boolean] = {
-      Future.successful(sessions.updatePushNotifier(sessionUUID, applePushToken))
+      future {
+        sessions.updatePushNotifier(sessionUUID, applePushToken)
+      }
     }
   }
 
