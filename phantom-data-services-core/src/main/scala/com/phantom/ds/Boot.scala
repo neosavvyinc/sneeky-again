@@ -35,5 +35,5 @@ object Boot extends App with DSConfiguration {
 
   private def twilioService = TwilioService(TwiioMessageSender(TwilioConfiguration.accountSid, TwilioConfiguration.authToken, TwilioConfiguration.phoneNumber))(executor)
 
-  private def appleService = AppleService("someConfig")
+  private def appleService = AppleService(ApplePushConfiguration.keyStorePassword, ApplePushConfiguration.certPath)
 }
