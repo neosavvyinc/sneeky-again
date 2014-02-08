@@ -17,51 +17,45 @@ class AppleAPNSRejectListener extends RejectedNotificationListener[SimpleApnsPus
   }
 }
 
-trait AppleService {
-  def pushManager : PushManager[SimpleApnsPushNotification]
+object AppleService extends DSConfiguration {
+
+  private val keystoreInputStream = new java.io.FileInputStream(ApplePushConfiguration.certPath)
+
+  private val keyStore = for {
+    ks <- Try(java.security.KeyStore.getInstance("PKCS12"))
+    _ <- Try(ks.load(keystoreInputStream, ApplePushConfiguration.keyStorePassword.toCharArray()))
+  } yield ks
+
+  // TO DO
+  // Figure out some sort of "finally" syntax to always
+  // close keystore stream and/or error handling
+  // Try(keystoreInputStream.close())
+
+  //    keyStore match {
+  //      case Failure(ex) => {
+  //        // throw some exception here related to certs
+  //        println("Exception", ex.toString)
+  //        keystoreInputStream.close()
+  //      }
+  //      case Success(s) => println("Success")
+  //    }
+  //
+  val pushManager = new PushManager[SimpleApnsPushNotification](
+    ApnsEnvironment.getSandboxEnvironment(), // Production v. Sandbox
+    keyStore.get, // FIX THIS
+    ApplePushConfiguration.keyStorePassword.toCharArray()
+  )
+
+  private val listener = new AppleAPNSRejectListener()
+
+  pushManager.registerRejectedNotificationListener(listener)
+  pushManager.start()
+
+  // finally?
+  keystoreInputStream.close()
 }
 
-object AppleService {
-  def apply(keyStorePassword : String, certificatePath : String) : AppleService = new AppleService with Logging {
-
-    private val keystoreInputStream = new java.io.FileInputStream(certificatePath)
-
-    private val keyStore = for {
-      ks <- Try(java.security.KeyStore.getInstance("PKCS12"))
-      _ <- Try(ks.load(keystoreInputStream, keyStorePassword.toCharArray()))
-    } yield ks
-
-    // TO DO
-    // Figure out some sort of "finally" syntax to always
-    // close keystore stream and/or error handling
-    // Try(keystoreInputStream.close())
-
-    //    keyStore match {
-    //      case Failure(ex) => {
-    //        // throw some exception here related to certs
-    //        println("Exception", ex.toString)
-    //        keystoreInputStream.close()
-    //      }
-    //      case Success(s) => println("Success")
-    //    }
-    //
-    val pushManager = new PushManager[SimpleApnsPushNotification](
-      ApnsEnvironment.getSandboxEnvironment(), // Production v. Sandbox
-      keyStore.get, // FIX THIS
-      keyStorePassword.toCharArray()
-    )
-
-    private val listener = new AppleAPNSRejectListener()
-
-    pushManager.registerRejectedNotificationListener(listener)
-    pushManager.start()
-
-    // finally?
-    keystoreInputStream.close()
-  }
-}
-
-class AppleActor(service : AppleService) extends Actor with DSConfiguration with Logging {
+class AppleActor extends Actor with Logging {
 
   def receive : Actor.Receive = {
     case user : PhantomUser => {
@@ -75,7 +69,7 @@ class AppleActor(service : AppleService) extends Actor with DSConfiguration with
 
       val payload = payloadBuilder.buildWithDefaultMaximumLength()
 
-      service.pushManager.enqueuePushNotification(
+      AppleService.pushManager.enqueuePushNotification(
         new SimpleApnsPushNotification(TokenUtil.tokenStringToByteArray(tokenString), payload))
     }
   }

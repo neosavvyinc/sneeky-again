@@ -34,9 +34,7 @@ object Boot extends App with DSConfiguration with Logging {
 
   private def twilioActor = system.actorOf(Props(new TwilioActor(twilioService)))
 
-  private def appleActor = system.actorOf(Props(new AppleActor(appleService)))
+  private def appleActor = system.actorOf(Props(new AppleActor()))
 
   private def twilioService = TwilioService(TwiioMessageSender(TwilioConfiguration.accountSid, TwilioConfiguration.authToken, TwilioConfiguration.phoneNumber))(executor)
-
-  private def appleService = AppleService(ApplePushConfiguration.keyStorePassword, ApplePushConfiguration.certPath)
 }
