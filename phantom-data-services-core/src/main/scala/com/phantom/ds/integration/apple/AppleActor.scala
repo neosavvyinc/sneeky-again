@@ -47,8 +47,8 @@ object AppleService extends DSConfiguration {
   )
 
   private val listener = new AppleAPNSRejectListener()
-
   pushManager.registerRejectedNotificationListener(listener)
+
   pushManager.start()
 
   // finally?
