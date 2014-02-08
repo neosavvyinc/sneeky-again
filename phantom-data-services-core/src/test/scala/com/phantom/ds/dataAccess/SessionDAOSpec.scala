@@ -1,7 +1,7 @@
 package com.phantom.ds.dataAccess
 
 import java.util.UUID
-import com.phantom.model.{ PhantomUser, PhantomSession }
+import com.phantom.model.{ Apple, Android, PhantomUser, PhantomSession }
 import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
@@ -21,17 +21,11 @@ class SessionDAOSpec extends BaseDAOSpec {
 
       val user : PhantomUser = createVerifiedUser("lemmy@kilmister.com", "motorhead", "9998887766")
 
-      System.out.println("am i here")
-
       val session = await {
         sessions.createSession(PhantomSession.newSession(user))
       }
 
-      System.out.println("am i here again")
-
-      val result = sessions.updatePushNotifier(session.sessionId, "motorheadrocks")
-
-      System.out.println("am i here three times")
+      val result = sessions.updatePushNotifier(session.sessionId, "motorheadrocks", Apple)
 
       result should be equalTo true
     }
