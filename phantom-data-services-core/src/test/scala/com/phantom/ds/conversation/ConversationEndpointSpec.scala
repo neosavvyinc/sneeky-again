@@ -90,13 +90,10 @@ class ConversationEndpointSpec extends Specification
       val user = await(phantomUsersDao.find(2L))
       authedUser = Some(user)
 
-      val in4 = this.getClass().getClassLoader().getResourceAsStream("testFile.png")
-      var stream = Iterator continually in4.read takeWhile (-1 !=) map (_.toByte) toArray
-
       val multipartFormWithData = MultipartFormData {
         Map(
           "imageText" -> BodyPart("This is the image text"),
-          "image" -> BodyPart(stream),
+          "image" -> BodyPart(readImage),
           "toUsers" -> BodyPart("111111,222222,333333")
         )
       }
@@ -117,21 +114,36 @@ class ConversationEndpointSpec extends Specification
     "support receiving a multi-part form post to update a conversation with image" in withSetupTeardown {
       insertTestConverationsWithItems()
 
-      val in4 = this.getClass().getClassLoader().getResourceAsStream("testFile.png")
-      var stream = Iterator continually in4.read takeWhile (-1 !=) map (_.toByte) toArray
-
       val multipartFormWithData = MultipartFormData {
         Map(
           "convId" -> BodyPart("1"),
           "imageText" -> BodyPart("This is the image text"),
-          "image" -> BodyPart(stream)
+          "image" -> BodyPart(readImage)
         )
       }
 
       Post("/conversation/respond", multipartFormWithData) ~> conversationRoute ~> check {
         status === OK
       }
+    }
 
+    "disallow responding to a conversation if the user is not a member" in withSetupTeardown {
+      insertTestConverationsWithItems()
+
+      val user = await(phantomUsersDao.find(3L))
+      authedUser = Some(user)
+
+      val multipartFormWithData = MultipartFormData {
+        Map(
+          "convId" -> BodyPart("1"),
+          "imageText" -> BodyPart("This is the image text"),
+          "image" -> BodyPart(readImage)
+        )
+      }
+
+      Post("/conversation/respond", multipartFormWithData) ~> conversationRoute ~> check {
+        assertFailure(203)
+      }
     }
 
     "support blocking a user by providing a conversation id for both from and to users" in withSetupTeardown {
@@ -199,5 +211,10 @@ class ConversationEndpointSpec extends Specification
         assertFailure(203)
       }
     }
+  }
+
+  private def readImage : Array[Byte] = {
+    val in4 = this.getClass.getClassLoader.getResourceAsStream("testFile.png")
+    Iterator continually in4.read takeWhile (-1 !=) map (_.toByte) toArray
   }
 }

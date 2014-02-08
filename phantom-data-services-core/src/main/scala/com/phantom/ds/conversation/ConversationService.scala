@@ -33,9 +33,10 @@ trait ConversationService {
                         imageText : String,
                         imageUrl : String) : Future[ConversationInsertResponse]
 
-  def respondToConversation(conversationId : Long,
+  def respondToConversation(userId : Long,
+                            conversationId : Long,
                             imageText : String,
-                            imageUrl : String) : Future[ConversationUpdateResponse]
+                            image : Array[Byte]) : Future[ConversationUpdateResponse]
 
   def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String
 
@@ -115,10 +116,15 @@ object ConversationService extends DSConfiguration {
       }
     }
 
-    def respondToConversation(conversationId : Long,
-                              imageText : String,
-                              imageUrl : String) : Future[ConversationUpdateResponse] = {
-      conversationItemDao.insert(ConversationItem(None, conversationId, imageUrl, imageText)).map(x => ConversationUpdateResponse(1))
+    override def respondToConversation(userId : Long, conversationId : Long, imageText : String, image : Array[Byte]) : Future[ConversationUpdateResponse] = {
+      future {
+        db.withTransaction { implicit session =>
+          val citem = for {
+            conversation <- conversationDao.findByIdAndUserOperation(conversationId, userId)
+          } yield conversationItemDao.insertOperation(ConversationItem(None, conversationId, saveFileForConversationId(image, conversationId), imageText))
+          citem.map(x => ConversationUpdateResponse(1)).getOrElse(throw PhantomException.nonExistentConversation)
+        }
+      }
     }
 
     def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String = {

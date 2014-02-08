@@ -62,18 +62,20 @@ trait ConversationEndpoint extends DataHttpService {
       val ByteJsonFormat = null
 
       import spray.httpx.encoding.{ NoEncoding, Gzip }
-      //TODO ADD AUTH AND VALIDATION(IE: not responding toa conversation they are not a member of)
+      //TODO are images required?
       pathPrefix(conversation) {
         path("respond") {
-          post {
-            formFields('image.as[Array[Byte]], 'imageText, 'convId.as[Long]) { (image, imageText, convId) =>
+          authenticate(request _) { user =>
+            post {
+              formFields('image.as[Array[Byte]], 'imageText, 'convId.as[Long]) { (image, imageText, convId) =>
+                complete {
+                  conversationService.respondToConversation(
+                    user.id.get,
+                    convId,
+                    imageText,
+                    image)
 
-              complete {
-                conversationService.respondToConversation(
-                  convId,
-                  imageText,
-                  conversationService.saveFileForConversationId(image, convId))
-
+                }
               }
             }
           }
