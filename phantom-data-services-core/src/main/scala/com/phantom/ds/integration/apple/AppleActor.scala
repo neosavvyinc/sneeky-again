@@ -17,8 +17,8 @@ trait AppleService {
 object AppleService {
   def apply(config : String) : AppleService = new AppleService {
 
-    private val keyStorePassword = "KEY_STORE_PASS"
-    private val certPath = "/path/to/certificate.p12"
+    private val keyStorePassword = "DbwjKqHWJ69cXs9"
+    private val certPath = "/NEOSAVVY/work/phantom/certs/Certificates.p12"
     private val keystoreInputStream = new java.io.FileInputStream(certPath)
 
     val keyStore = for {
