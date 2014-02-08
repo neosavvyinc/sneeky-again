@@ -46,7 +46,7 @@ class ConversationEndpointSpec extends Specification
   "Conversation Service" should {
 
     "return a user's feed" in withSetupTeardown {
-      insertTestConverationsWithItems
+      insertTestConverationsWithItems()
       val toUserConv = conversationDao.insert(Conversation(None, 2L, 1L))
       val item = ConversationItem(None, toUserConv.id.get, "", "")
       await(conversationItemDao.insertAll(Seq(item, item, item)))
@@ -69,10 +69,13 @@ class ConversationEndpointSpec extends Specification
 
     "support receiving a multi-part form post to start or update a conversation, if no image it throws error" in withSetupTeardown {
 
+      insertTestUsers()
+      val user = await(phantomUsersDao.find(2L))
+      authedUser = Some(user)
+
       val multipartForm = MultipartFormData {
         Map(
-          "imageText" -> BodyPart("This is the image text with no image"),
-          "userid" -> BodyPart("adamparrish")
+          "imageText" -> BodyPart("This is the image text with no image")
         )
       }
 
@@ -83,7 +86,9 @@ class ConversationEndpointSpec extends Specification
     }
 
     "support receiving a multi-part form post to start a conversation with image" in withSetupTeardown {
-      insertTestUsers
+      insertTestUsers()
+      val user = await(phantomUsersDao.find(2L))
+      authedUser = Some(user)
 
       val in4 = this.getClass().getClassLoader().getResourceAsStream("testFile.png")
       var stream = Iterator continually in4.read takeWhile (-1 !=) map (_.toByte) toArray
@@ -91,7 +96,6 @@ class ConversationEndpointSpec extends Specification
       val multipartFormWithData = MultipartFormData {
         Map(
           "imageText" -> BodyPart("This is the image text"),
-          "userid" -> BodyPart("1"),
           "image" -> BodyPart(stream),
           "toUsers" -> BodyPart("111111,222222,333333")
         )
@@ -99,7 +103,7 @@ class ConversationEndpointSpec extends Specification
 
       Post("/conversation/start", multipartFormWithData) ~> conversationRoute ~> check {
         status === OK
-        val conversations = conversationDao.findByFromUserId(1)
+        val conversations = conversationDao.findByFromUserId(2)
         conversations.foreach { x =>
           val items = conversationItemDao.findByConversationId(x.id.get)
           items should have size 1
@@ -111,7 +115,7 @@ class ConversationEndpointSpec extends Specification
     }
 
     "support receiving a multi-part form post to update a conversation with image" in withSetupTeardown {
-      insertTestConverationsWithItems
+      insertTestConverationsWithItems()
 
       val in4 = this.getClass().getClassLoader().getResourceAsStream("testFile.png")
       var stream = Iterator continually in4.read takeWhile (-1 !=) map (_.toByte) toArray
@@ -132,8 +136,8 @@ class ConversationEndpointSpec extends Specification
 
     "support blocking a user by providing a conversation id for both from and to users" in withSetupTeardown {
 
-      insertTestConverationsWithItems
-      insertTestContacts
+      insertTestConverationsWithItems()
+      insertTestContacts()
 
       await(contacts.insert(Contact(None, 2, 1)))
 
@@ -162,8 +166,8 @@ class ConversationEndpointSpec extends Specification
     }
 
     "fail blocking if the user is not a member of the conversation" in withSetupTeardown {
-      insertTestConverationsWithItems
-      insertTestContacts
+      insertTestConverationsWithItems()
+      insertTestContacts()
       authedUser = Some(await(phantomUsersDao.find(3L)))
       Post("/conversation/block/1") ~> conversationRoute ~> check {
         assertFailure(203)
@@ -172,8 +176,8 @@ class ConversationEndpointSpec extends Specification
     }
 
     "create blocked contact if the contact doesn't exist" in withSetupTeardown {
-      insertTestConverationsWithItems
-      insertTestContacts
+      insertTestConverationsWithItems()
+      insertTestContacts()
 
       val user2 = await(phantomUsersDao.find(2L))
       authedUser = Some(user2)
@@ -188,8 +192,8 @@ class ConversationEndpointSpec extends Specification
     }
 
     "fail blocking if the conversation doesn't exist" in withSetupTeardown {
-      insertTestConverationsWithItems
-      insertTestContacts
+      insertTestConverationsWithItems()
+      insertTestContacts()
       authedUser = Some(await(phantomUsersDao.find(3L)))
       Post("/conversation/block/100") ~> conversationRoute ~> check {
         assertFailure(203)

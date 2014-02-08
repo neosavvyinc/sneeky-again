@@ -61,7 +61,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
           }
         }
       } ~
-      pathPrefix("users") {
+      pathPrefix("users") { //TODO whats this used for?
         authenticate(request _) { user =>
           get {
             respondWithMediaType(`application/json`) {

@@ -39,19 +39,20 @@ trait ConversationEndpoint extends DataHttpService {
       val ByteJsonFormat = null
 
       import spray.httpx.encoding.NoEncoding
-      //TODO: remove user id, make this session based
       pathPrefix(conversation) {
         path("start") {
-          post {
-            formFields('image.as[Array[Byte]], 'imageText, 'userid.as[Long], 'toUsers.as[String]) { (image, imageText, userid, toUsers) =>
-              complete {
-                conversationService.startConversation(
-                  userid,
-                  toUsers.split(",").toSet,
-                  imageText,
-                  //todo: move this into the service, and future bound it
-                  conversationService.saveFileForConversationId(image, userid)
-                )
+          authenticate(request _) { user =>
+            post {
+              formFields('image.as[Array[Byte]], 'imageText, 'toUsers.as[String]) { (image, imageText, toUsers) =>
+                complete {
+                  conversationService.startConversation(
+                    user.id.get,
+                    toUsers.split(",").toSet,
+                    imageText,
+                    //todo: move this into the service, and future bound it
+                    conversationService.saveFileForConversationId(image, user.id.get)
+                  )
+                }
               }
             }
           }
