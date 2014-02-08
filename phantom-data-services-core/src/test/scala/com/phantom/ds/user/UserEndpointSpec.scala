@@ -8,13 +8,15 @@ import mutable.Specification
 import spray.testkit.Specs2RouteTest
 import com.phantom.ds.PhantomEndpointSpec
 import org.joda.time.LocalDate
-import com.phantom.ds.framework.auth.{ PassThroughEntryPointAuthenticator, PassThroughRequestAuthenticator }
+import com.phantom.ds.framework.auth.{ SuppliedUserRequestAuthenticator, PassThroughEntryPointAuthenticator, PassThroughRequestAuthenticator }
 import com.phantom.ds.dataAccess.BaseDAOSpec
+import spray.http.StatusCodes
+import java.util.UUID
 
 class UserEndpointSpec extends Specification
     with PhantomEndpointSpec
     with Specs2RouteTest
-    with PassThroughRequestAuthenticator
+    with SuppliedUserRequestAuthenticator
     with PassThroughEntryPointAuthenticator
     with UserEndpoint
     with BaseDAOSpec {
@@ -72,6 +74,35 @@ class UserEndpointSpec extends Specification
           }
         }
       }
+    }
+
+    "sending a push notifier up with a session id to save to a session" in withSetupTeardown {
+
+      authedUser = Some(createVerifiedUser("adam@somewheres.com", "anything"))
+
+      Post("/users/pushNotifier?sessionId=38400000-8cf0-11bd-b23e-10b96e4ef00d", SessionIDWithPushNotifier(
+        UUID.fromString("38400000-8cf0-11bd-b23e-10b96e4ef00d"),
+        "anysessionid",
+        Apple
+      )) ~> userRoute ~> check {
+        status == StatusCodes.OK
+      }
+    }
+
+    "clear a blocked list" in withSetupTeardown {
+      insertTestUsers()
+      val user = createVerifiedUser("email@email.com", "anything")
+      authedUser = Some(user)
+      val c = Seq(Contact(None, user.id.get, 1, Friend), Contact(None, user.id.get, 2, Friend), Contact(None, user.id.get, 3, Blocked), Contact(None, user.id.get, 4, Blocked))
+      contacts.insertAll(c)
+      Post("/users/clearblocklist") ~> userRoute ~> check {
+        status == StatusCodes.OK
+
+        val fetched = contacts.findAllForOwner(user.id.get)
+        val notBlocked = fetched.filter(_.contactType == Friend)
+        notBlocked must have size 4
+      }
+
     }
 
     //    "be able to update a user's contacts" in withSetupTeardown {
@@ -134,17 +165,6 @@ class UserEndpointSpec extends Specification
       Get("/users/1") ~> userRoute ~> check {
         assertPayload[ClientSafeUserResponse] { response =>
           response.email must be equalTo "ccaplinger@neosavvy.com"
-        }
-      }
-    }
-
-    "be able to clear the list of blocked users for a given user" in withSetupTeardown {
-      val newUser = UserRegistration("adamparrish@something.com", birthday, "somethingelse")
-      registerUser(newUser)
-
-      Get("/users/1") ~> userRoute ~> check {
-        assertPayload[ClientSafeUserResponse] { response =>
-          response.email must be equalTo "adamparrish@something.com"
         }
       }
     }*/

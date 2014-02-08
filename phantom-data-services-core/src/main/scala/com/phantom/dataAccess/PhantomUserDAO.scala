@@ -117,13 +117,6 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
-  //TODO future me
-  def findBlockedContacts(id : Long) = {
-    for {
-      c <- ContactTable if c.contactType === "block" && c.ownerId === id
-    } yield c.contactType
-  }
-
   def findPhantomUserIdsByPhone(contacts : List[String]) : (List[PhantomUser], List[String]) = {
     db.withSession { implicit session =>
       val q = for {
@@ -137,13 +130,9 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
-  def clearBlockList(id : Long) : StatusCode = {
-    db.withTransaction { implicit session =>
-      findBlockedContacts(id).update("friend") match {
-        case 0 => StatusCodes.NotModified
-        case _ => StatusCodes.OK
-      }
-    }
+  def clearBlockListOperation(id : Long)(implicit session : Session) : Int = {
+    val q = for { c <- ContactTable if c.ownerId === id && c.contactType === (Blocked : ContactType) } yield c.contactType
+    q.update(Friend)
   }
 }
 

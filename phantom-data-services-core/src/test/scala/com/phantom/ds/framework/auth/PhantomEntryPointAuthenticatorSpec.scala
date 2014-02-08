@@ -2,15 +2,14 @@ package com.phantom.ds.framework.auth
 
 import org.specs2.mutable.Specification
 import spray.testkit.Specs2RouteTest
-import org.joda.time.{ DateTimeZone, DateTime }
-import java.security.MessageDigest
-import java.net.URLEncoder
-import org.apache.commons.codec.binary.Base64
+import org.joda.time.DateTime
 import spray.routing._
 import spray.http.StatusCodes._
 
 class PhantomEntryPointAuthenticatorSpec extends Specification
     with AuthTestPoint
+    with PhantomRequestAuthenticator
+    with PhantomEntryPointAuthenticator
     with Specs2RouteTest
     with AuthenticatedSpec {
 

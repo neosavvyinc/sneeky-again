@@ -61,11 +61,28 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
           }
         }
       } ~
-      pathPrefix("users") {
+      pathPrefix("users") { //TODO whats this used for?
         authenticate(request _) { user =>
           get {
             respondWithMediaType(`application/json`) {
               complete(userService.findById(user.id.get))
+            }
+          }
+        }
+      } ~
+      pathPrefix("users" / "pushNotifier") {
+        authenticate(request _) { user =>
+          post {
+            entity(as[SessionIDWithPushNotifier]) { sessionIDWithNotifier =>
+              parameter('sessionId) { session =>
+                complete {
+                  userService.updatePushNotifier(
+                    sessionIDWithNotifier.sessionUUID,
+                    sessionIDWithNotifier.pushNotifierToken,
+                    sessionIDWithNotifier.pushType
+                  )
+                }
+              }
             }
           }
         }

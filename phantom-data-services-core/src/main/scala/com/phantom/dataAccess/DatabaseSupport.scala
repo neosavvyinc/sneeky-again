@@ -1,31 +1,15 @@
 package com.phantom.dataAccess
 
 import scala.slick.driver.MySQLDriver
-import scala.slick.session.Database
 import com.phantom.ds.DSConfiguration
 import scala.concurrent.ExecutionContext
-import com.jolbox.bonecp.{ BoneCPConfig, BoneCPDataSource }
 import com.phantom.ds.framework.Logging
 
 trait DatabaseSupport extends DSConfiguration with Logging {
 
   private implicit def executionContext : ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  val source = {
-    val dsConfig = new BoneCPConfig
-    dsConfig.setPoolName("mainPool")
-    dsConfig.setJdbcUrl(DBConfiguration.url)
-    dsConfig.setUsername(DBConfiguration.user)
-    dsConfig.setPassword(DBConfiguration.pass)
-    dsConfig.setMinConnectionsPerPartition(DBConfiguration.minConnectionsPerPartition)
-    dsConfig.setMaxConnectionsPerPartition(DBConfiguration.maxConnectionsPerPartition)
-    dsConfig.setStatementsCacheSize(DBConfiguration.statementCacheSize)
-    dsConfig.setPartitionCount(DBConfiguration.numPartitions)
-    dsConfig.setPoolAvailabilityThreshold(5)
-    new BoneCPDataSource(dsConfig)
-  }
-
-  val db = Database.forDataSource(source)
+  val db = PhantomDatabase.db
 
   // again, creating a DAL requires a Profile, which in this case is the MySQLDriver
   val dataAccessLayer = new DataAccessLayer(MySQLDriver)
@@ -36,5 +20,7 @@ trait DatabaseSupport extends DSConfiguration with Logging {
   val stubConversationsDao = new StubConversationDAO(dataAccessLayer, db)
   val contacts = new ContactDAO(dataAccessLayer, db)
   val sessions = new SessionDAO(dataAccessLayer, db)
+
+  //  dataAccessLayer.create(db)
 
 }

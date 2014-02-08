@@ -24,7 +24,10 @@ object Build extends sbt.Build {
           Shared.Logging ++
           Shared.Joda ++
           Shared.Other ++
-          Shared.Slick) ++ Revolver.settings ++ sbtassembly.Plugin.assemblySettings ++ Assembly.prefs
+          Shared.Slick) ++
+        Revolver.settings ++
+        sbtassembly.Plugin.assemblySettings
+        ++ Assembly.prefs
     )
 
   def project(id: String, base: File, settings: Seq[Def.Setting[_]] = Nil) =
@@ -35,6 +38,7 @@ object Build extends sbt.Build {
           Shared.settings ++
           releaseSettings ++
           settings ++
+          Revolver.enableDebugging(port = 5050, suspend = true) ++
           Seq(
             resolvers += "spray" at "http://repo.spray.io/",
             compile <<= (compile in Compile) dependsOn (compile in Test, compile in IntegrationTest),

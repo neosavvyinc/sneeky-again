@@ -3,6 +3,7 @@ package com.phantom.ds.dataAccess
 import com.phantom.model.ConversationItem
 import com.phantom.ds.TestUtils
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.slick.session.Session
 
 /**
  * Created with IntelliJ IDEA.
@@ -18,13 +19,12 @@ class ConversationItemDAOSpec extends BaseDAOSpec with TestUtils {
   "ConversationItemDAO" should {
     "support inserting one conversation item" in withSetupTeardown {
 
-      insertTestUsersAndConversations
+      insertTestUsersAndConversations()
 
       val item = new ConversationItem(
         None, 1, "imageUrl", "imageText"
       )
-
-      val ret = await(conversationItemDao.insert(item))
+      val ret = db.withTransaction { implicit session : Session => conversationItemDao.insertOperation(item) }
 
       (ret.id.get must equalTo(1)) and
         (ret.conversationId must equalTo(1)) and
@@ -35,11 +35,13 @@ class ConversationItemDAOSpec extends BaseDAOSpec with TestUtils {
 
     "support inserting a collection of conversation items and finding them by conversation id" in withSetupTeardown {
 
-      insertTestUsersAndConversations
+      insertTestUsersAndConversations()
 
       val list = setupConversationItems(1)
 
-      conversationItemDao.insertAll(list)
+      await {
+        conversationItemDao.insertAll(list)
+      }
 
       val itemsFromDb = conversationItemDao.findByConversationId(1)
 
@@ -49,7 +51,7 @@ class ConversationItemDAOSpec extends BaseDAOSpec with TestUtils {
 
     "support inserting 3 records for one conv then 3 for another then delete by conv id" in withSetupTeardown {
 
-      insertTestUsersAndConversations
+      insertTestUsersAndConversations()
 
       val conv1 = setupConversationItems(1)
       val conv2 = setupConversationItems(2)

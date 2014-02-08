@@ -4,7 +4,8 @@ import spray.routing.HttpService
 import spray.http.StatusCodes
 import scala.concurrent.ExecutionContext.Implicits.global
 
-trait AuthTestPoint extends HttpService with PhantomRequestAuthenticator with PhantomEntryPointAuthenticator {
+trait AuthTestPoint extends HttpService {
+  this : RequestAuthenticator with EntryPointAuthenticator =>
 
   val testRoute =
     pathPrefix("test" / "protected") {

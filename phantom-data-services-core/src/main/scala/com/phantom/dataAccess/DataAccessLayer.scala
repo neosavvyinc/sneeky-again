@@ -31,8 +31,12 @@ class DataAccessLayer(override val profile : ExtendedProfile) extends Profile wi
       StubConversationTable.ddl
 
   val writer = new PrintWriter(new File("schema.ddl"))
+  writer.write("drop database phantom;\n")
+  writer.write("create database phantom;\n")
+  writer.write("use phantom;\n")
   ddl.createStatements.foreach(x => {
-    writer.write(x + "\n")
+    val clean = x.replaceAll("`", "")
+    writer.write(clean + ";\n")
   })
   writer.close()
 

@@ -5,10 +5,6 @@ import org.joda.time.{ DateTimeZone, DateTime, LocalDate }
 import scala.slick.lifted.ColumnOption.DBType
 import java.util.UUID
 
-package object PhantomUserTypes {
-  type PhoneNumber = String
-}
-
 case class UserRegistration(email : String,
                             birthday : LocalDate,
                             password : String)
@@ -29,6 +25,10 @@ case class LoginSuccess(sessionUUID : UUID)
 
 case class PhantomUserDeleteMe(id : String)
 
+case class SessionIDWithPushNotifier(sessionUUID : UUID,
+                                     pushNotifierToken : String,
+                                     pushType : MobilePushType)
+
 sealed trait UserStatus
 
 object UserStatus {
@@ -47,6 +47,27 @@ object UserStatus {
 case object Unverified extends UserStatus
 
 case object Verified extends UserStatus
+
+sealed trait MobilePushType
+
+object MobilePushType {
+
+  def toStringRep(pushType : MobilePushType) : String = pushType match {
+    case Apple   => "apple"
+    case Android => "android"
+  }
+
+  def fromStringRep(str : String) : MobilePushType = str.toLowerCase match {
+    case "apple"   => Apple
+    case "android" => Android
+    case x         => throw new Exception(s"unrecognized push type %x")
+  }
+
+}
+
+case object Apple extends MobilePushType
+
+case object Android extends MobilePushType
 
 object UUIDConversions {
 
@@ -73,11 +94,16 @@ object PhantomSession {
 
   def newSession(user : PhantomUser) : PhantomSession = {
     val now = DateTime.now(DateTimeZone.UTC)
-    PhantomSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now)
+    PhantomSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now, None, None)
   }
 }
 
-case class PhantomSession(sessionId : UUID, userId : Long, created : DateTime, lastAccessed : DateTime)
+case class PhantomSession(sessionId : UUID,
+                          userId : Long,
+                          created : DateTime,
+                          lastAccessed : DateTime,
+                          pushNotifierToken : Option[String] = None,
+                          pushNotifierType : Option[MobilePushType] = None)
 
 trait UserComponent { this : Profile =>
 
@@ -97,6 +123,8 @@ trait UserComponent { this : Profile =>
     def active = column[Boolean]("ACTIVE")
     def phoneNumber = column[String]("PHONE_NUMBER")
     def status = column[UserStatus]("STATUS")
+    def appleNoteSound = column[String]("SOUND_NOTIF")
+    def appleNoteNewPicture = column[String]("NEW_PICTURE_NOTIF")
 
     def * = id.? ~ uuid ~ email ~ password ~ birthday ~ active ~ phoneNumber ~ status <> (PhantomUser, PhantomUser.unapply _)
     def forInsert = * returning id
@@ -110,12 +138,16 @@ trait UserSessionComponent { this : Profile with UserComponent =>
   import profile.simple._
   import com.github.tototoshi.slick.JodaSupport._
 
+  implicit val MobilePushTypeMapper = MappedTypeMapper.base[MobilePushType, String](MobilePushType.toStringRep, MobilePushType.fromStringRep)
+
   object SessionTable extends Table[PhantomSession]("SESSIONS") {
     def sessionId = column[UUID]("SESSIONID")
     def userId = column[Long]("USERID")
     def created = column[DateTime]("CREATED")
     def lastAccessed = column[DateTime]("LASTACCESSED")
-    def * = sessionId ~ userId ~ created ~ lastAccessed <> (PhantomSession.apply _, PhantomSession.unapply _)
+    def pushNotifierToken = column[String]("PUSH_NOTIFIER_TOKEN", O.Nullable)
+    def pushNotifierType = column[MobilePushType]("PUSH_NOTIFIER_TYPE", O.Nullable)
+    def * = sessionId ~ userId ~ created ~ lastAccessed ~ pushNotifierToken.? ~ pushNotifierType.? <> (PhantomSession.apply _, PhantomSession.unapply _)
 
     def owner = foreignKey("USER_FK", userId, UserTable)(_.id)
     //def userUnqiue = index("userUnique", userId, unique = true)

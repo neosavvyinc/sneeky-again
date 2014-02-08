@@ -17,7 +17,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * Time: 9:34 PM
  * To change this template use File | Settings | File Templates.
  */
-trait BaseDAOSpec extends Specification with DatabaseSupport with After with TestUtils {
+trait BaseDAOSpec extends Specification with DatabaseSupport with TestUtils {
 
   object withSetupTeardown extends BeforeAfter {
     def before {
@@ -30,7 +30,7 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with After with Tes
     }
   }
 
-  override def after : Any = source.close _
+  //override def after : Any = source.close _
 
   def setupConversationItems(convId : Long) : List[ConversationItem] = {
     val item1 = new ConversationItem(
@@ -45,8 +45,9 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with After with Tes
     List(item1, item2, item3)
   }
 
-  def createVerifiedUser(email : String, password : String, phoneNumber : String = "") = {
-    phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, email, Passwords.getSaltedHash(password), LocalDate.now(DateTimeZone.UTC), true, phoneNumber, Verified))
+  def createVerifiedUser(email : String, password : String, phoneNumber : String = "") : PhantomUser = {
+    val user = PhantomUser(None, UUID.randomUUID, email, Passwords.getSaltedHash(password), LocalDate.now(DateTimeZone.UTC), true, phoneNumber, Verified)
+    phantomUsersDao.insert(user)
   }
 
   def createUnverifiedUser(email : String, password : String) = {
@@ -57,7 +58,7 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with After with Tes
     conversationDao.insert(Conversation(None, toId, fromId))
   }
 
-  def insertTestUsers {
+  def insertTestUsers() {
     val user1 = new PhantomUser(None, UUID.randomUUID(), "aparrish@neosavvy.com", "password", new LocalDate(1981, 8, 10), true, "111111")
     val user2 = new PhantomUser(None, UUID.randomUUID(), "ccaplinger@neosavvy.com", "password", new LocalDate(1986, 10, 12), true, "222222")
     val user3 = new PhantomUser(None, UUID.randomUUID(), "tewen@neosavvy.com", "password", new LocalDate(1987, 8, 16), true, "333333")
@@ -73,7 +74,7 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with After with Tes
 
   }
 
-  def insertUsersWithPhoneNumbersAndContacts = {
+  def insertUsersWithPhoneNumbersAndContacts() = {
 
     val user1 = PhantomUser(None, UUID.randomUUID(), "aparrish@neosavvy.com", "password", new LocalDate(1981, 8, 10), true, "4993676")
     val user2 = PhantomUser(None, UUID.randomUUID(), "ccaplinger@neosavvy.com", "password", new LocalDate(1986, 10, 12), true, "5192050")
@@ -84,20 +85,20 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with After with Tes
     phantomUsersDao.insert(user3)
     phantomUsersDao.insert(user4)
 
-    insertTestContacts
+    insertTestContacts()
   }
 
-  def insertTestContacts {
+  def insertTestContacts() {
     contacts.insertAll(
       Seq(
-        Contact(None, 1, 2, "friend"),
-        Contact(None, 1, 3, "friend"),
-        Contact(None, 1, 4, "friend")
+        Contact(None, 1, 2),
+        Contact(None, 1, 3),
+        Contact(None, 1, 4)
       )
     )
   }
 
-  def insertTestConversations {
+  def insertTestConversations() {
 
     val conv1 = new Conversation(None, 1, 2)
     val conv2 = new Conversation(None, 3, 4)
@@ -108,8 +109,8 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with After with Tes
 
   }
 
-  def insertTestConverationsWithItems {
-    insertTestUsersAndConversations
+  def insertTestConverationsWithItems() {
+    insertTestUsersAndConversations()
 
     val conv1item1 = new ConversationItem(None, 1, "imageUrl1", "imageText1")
     val conv1item2 = new ConversationItem(None, 1, "imageUrl2", "imageText2")
@@ -122,9 +123,9 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with After with Tes
     await(conversationItemDao.insertAll(Seq(conv1item1, conv1item2, conv1item3, conv2item1, conv2item2, conv2item3)))
   }
 
-  def insertTestUsersAndConversations {
-    insertTestUsers
-    insertTestConversations
+  def insertTestUsersAndConversations() {
+    insertTestUsers()
+    insertTestConversations()
   }
 
 }

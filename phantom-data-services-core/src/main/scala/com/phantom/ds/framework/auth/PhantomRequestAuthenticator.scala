@@ -11,7 +11,7 @@ import java.util.UUID
 import com.phantom.ds.framework.Logging
 import org.joda.time.LocalDate
 
-//For now this authenticator does a bit of both authentication and authorziation
+//For now this authenticator does a bit of both authentication and authorization
 //since we have no real roles or permissioning yet..just being a user opens up all doors
 //hence, for every request, we opted for just one authenticator which we could use to identify a user
 trait RequestAuthenticator extends Authenticator {
@@ -44,12 +44,25 @@ trait PhantomRequestAuthenticator extends RequestAuthenticator with DSConfigurat
     }
   }
 
-  private def validateSession(sessionId : String) : Option[PhantomUser] = {
+  protected def validateSession(sessionId : String) : Option[PhantomUser] = {
     sessions.findFromSession(UUID.fromString(sessionId))
   }
 }
 
-trait PassThroughRequestAuthenticator extends PhantomRequestAuthenticator {
+trait NonHashingRequestAuthenticator extends PhantomRequestAuthenticator {
+  override def request(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[PhantomUser]] = {
+    future {
+      val result = for {
+        s <- ctx.request.uri.query.get(sessionIdP)
+        user <- validateSession(s)
+      } yield user
+      val filtered = result.filter(_.status == Verified)
+      toAuthentication(filtered)
+    }
+  }
+}
+
+trait PassThroughRequestAuthenticator extends RequestAuthenticator {
 
   override def request(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[PhantomUser]] = {
     val user = Some(PhantomUser(None, UUID.randomUUID, "nsauro@sauron.com", "password", new LocalDate(2003, 12, 21), true, ""))
@@ -59,7 +72,7 @@ trait PassThroughRequestAuthenticator extends PhantomRequestAuthenticator {
 }
 
 ///not a fan of this at all
-trait SuppliedUserRequestAuthenticator extends PhantomRequestAuthenticator {
+trait SuppliedUserRequestAuthenticator extends RequestAuthenticator {
   // :( this hurts..cannot run in parallel w/ this ever
   var authedUser : Option[PhantomUser] = Option.empty
 
