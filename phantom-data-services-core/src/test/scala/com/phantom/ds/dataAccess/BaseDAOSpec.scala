@@ -17,7 +17,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * Time: 9:34 PM
  * To change this template use File | Settings | File Templates.
  */
-trait BaseDAOSpec extends Specification with DatabaseSupport with After with TestUtils {
+trait BaseDAOSpec extends Specification with DatabaseSupport with TestUtils {
 
   object withSetupTeardown extends BeforeAfter {
     def before {
@@ -30,7 +30,7 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with After with Tes
     }
   }
 
-  override def after : Any = source.close _
+  //override def after : Any = source.close _
 
   def setupConversationItems(convId : Long) : List[ConversationItem] = {
     val item1 = new ConversationItem(

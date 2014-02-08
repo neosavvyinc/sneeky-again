@@ -3,13 +3,13 @@ package com.phantom.dataAccess
 import scala.slick.driver.MySQLDriver
 import com.phantom.ds.DSConfiguration
 import scala.concurrent.ExecutionContext
-import com.jolbox.bonecp.BoneCPConfig
 import com.phantom.ds.framework.Logging
-import com.phantom.dataAccess.PhantomDatabase._
 
 trait DatabaseSupport extends DSConfiguration with Logging {
 
   private implicit def executionContext : ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
+  val db = PhantomDatabase.db
 
   // again, creating a DAL requires a Profile, which in this case is the MySQLDriver
   val dataAccessLayer = new DataAccessLayer(MySQLDriver)
