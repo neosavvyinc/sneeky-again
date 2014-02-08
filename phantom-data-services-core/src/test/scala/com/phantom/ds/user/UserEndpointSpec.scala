@@ -80,9 +80,11 @@ class UserEndpointSpec extends Specification
 
       authedUser = Some(createVerifiedUser("adam@somewheres.com", "anything"))
 
-      Post("/users/pushNotifier", SessionIDWithPushNotifier(
+      Post("/users/pushNotifier?sessionId=38400000-8cf0-11bd-b23e-10b96e4ef00d", SessionIDWithPushNotifier(
         UUID.fromString("38400000-8cf0-11bd-b23e-10b96e4ef00d"),
-        "anysessionid")) ~> userRoute ~> check {
+        "anysessionid",
+        Apple
+      )) ~> userRoute ~> check {
         status == StatusCodes.OK
       }
     }

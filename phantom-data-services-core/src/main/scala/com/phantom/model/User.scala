@@ -26,7 +26,8 @@ case class LoginSuccess(sessionUUID : UUID)
 case class PhantomUserDeleteMe(id : String)
 
 case class SessionIDWithPushNotifier(sessionUUID : UUID,
-                                     pushNotifier : String)
+                                     pushNotifierToken : String,
+                                     pushType : MobilePushType)
 
 sealed trait UserStatus
 
@@ -46,6 +47,27 @@ object UserStatus {
 case object Unverified extends UserStatus
 
 case object Verified extends UserStatus
+
+sealed trait MobilePushType
+
+object MobilePushType {
+
+  def toStringRep(pushType : MobilePushType) : String = pushType match {
+    case Apple   => "apple"
+    case Android => "android"
+  }
+
+  def fromStringRep(str : String) : MobilePushType = str.toLowerCase match {
+    case "apple"   => Apple
+    case "android" => Android
+    case x         => throw new Exception(s"unrecognized push type %x")
+  }
+
+}
+
+case object Apple extends MobilePushType
+
+case object Android extends MobilePushType
 
 object UUIDConversions {
 
@@ -72,11 +94,16 @@ object PhantomSession {
 
   def newSession(user : PhantomUser) : PhantomSession = {
     val now = DateTime.now(DateTimeZone.UTC)
-    PhantomSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now, None)
+    PhantomSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now, None, None)
   }
 }
 
-case class PhantomSession(sessionId : UUID, userId : Long, created : DateTime, lastAccessed : DateTime, applePushID : Option[String] = None)
+case class PhantomSession(sessionId : UUID,
+                          userId : Long,
+                          created : DateTime,
+                          lastAccessed : DateTime,
+                          pushNotifierToken : Option[String] = None,
+                          pushNotifierType : Option[MobilePushType] = None)
 
 trait UserComponent { this : Profile =>
 
@@ -111,13 +138,16 @@ trait UserSessionComponent { this : Profile with UserComponent =>
   import profile.simple._
   import com.github.tototoshi.slick.JodaSupport._
 
+  implicit val MobilePushTypeMapper = MappedTypeMapper.base[MobilePushType, String](MobilePushType.toStringRep, MobilePushType.fromStringRep)
+
   object SessionTable extends Table[PhantomSession]("SESSIONS") {
     def sessionId = column[UUID]("SESSIONID")
     def userId = column[Long]("USERID")
     def created = column[DateTime]("CREATED")
     def lastAccessed = column[DateTime]("LASTACCESSED")
-    def applePushID = column[String]("APPLE_PUSH_ID", O.Nullable)
-    def * = sessionId ~ userId ~ created ~ lastAccessed ~ applePushID.? <> (PhantomSession.apply _, PhantomSession.unapply _)
+    def pushNotifierToken = column[String]("PUSH_NOTIFIER_TOKEN", O.Nullable)
+    def pushNotifierType = column[MobilePushType]("PUSH_NOTIFIER_TYPE", O.Nullable)
+    def * = sessionId ~ userId ~ created ~ lastAccessed ~ pushNotifierToken.? ~ pushNotifierType.? <> (PhantomSession.apply _, PhantomSession.unapply _)
 
     def owner = foreignKey("USER_FK", userId, UserTable)(_.id)
     //def userUnqiue = index("userUnique", userId, unique = true)

@@ -3,7 +3,7 @@ package com.phantom.dataAccess
 import scala.slick.session.Database
 import com.phantom.ds.framework.Logging
 import java.util.UUID
-import com.phantom.model.{ Verified, PhantomSession, PhantomUser }
+import com.phantom.model.{ Verified, PhantomSession, PhantomUser, MobilePushType, Apple, Android }
 import scala.concurrent.{ ExecutionContext, Future, future }
 
 class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionContext) extends BaseDAO(dal, db)
@@ -57,11 +57,11 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     }
   }
 
-  def updatePushNotifier(sessionId : UUID, pushNotifier : String) : Boolean = {
+  def updatePushNotifier(sessionId : UUID, pushNotifier : String, pushNotifierType : MobilePushType) : Boolean = {
 
     db.withSession { implicit session =>
-      val upQuery = for { s <- SessionTable if s.sessionId is sessionId } yield s.applePushID ~ s.sessionId
-      val numRows = upQuery.update(pushNotifier, sessionId)
+      val upQuery = for { s <- SessionTable if s.sessionId is sessionId } yield s.pushNotifierToken ~ s.pushNotifierType
+      val numRows = upQuery.update(pushNotifier, pushNotifierType)
       numRows > 0
     }
 

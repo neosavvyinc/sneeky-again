@@ -71,9 +71,9 @@ object UserService {
       }
     }
 
-    def updatePushNotifier(sessionUUID : UUID, applePushToken : String) : Future[Boolean] = {
+    def updatePushNotifier(sessionUUID : UUID, applePushToken : String, mobilePushType : MobilePushType) : Future[Boolean] = {
       future {
-        sessions.updatePushNotifier(sessionUUID, applePushToken)
+        sessions.updatePushNotifier(sessionUUID, applePushToken, mobilePushType)
       }
     }
   }
