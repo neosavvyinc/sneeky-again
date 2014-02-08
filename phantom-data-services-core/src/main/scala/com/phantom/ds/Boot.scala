@@ -5,7 +5,7 @@ import akka.io.IO
 import spray.can.Http
 import com.phantom.ds.framework.auth._
 import com.phantom.ds.integration.twilio.{ TwiioMessageSender, TwilioService, TwilioActor }
-import com.phantom.ds.integration.apple.AppleActor
+import com.phantom.ds.integration.apple.{ AppleActor, AppleService }
 import com.phantom.ds.framework.Logging
 
 object Boot extends App with DSConfiguration with Logging {
@@ -34,7 +34,7 @@ object Boot extends App with DSConfiguration with Logging {
 
   private def twilioActor = system.actorOf(Props(new TwilioActor(twilioService)))
 
-  private def appleActor = system.actorOf(Props(new AppleActor))
+  private def appleActor = system.actorOf(Props(new AppleActor()))
 
   private def twilioService = TwilioService(TwiioMessageSender(TwilioConfiguration.accountSid, TwilioConfiguration.authToken, TwilioConfiguration.phoneNumber))(executor)
 }

@@ -60,7 +60,13 @@ trait DSConfiguration {
     def phoneNumber = twilioCfg.getString("phoneNumber")
 
     private def twilioCfg = cfg.getConfig("twilio")
+  }
 
+  object ApplePushConfiguration {
+    val keyStorePassword = applePushCfg.getString("keyStorePassword")
+    val certPath = applePushCfg.getString("certPath")
+
+    private def applePushCfg = cfg.getConfig("apple")
   }
 
   object UserConfiguration {

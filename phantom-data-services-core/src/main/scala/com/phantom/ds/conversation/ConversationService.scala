@@ -99,8 +99,9 @@ object ConversationService extends DSConfiguration {
     }
 
     private def sendConversationNotifications(phantomUsers : Seq[PhantomUser]) : Future[Unit] = {
-
-      Future.successful(if (!phantomUsers.isEmpty) { appleActor ! SendConversationNotification(phantomUsers) })
+      future {
+        phantomUsers.foreach(appleActor ! _)
+      }
     }
 
     private def sendInvitations(contacts : Set[String], stubUsers : Seq[StubUser], fromUser : Long, imageText : String, imageUrl : String) : Future[Unit] = {
