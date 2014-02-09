@@ -38,7 +38,7 @@ object Build extends sbt.Build {
           Shared.settings ++
           releaseSettings ++
           settings ++
-          Revolver.enableDebugging(port = 5050, suspend = true) ++
+          Revolver.enableDebugging(port = 5050, suspend = false) ++
           Seq(
             resolvers += "spray" at "http://repo.spray.io/",
             compile <<= (compile in Compile) dependsOn (compile in Test, compile in IntegrationTest),
