@@ -112,7 +112,9 @@ case class PhantomUser(id : Option[Long],
                        birthday : LocalDate,
                        active : Boolean,
                        phoneNumber : String,
-                       status : UserStatus = Unverified) extends Phantom
+                       status : UserStatus = Unverified,
+                       settingSound : Boolean = false,
+                       settingNewPicture : Boolean = false) extends Phantom
 
 object PhantomSession {
 
@@ -147,12 +149,11 @@ trait UserComponent { this : Profile =>
     def active = column[Boolean]("ACTIVE")
     def phoneNumber = column[String]("PHONE_NUMBER")
     def status = column[UserStatus]("STATUS")
-    def appleNoteSound = column[String]("SOUND_NOTIF")
-    def appleNoteNewPicture = column[String]("NEW_PICTURE_NOTIF")
+    def settingSound = column[Boolean]("SOUND_NOTIF")
+    def settingNewPicture = column[Boolean]("NEW_PICTURE_NOTIF")
 
-    def * = id.? ~ uuid ~ email ~ password ~ birthday ~ active ~ phoneNumber ~ status <> (PhantomUser, PhantomUser.unapply _)
+    def * = id.? ~ uuid ~ email ~ password ~ birthday ~ active ~ phoneNumber ~ status ~ settingSound ~ settingNewPicture <> (PhantomUser, PhantomUser.unapply _)
     def forInsert = * returning id
-    //    def phoneUnique = index("phoneUnique", phoneNumber, unique = true)
 
   }
 }
