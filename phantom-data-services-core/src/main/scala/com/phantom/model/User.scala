@@ -92,9 +92,9 @@ case class PhantomUser(id : Option[Long],
 
 object PhantomSession {
 
-  def newSession(user : PhantomUser) : PhantomSession = {
+  def newSession(user : PhantomUser, token : Option[String] = None) : PhantomSession = {
     val now = DateTime.now(DateTimeZone.UTC)
-    PhantomSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now, None, None)
+    PhantomSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now, token, None)
   }
 }
 

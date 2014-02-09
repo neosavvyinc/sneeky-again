@@ -58,19 +58,19 @@ object AppleService extends DSConfiguration {
 class AppleActor extends Actor with Logging {
 
   def receive : Actor.Receive = {
-    case user : PhantomUser => {
-      log.trace(s"received $user")
-      val tokenString = "b4aa9a5aa1ac55ac0c038b8c55733e90b68290592ae1d76dd2d0837e38bfb0da" // chris
+    case token : String => {
+      log.trace(s"received $token")
+      //val tokenString = "b4aa9a5aa1ac55ac0c038b8c55733e90b68290592ae1d76dd2d0837e38bfb0da" // chris
 
       val payloadBuilder = new ApnsPayloadBuilder()
       payloadBuilder.setBadgeNumber(1)
       payloadBuilder.setAlertBody("you got a new dick pic!")
-      payloadBuilder.setSoundFileName("dicks-on-the-phone-rang-rang.aiff")
+      payloadBuilder.setSoundFileName("default")
 
       val payload = payloadBuilder.buildWithDefaultMaximumLength()
 
       AppleService.pushManager.enqueuePushNotification(
-        new SimpleApnsPushNotification(TokenUtil.tokenStringToByteArray(tokenString), payload))
+        new SimpleApnsPushNotification(TokenUtil.tokenStringToByteArray(token), payload))
     }
   }
 }

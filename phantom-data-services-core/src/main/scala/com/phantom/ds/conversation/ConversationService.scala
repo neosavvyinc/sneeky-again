@@ -61,8 +61,15 @@ object ConversationService extends DSConfiguration {
         (nonStubUsers, stubUsers) <- partitionStubUsers(nonUsers)
         response <- createConversationRoots(users, stubUsers, fromUserId, imageText, imageUrl)
         _ <- sendInvitations(nonStubUsers, stubUsers, fromUserId, imageText, imageUrl)
-        _ <- sendConversationNotifications(users)
+        tokens <- getTokens(users.map(_.id.get))
+        _ <- sendConversationNotifications(tokens)
       } yield response
+    }
+
+    private def getTokens(userIds : Seq[Long]) : Future[List[String]] = {
+      future {
+        sessions.findTokensByUserId(userIds)
+      }
     }
 
     private def partitionUsers(contactNumbers : Set[String]) : Future[(Set[String], Seq[PhantomUser])] = {
@@ -98,9 +105,9 @@ object ConversationService extends DSConfiguration {
       conversations.map(x => ConversationItem(None, x.id.getOrElse(-1), imageUrl, imageText))
     }
 
-    private def sendConversationNotifications(phantomUsers : Seq[PhantomUser]) : Future[Unit] = {
+    private def sendConversationNotifications(pushTokens : List[String]) : Future[Unit] = {
       future {
-        phantomUsers.foreach(appleActor ! _)
+        pushTokens.foreach(appleActor ! _)
       }
     }
 
