@@ -95,6 +95,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
               parameter('sessionId) { session =>
                 complete {
                   userService.updatePushSetting(
+                    user.id.get,
                     pushRequest.pushSettingType,
                     pushRequest.settingValue
                   )
