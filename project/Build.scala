@@ -2,7 +2,7 @@ import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import sbt._
 import sbt.Keys._
-import sbtassembly.Plugin.{MergeStrategy, AssemblyKeys}
+import sbtassembly.Plugin.{PathList, MergeStrategy, AssemblyKeys}
 import sbtrelease.ReleasePlugin._
 import spray.revolver.RevolverPlugin.Revolver
 import scalariform.formatter.preferences._
@@ -152,8 +152,9 @@ object Assembly {
     test in assembly := {},
     mergeStrategy in assembly <<= (mergeStrategy in assembly) {(old) =>
     {
+      case PathList("org", "hamcrest", xs @ _*)         => MergeStrategy.first
       case "logback.properties" =>  MergeStrategy.discard
-      case "application.conf" => MergeStrategy.discard
+      case "application.conf" => MergeStrategy.concat
       case x => old(x)
     }})
 }
