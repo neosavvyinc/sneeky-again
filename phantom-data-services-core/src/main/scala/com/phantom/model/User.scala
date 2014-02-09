@@ -29,6 +29,9 @@ case class SessionIDWithPushNotifier(sessionUUID : UUID,
                                      pushNotifierToken : String,
                                      pushType : MobilePushType)
 
+case class PushSettingsRequest(settingValue : Boolean,
+                               pushSettingType : PushSettingType)
+
 sealed trait UserStatus
 
 object UserStatus {
@@ -40,13 +43,34 @@ object UserStatus {
   def fromStringRep(str : String) : UserStatus = str.toLowerCase match {
     case "unverified" => Unverified
     case "verified"   => Verified
-    case x            => throw new Exception(s"unrecognized user status %x")
+    case x            => throw new Exception(s"unrecognized user status $x")
   }
 }
 
 case object Unverified extends UserStatus
 
 case object Verified extends UserStatus
+
+sealed trait PushSettingType
+
+object PushSettingType {
+
+  def toStringRep(pushSettingType : PushSettingType) : String = pushSettingType match {
+    case NotificationOnNewPicture => "picture-received"
+    case SoundOnNewNotification   => "sound-on-new-item"
+  }
+
+  def fromStringRep(str : String) : PushSettingType = str.toLowerCase match {
+    case "picture-received"  => NotificationOnNewPicture
+    case "sound-on-new-item" => SoundOnNewNotification
+    case x                   => throw new Exception(s"unrecognized push setting $x")
+  }
+
+}
+
+case object SoundOnNewNotification extends PushSettingType
+
+case object NotificationOnNewPicture extends PushSettingType
 
 sealed trait MobilePushType
 

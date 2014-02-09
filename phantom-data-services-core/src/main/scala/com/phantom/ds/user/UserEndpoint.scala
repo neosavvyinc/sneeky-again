@@ -86,5 +86,21 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
             }
           }
         }
+      } ~
+      pathPrefix("users" / "pushSettings") {
+        authenticate(request _) { user =>
+          post {
+            entity(as[PushSettingsRequest]) { pushRequest =>
+              parameter('sessionId) { session =>
+                complete {
+                  userService.updatePushSetting(
+                    pushRequest.pushSettingType,
+                    pushRequest.settingValue
+                  )
+                }
+              }
+            }
+          }
+        }
       }
 }

@@ -89,6 +89,18 @@ class UserEndpointSpec extends Specification
       }
     }
 
+    "Sending a push setting for sound toggle with a session id" in withSetupTeardown {
+
+      authedUser = Some(createVerifiedUser("adam@somewheres.com", "anything"))
+
+      Post("/users/pushSettings?sessionId=38400000-8cf0-11bd-b23e-10b96e4ef00d", PushSettingsRequest(
+        false,
+        SoundOnNewNotification
+      )) ~> userRoute ~> check {
+        status == StatusCodes.OK
+      }
+    }
+
     "clear a blocked list" in withSetupTeardown {
       insertTestUsers()
       val user = createVerifiedUser("email@email.com", "anything")

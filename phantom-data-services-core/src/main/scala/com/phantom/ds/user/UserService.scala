@@ -76,6 +76,12 @@ object UserService {
         sessions.updatePushNotifier(sessionUUID, applePushToken, mobilePushType)
       }
     }
+
+    def updatePushSetting(pushSettingType : PushSettingType, value : Boolean) : Future[Boolean] = {
+      future {
+        true
+      }
+    }
   }
 
 }
