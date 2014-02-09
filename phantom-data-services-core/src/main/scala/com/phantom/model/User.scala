@@ -25,9 +25,8 @@ case class LoginSuccess(sessionUUID : UUID)
 
 case class PhantomUserDeleteMe(id : String)
 
-case class SessionIDWithPushNotifier(sessionUUID : UUID,
-                                     pushNotifierToken : String,
-                                     pushType : MobilePushType)
+case class UpdatePushTokenRequest(pushNotifierToken : String,
+                                  pushType : MobilePushType)
 
 case class PushSettingsRequest(settingValue : Boolean,
                                pushSettingType : PushSettingType)
