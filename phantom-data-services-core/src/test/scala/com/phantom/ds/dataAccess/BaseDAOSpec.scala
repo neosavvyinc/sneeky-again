@@ -46,16 +46,16 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with TestUtils {
   }
 
   def createVerifiedUser(email : String, password : String, phoneNumber : String = "") : PhantomUser = {
-    val user = PhantomUser(None, UUID.randomUUID, Some(email), Some(Passwords.getSaltedHash(password)), Some(LocalDate.now(DateTimeZone.UTC)), true, Some(phoneNumber), false, false, 0, Verified)
+    val user = PhantomUser(None, UUID.randomUUID, Some(email), Some(Passwords.getSaltedHash(password)), Some(LocalDate.now(DateTimeZone.UTC)), true, Some(phoneNumber), Verified)
     phantomUsersDao.insert(user)
   }
 
   def createUnverifiedUser(email : String, password : String) = {
-    phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some(email), Some(Passwords.getSaltedHash(password)), Some(LocalDate.now(DateTimeZone.UTC)), true, None, false, false, 0, Unverified))
+    phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some(email), Some(Passwords.getSaltedHash(password)), Some(LocalDate.now(DateTimeZone.UTC)), true, None, Unverified))
   }
 
   def createStubUser(phone : String, count : Int = 1) = {
-    phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, None, None, Some(LocalDate.now(DateTimeZone.UTC)), true, Some(phone), false, false, count, Stub))
+    phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, None, None, Some(LocalDate.now(DateTimeZone.UTC)), true, Some(phone), Stub, count))
   }
 
   def createConversation(fromId : Long, toId : Long) : Conversation = {

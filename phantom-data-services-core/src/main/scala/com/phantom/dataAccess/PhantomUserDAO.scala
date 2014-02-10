@@ -116,7 +116,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
-  //TODO: future me
+  //TODO: future me (or remove..used by dead code only)
   def findContacts(id : Long) : Future[List[PhantomUser]] = {
     db.withSession { implicit session =>
       val q = for {

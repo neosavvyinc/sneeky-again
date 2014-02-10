@@ -65,7 +65,7 @@ trait NonHashingRequestAuthenticator extends PhantomRequestAuthenticator {
 trait PassThroughRequestAuthenticator extends RequestAuthenticator {
 
   override def request(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[PhantomUser]] = {
-    val user = Some(PhantomUser(None, UUID.randomUUID, Some("nsauro@sauron.com"), Some("password"), Some(new LocalDate(2003, 12, 21)), true, Some(""), false, false, 3, Verified))
+    val user = Some(PhantomUser(None, UUID.randomUUID, Some("nsauro@sauron.com"), Some("password"), Some(new LocalDate(2003, 12, 21)), true, Some(""), Verified))
     Future.successful(user.toRight(AuthenticationFailedRejection(CredentialsRejected, Nil)))
   }
 

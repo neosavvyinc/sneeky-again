@@ -46,6 +46,7 @@ object UserService {
       }
     }
 
+    ///TODO REMOVE : NOT USED
     def findContactsById(id : Long) : Future[List[PhantomUser]] = {
       phantomUsersDao.findContacts(id)
     }

@@ -109,10 +109,10 @@ case class PhantomUser(id : Option[Long],
                        birthday : Option[LocalDate],
                        active : Boolean,
                        phoneNumber : Option[String],
-                       settingSound : Boolean = false,
-                       settingNewPicture : Boolean = false,
+                       status : UserStatus = Unverified,
                        invitationCount : Int = 1,
-                       status : UserStatus = Unverified)
+                       settingSound : Boolean = false,
+                       settingNewPicture : Boolean = false)
 
 object PhantomSession {
 
@@ -151,7 +151,7 @@ trait UserComponent { this : Profile =>
     def settingNewPicture = column[Boolean]("NEW_PICTURE_NOTIF")
     def invitationCount = column[Int]("INVITATION_COUNT")
 
-    def * = id.? ~ uuid ~ email.? ~ password.? ~ birthday.? ~ active ~ phoneNumber.? ~ settingSound ~ settingNewPicture ~ invitationCount ~ status <> (PhantomUser, PhantomUser.unapply _)
+    def * = id.? ~ uuid ~ email.? ~ password.? ~ birthday.? ~ active ~ phoneNumber.? ~ status ~ invitationCount ~ settingSound ~ settingNewPicture <> (PhantomUser, PhantomUser.unapply _)
     def forInsert = * returning id
 
   }

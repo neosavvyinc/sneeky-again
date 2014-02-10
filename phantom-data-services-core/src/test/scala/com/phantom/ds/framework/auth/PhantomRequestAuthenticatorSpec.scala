@@ -91,7 +91,7 @@ class PhantomRequestAuthenticatorSpec extends Specification
       val sessionCreated = DateTime.now(DateTimeZone.UTC)
       val uuid = UUID.randomUUID()
       val s = uuid.toString
-      val u = phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some("email"), Some(""), Some(LocalDate.now), true, Some(""), false, false, 2, Verified))
+      val u = phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some("email"), Some(""), Some(LocalDate.now), true, Some(""), Verified))
       Await.result(sessions.createSession(PhantomSession(uuid, u.id.get, sessionCreated, sessionCreated, None)), waitPeriod)
       val h = hashValues(d, s)
       val url = s"/test/protected?$hashP=$h&$dateP=$d&$sessionIdP=$s"
@@ -106,7 +106,7 @@ class PhantomRequestAuthenticatorSpec extends Specification
       val sessionCreated = DateTime.now(DateTimeZone.UTC)
       val uuid = UUID.randomUUID()
       val s = uuid.toString
-      val u = phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some("email"), Some(""), Some(LocalDate.now), true, Some(""), false, false, 1, Unverified))
+      val u = phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some("email"), Some(""), Some(LocalDate.now), true, Some(""), Unverified))
       Await.result(sessions.createSession(PhantomSession(uuid, u.id.get, sessionCreated, sessionCreated, None)), waitPeriod)
       val h = hashValues(d, s)
       val url = s"/test/protected?$hashP=$h&$dateP=$d&$sessionIdP=$s"

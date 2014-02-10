@@ -54,6 +54,7 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
+  //ONLY USED BY TESTS
   def findById(conversationId : Long) : Future[Conversation] = {
     future {
       db.withSession { implicit session =>

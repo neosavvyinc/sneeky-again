@@ -45,7 +45,7 @@ object TwilioService {
       }
 
       private def createStubAccounts(contacts : Seq[String], fromUser : Long, imageText : String, imageUrl : String) : Future[Seq[PhantomUser]] = {
-        val stagedStubs = contacts.map(x => PhantomUser(None, UUID.randomUUID, None, None, None, false, Some(x), false, false, 1, Stub))
+        val stagedStubs = contacts.map(x => PhantomUser(None, UUID.randomUUID, None, None, None, false, Some(x), Stub))
         future {
           db.withTransaction { implicit session =>
             val stubUsers = phantomUsersDao.insertAllOperation(stagedStubs)
