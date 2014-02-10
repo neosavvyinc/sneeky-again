@@ -23,9 +23,11 @@ case class UserLogin(email : String,
 
 case class LoginSuccess(sessionUUID : UUID)
 
-case class SessionIDWithPushNotifier(sessionUUID : UUID,
-                                     pushNotifierToken : String,
-                                     pushType : MobilePushType)
+case class UpdatePushTokenRequest(pushNotifierToken : String,
+                                  pushType : MobilePushType)
+
+case class PushSettingsRequest(settingValue : Boolean,
+                               pushSettingType : PushSettingType)
 
 sealed trait UserStatus
 
@@ -49,6 +51,27 @@ case object Unverified extends UserStatus
 case object Verified extends UserStatus
 
 case object Stub extends UserStatus
+
+sealed trait PushSettingType
+
+object PushSettingType {
+
+  def toStringRep(pushSettingType : PushSettingType) : String = pushSettingType match {
+    case NotificationOnNewPicture => "picture-received"
+    case SoundOnNewNotification   => "sound-on-new-item"
+  }
+
+  def fromStringRep(str : String) : PushSettingType = str.toLowerCase match {
+    case "picture-received"  => NotificationOnNewPicture
+    case "sound-on-new-item" => SoundOnNewNotification
+    case x                   => throw new Exception(s"unrecognized push setting $x")
+  }
+
+}
+
+case object SoundOnNewNotification extends PushSettingType
+
+case object NotificationOnNewPicture extends PushSettingType
 
 sealed trait MobilePushType
 
@@ -86,9 +109,9 @@ case class PhantomUser(id : Option[Long],
                        birthday : Option[LocalDate],
                        active : Boolean,
                        phoneNumber : Option[String],
-                       appleNoteSound : Option[String],
-                       appleNoteNewPicture : Option[String],
-                       invitationCount : Int,
+                       settingSound : Boolean = false,
+                       settingNewPicture : Boolean = false,
+                       invitationCount : Int = 1,
                        status : UserStatus = Unverified)
 
 object PhantomSession {
@@ -124,13 +147,12 @@ trait UserComponent { this : Profile =>
     def active = column[Boolean]("ACTIVE")
     def phoneNumber = column[String]("PHONE_NUMBER", O.Nullable)
     def status = column[UserStatus]("STATUS")
-    def appleNoteSound = column[String]("SOUND_NOTIF", O.Nullable)
-    def appleNoteNewPicture = column[String]("NEW_PICTURE_NOTIF", O.Nullable)
+    def settingSound = column[Boolean]("SOUND_NOTIF")
+    def settingNewPicture = column[Boolean]("NEW_PICTURE_NOTIF")
     def invitationCount = column[Int]("INVITATION_COUNT")
 
-    def * = id.? ~ uuid ~ email.? ~ password.? ~ birthday.? ~ active ~ phoneNumber.? ~ appleNoteSound.? ~ appleNoteNewPicture.? ~ invitationCount ~ status <> (PhantomUser, PhantomUser.unapply _)
+    def * = id.? ~ uuid ~ email.? ~ password.? ~ birthday.? ~ active ~ phoneNumber.? ~ settingSound ~ settingNewPicture ~ invitationCount ~ status <> (PhantomUser, PhantomUser.unapply _)
     def forInsert = * returning id
-    //    def phoneUnique = index("phoneUnique", phoneNumber, unique = true)
 
   }
 }

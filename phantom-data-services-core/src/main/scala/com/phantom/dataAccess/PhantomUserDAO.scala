@@ -59,7 +59,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
   }
 
   private def createUserRecord(reg : UserRegistration)(implicit session : Session) = {
-    insertNoTransact(PhantomUser(None, UUID.randomUUID, Some(reg.email), Some(Passwords.getSaltedHash(reg.password)), Some(reg.birthday), true, None, None, None, -1))
+    insertNoTransact(PhantomUser(None, UUID.randomUUID, Some(reg.email), Some(Passwords.getSaltedHash(reg.password)), Some(reg.birthday), true, None))
   }
 
   def login(loginRequest : UserLogin) : Future[PhantomUser] = {
@@ -165,5 +165,24 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     val q = for { u <- UserTable if u.id === id } yield u
     q.delete
   }
+
+  def updateSetting(userId : Long, userSetting : PushSettingType, userValue : Boolean) : Boolean = {
+
+    userSetting match {
+      case SoundOnNewNotification => db.withSession { implicit session =>
+        val upQuery = for { u <- UserTable if u.id is userId } yield u.settingSound
+        val numRows = upQuery.update(userValue)
+        numRows > 0
+      }
+      case NotificationOnNewPicture => db.withSession { implicit session =>
+        val upQuery = for { u <- UserTable if u.id is userId } yield u.settingNewPicture
+        val numRows = upQuery.update(userValue)
+        numRows > 0
+      }
+      case _ => false
+    }
+
+  }
+
 }
 

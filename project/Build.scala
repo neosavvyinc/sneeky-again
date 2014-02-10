@@ -2,7 +2,7 @@ import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import sbt._
 import sbt.Keys._
-import sbtassembly.Plugin.{MergeStrategy, AssemblyKeys}
+import sbtassembly.Plugin.{PathList, MergeStrategy, AssemblyKeys}
 import sbtrelease.ReleasePlugin._
 import spray.revolver.RevolverPlugin.Revolver
 import scalariform.formatter.preferences._
@@ -38,7 +38,7 @@ object Build extends sbt.Build {
           Shared.settings ++
           releaseSettings ++
           settings ++
-          Revolver.enableDebugging(port = 5050, suspend = true) ++
+          Revolver.enableDebugging(port = 5050, suspend = false) ++
           Seq(
             resolvers += "spray" at "http://repo.spray.io/",
             compile <<= (compile in Compile) dependsOn (compile in Test, compile in IntegrationTest),
@@ -152,8 +152,9 @@ object Assembly {
     test in assembly := {},
     mergeStrategy in assembly <<= (mergeStrategy in assembly) {(old) =>
     {
+      case PathList("org", "hamcrest", xs @ _*)         => MergeStrategy.first
       case "logback.properties" =>  MergeStrategy.discard
-      case "application.conf" => MergeStrategy.discard
+      case "application.conf" => MergeStrategy.concat
       case x => old(x)
     }})
 }

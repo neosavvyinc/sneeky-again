@@ -23,15 +23,15 @@ class ConversationServiceSpec extends Specification
 
   def actorRefFactory : ActorRefFactory = system
 
-  val tProbe = TestProbe()
-  val aProbe = TestProbe()
-  val service = ConversationService(tProbe.ref, aProbe.ref)
-
   sequential
 
   "The Conversation Service" should {
 
     "start conversations with only phantom users" in withSetupTeardown {
+
+      val tProbe = TestProbe()
+      val aProbe = TestProbe()
+      val service = ConversationService(tProbe.ref, aProbe.ref)
 
       val starter = createVerifiedUser("starter@starter.com", "password")
       val user1 = createVerifiedUser("email@email.com", "password", "12345")
@@ -43,7 +43,7 @@ class ConversationServiceSpec extends Specification
       val userIds = Seq(user1.id, user2.id).flatten
       val user1Conversation = await(conversationDao.findConversationsAndItems(starter.id.get))
 
-      aProbe.expectMsg(SendConversationNotification(Seq(user1, user2)))
+      aProbe.expectMsg(user1)
       tProbe.expectNoMsg()
 
       user1Conversation.foreach {
@@ -57,6 +57,10 @@ class ConversationServiceSpec extends Specification
     }
 
     "start conversations with only stub users" in withSetupTeardown {
+      val tProbe = TestProbe()
+      val aProbe = TestProbe()
+      val service = ConversationService(tProbe.ref, aProbe.ref)
+
       val stubUser1 = createStubUser("123")
       val stubUser2 = createStubUser("456")
       val stubUsers = Seq(stubUser1, stubUser2)
@@ -86,6 +90,10 @@ class ConversationServiceSpec extends Specification
     }
 
     "start conversations with only unidentified users " in withSetupTeardown {
+      val tProbe = TestProbe()
+      val aProbe = TestProbe()
+      val service = ConversationService(tProbe.ref, aProbe.ref)
+
       val starter = createVerifiedUser("starter@starter.com", "password")
       val results = await(service.startConversation(starter.id.get, Set("123", "456"), "text", "url"))
 
@@ -96,6 +104,10 @@ class ConversationServiceSpec extends Specification
     }
 
     "start conversations with a mix of all three types of users" in withSetupTeardown {
+      val tProbe = TestProbe()
+      val aProbe = TestProbe()
+      val service = ConversationService(tProbe.ref, aProbe.ref)
+
       val starter = createVerifiedUser("starter@starter.com", "password")
       val user1 = createVerifiedUser("email@email.com", "password", "12")
       val user2 = createVerifiedUser("email2@email.com", "password", "34")
@@ -117,7 +129,7 @@ class ConversationServiceSpec extends Specification
           c.toUser must beOneOf(userIds : _*)
       }
 
-      aProbe.expectMsg(SendConversationNotification(Seq(user1, user2)))
+      aProbe.expectMsg(user1)
       tProbe.expectMsgAnyOf(SendInvite(Set("09", "90"), starter.id.get, "text", "url"), SendInviteToStubUsers(stubUsers))
       tProbe.expectMsgAnyOf(SendInvite(Set("09", "90"), starter.id.get, "text", "url"), SendInviteToStubUsers(stubUsers))
       results.createdCount must beEqualTo(4)
@@ -125,6 +137,10 @@ class ConversationServiceSpec extends Specification
     }
 
     "not send invitations to stub users if their invitation count is maxed out" in withSetupTeardown {
+      val tProbe = TestProbe()
+      val aProbe = TestProbe()
+      val service = ConversationService(tProbe.ref, aProbe.ref)
+
       createStubUser("888", 3)
       createStubUser("999", 3)
       val starter = createVerifiedUser("starter@starter.com", "password")

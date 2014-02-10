@@ -58,6 +58,15 @@ package object httpx {
       }
     }
 
+    implicit object PushSettingTypeFormat extends JsonFormat[PushSettingType] {
+      def write(obj : PushSettingType) = JsString(PushSettingType.toStringRep(obj))
+
+      def read(json : JsValue) : PushSettingType = json match {
+        case JsString(x) => PushSettingType.fromStringRep(x)
+        case _           => deserializationError("Expected String value for PushSettingType")
+      }
+    }
+
     implicit object MobilePushTypeFormat extends JsonFormat[MobilePushType] {
       def write(obj : MobilePushType) = JsString(MobilePushType.toStringRep(obj))
 
@@ -94,7 +103,8 @@ package object httpx {
     implicit val loginSuccessFormat = jsonFormat1(LoginSuccess)
     implicit val registrationVerificationFormat = jsonFormat6(RegistrationVerification)
     implicit val inviteMessageStatusFormat = jsonFormat2(InviteMessageStatus)
-    implicit val sessionIdwithPushNotifier = jsonFormat3(SessionIDWithPushNotifier)
+    implicit val sessionIdwithPushNotifier = jsonFormat2(UpdatePushTokenRequest)
+    implicit val pushSettingsRequest = jsonFormat2(PushSettingsRequest)
 
     implicit val conversationFormat = jsonFormat3(Conversation)
     implicit val contactFormat = jsonFormat4(Contact)
