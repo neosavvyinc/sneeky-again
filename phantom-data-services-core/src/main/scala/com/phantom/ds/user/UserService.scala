@@ -76,6 +76,12 @@ object UserService {
         sessions.updatePushNotifier(sessionUUID, applePushToken, mobilePushType)
       }
     }
+
+    def updatePushSetting(userId : Long, pushSettingType : PushSettingType, value : Boolean) : Future[Boolean] = {
+      future {
+        phantomUsersDao.updateSetting(userId, pushSettingType, value)
+      }
+    }
   }
 
 }

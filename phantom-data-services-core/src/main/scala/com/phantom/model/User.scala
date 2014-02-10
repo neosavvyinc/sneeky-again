@@ -28,6 +28,9 @@ case class PhantomUserDeleteMe(id : String)
 case class UpdatePushTokenRequest(pushNotifierToken : String,
                                   pushType : MobilePushType)
 
+case class PushSettingsRequest(settingValue : Boolean,
+                               pushSettingType : PushSettingType)
+
 sealed trait UserStatus
 
 object UserStatus {
@@ -39,13 +42,34 @@ object UserStatus {
   def fromStringRep(str : String) : UserStatus = str.toLowerCase match {
     case "unverified" => Unverified
     case "verified"   => Verified
-    case x            => throw new Exception(s"unrecognized user status %x")
+    case x            => throw new Exception(s"unrecognized user status $x")
   }
 }
 
 case object Unverified extends UserStatus
 
 case object Verified extends UserStatus
+
+sealed trait PushSettingType
+
+object PushSettingType {
+
+  def toStringRep(pushSettingType : PushSettingType) : String = pushSettingType match {
+    case NotificationOnNewPicture => "picture-received"
+    case SoundOnNewNotification   => "sound-on-new-item"
+  }
+
+  def fromStringRep(str : String) : PushSettingType = str.toLowerCase match {
+    case "picture-received"  => NotificationOnNewPicture
+    case "sound-on-new-item" => SoundOnNewNotification
+    case x                   => throw new Exception(s"unrecognized push setting $x")
+  }
+
+}
+
+case object SoundOnNewNotification extends PushSettingType
+
+case object NotificationOnNewPicture extends PushSettingType
 
 sealed trait MobilePushType
 
@@ -87,7 +111,9 @@ case class PhantomUser(id : Option[Long],
                        birthday : LocalDate,
                        active : Boolean,
                        phoneNumber : String,
-                       status : UserStatus = Unverified) extends Phantom
+                       status : UserStatus = Unverified,
+                       settingSound : Boolean = false,
+                       settingNewPicture : Boolean = false) extends Phantom
 
 object PhantomSession {
 
@@ -122,12 +148,11 @@ trait UserComponent { this : Profile =>
     def active = column[Boolean]("ACTIVE")
     def phoneNumber = column[String]("PHONE_NUMBER")
     def status = column[UserStatus]("STATUS")
-    def appleNoteSound = column[String]("SOUND_NOTIF")
-    def appleNoteNewPicture = column[String]("NEW_PICTURE_NOTIF")
+    def settingSound = column[Boolean]("SOUND_NOTIF")
+    def settingNewPicture = column[Boolean]("NEW_PICTURE_NOTIF")
 
-    def * = id.? ~ uuid ~ email ~ password ~ birthday ~ active ~ phoneNumber ~ status <> (PhantomUser, PhantomUser.unapply _)
+    def * = id.? ~ uuid ~ email ~ password ~ birthday ~ active ~ phoneNumber ~ status ~ settingSound ~ settingNewPicture <> (PhantomUser, PhantomUser.unapply _)
     def forInsert = * returning id
-    //    def phoneUnique = index("phoneUnique", phoneNumber, unique = true)
 
   }
 }

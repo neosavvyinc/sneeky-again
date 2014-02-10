@@ -134,5 +134,24 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     val q = for { c <- ContactTable if c.ownerId === id && c.contactType === (Blocked : ContactType) } yield c.contactType
     q.update(Friend)
   }
+
+  def updateSetting(userId : Long, userSetting : PushSettingType, userValue : Boolean) : Boolean = {
+
+    userSetting match {
+      case SoundOnNewNotification => db.withSession { implicit session =>
+        val upQuery = for { u <- UserTable if u.id is userId } yield u.settingSound
+        val numRows = upQuery.update(userValue)
+        numRows > 0
+      }
+      case NotificationOnNewPicture => db.withSession { implicit session =>
+        val upQuery = for { u <- UserTable if u.id is userId } yield u.settingNewPicture
+        val numRows = upQuery.update(userValue)
+        numRows > 0
+      }
+      case _ => false
+    }
+
+  }
+
 }
 
