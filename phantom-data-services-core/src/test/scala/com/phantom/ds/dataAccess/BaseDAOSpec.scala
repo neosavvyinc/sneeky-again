@@ -1,6 +1,6 @@
 package com.phantom.ds.dataAccess
 
-import org.specs2.mutable.{ After, Specification }
+import org.specs2.mutable.Specification
 import com.phantom.dataAccess.DatabaseSupport
 import org.specs2.specification.BeforeAfter
 import com.phantom.model._
@@ -46,12 +46,16 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with TestUtils {
   }
 
   def createVerifiedUser(email : String, password : String, phoneNumber : String = "") : PhantomUser = {
-    val user = PhantomUser(None, UUID.randomUUID, email, Passwords.getSaltedHash(password), LocalDate.now(DateTimeZone.UTC), true, phoneNumber, Verified)
+    val user = PhantomUser(None, UUID.randomUUID, Some(email), Some(Passwords.getSaltedHash(password)), Some(LocalDate.now(DateTimeZone.UTC)), true, Some(phoneNumber), None, None, 0, Verified)
     phantomUsersDao.insert(user)
   }
 
   def createUnverifiedUser(email : String, password : String) = {
-    phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, email, Passwords.getSaltedHash(password), LocalDate.now(DateTimeZone.UTC), true, "", Unverified))
+    phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some(email), Some(Passwords.getSaltedHash(password)), Some(LocalDate.now(DateTimeZone.UTC)), true, None, None, None, 0, Unverified))
+  }
+
+  def createStubUser(phone : String, count : Int = 1) = {
+    phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, None, None, Some(LocalDate.now(DateTimeZone.UTC)), true, Some(phone), None, None, count, Stub))
   }
 
   def createConversation(fromId : Long, toId : Long) : Conversation = {
@@ -59,32 +63,16 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with TestUtils {
   }
 
   def insertTestUsers() {
-    val user1 = new PhantomUser(None, UUID.randomUUID(), "aparrish@neosavvy.com", "password", new LocalDate(1981, 8, 10), true, "111111")
-    val user2 = new PhantomUser(None, UUID.randomUUID(), "ccaplinger@neosavvy.com", "password", new LocalDate(1986, 10, 12), true, "222222")
-    val user3 = new PhantomUser(None, UUID.randomUUID(), "tewen@neosavvy.com", "password", new LocalDate(1987, 8, 16), true, "333333")
-    val user4 = new PhantomUser(None, UUID.randomUUID(), "dhamlettneosavvy.com", "password", new LocalDate(1985, 5, 17), true, "444444")
-    val user5 = new PhantomUser(None, UUID.randomUUID(), "nick.sauro@gmail.com", "password", new LocalDate(1987, 8, 16), true, "555555")
-    val user6 = new PhantomUser(None, UUID.randomUUID(), "pablo.alonso@gmail.com", "password", new LocalDate(1987, 8, 16), true, "666666")
-    phantomUsersDao.insert(user1)
-    phantomUsersDao.insert(user2)
-    phantomUsersDao.insert(user3)
-    phantomUsersDao.insert(user4)
-    phantomUsersDao.insert(user5)
-    phantomUsersDao.insert(user6)
-
+    createVerifiedUser("aparrish@neosavvy.com", "password", "111111")
+    createVerifiedUser("ccaplinger@neosavvy.com", "password", "222222")
+    createVerifiedUser("tewen@neosavvy.com", "password", "333333")
+    createVerifiedUser("dhamlett@neosavvy.com", "password", "444444")
+    createVerifiedUser("nick.sauro@gmail.com", "password", "555555")
+    createVerifiedUser("pablo.alonso@gmail.com", "password", "666666")
   }
 
   def insertUsersWithPhoneNumbersAndContacts() = {
-
-    val user1 = PhantomUser(None, UUID.randomUUID(), "aparrish@neosavvy.com", "password", new LocalDate(1981, 8, 10), true, "4993676")
-    val user2 = PhantomUser(None, UUID.randomUUID(), "ccaplinger@neosavvy.com", "password", new LocalDate(1986, 10, 12), true, "5192050")
-    val user3 = PhantomUser(None, UUID.randomUUID(), "tewen@neosavvy.com", "password", new LocalDate(1987, 8, 16), true, "2061266")
-    val user4 = PhantomUser(None, UUID.randomUUID(), "nsauro@gmail.com", "password", new LocalDate(1987, 8, 16), true, "1234567")
-    phantomUsersDao.insert(user1)
-    phantomUsersDao.insert(user2)
-    phantomUsersDao.insert(user3)
-    phantomUsersDao.insert(user4)
-
+    insertTestUsers()
     insertTestContacts()
   }
 

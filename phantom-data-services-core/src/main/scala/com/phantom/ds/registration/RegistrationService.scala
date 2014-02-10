@@ -59,24 +59,13 @@ object RegistrationService {
       }
 
       private def convertStubUser(userId : Long, phoneNumber : String)(implicit session : Session) : Option[Int] = {
-        val stubUserOpt = stubUsersDao.findByPhoneNumberOperation(phoneNumber)
+        log.trace(s"looking for stub user who has a number: $phoneNumber")
+        val stubUserOpt = phantomUsersDao.findMatchingStubUserOperation(phoneNumber)
         stubUserOpt.map { stubUser =>
-          val stubConversations = stubConversationsDao.findByToStubUserIdOperation(stubUser.id.get)
-          val realConversations = conversationDao.insertAllOperation(stubConversationtoReal(stubConversations, userId))
-          conversationItemDao.insertAllOperation(stubConversationsToItems(stubConversations.zip(realConversations)))
-          stubUsersDao.deleteOperation(stubUser.id.get)
-          stubConversationsDao.deleteOperation(stubConversations.map(_.id.get))
-        }
-      }
-
-      private def stubConversationtoReal(conversations : Seq[StubConversation], toUserId : Long) : Seq[Conversation] = {
-        conversations.map(x => Conversation(None, toUserId, x.fromUser))
-      }
-
-      private def stubConversationsToItems(paired : Seq[(StubConversation, Conversation)]) : Seq[ConversationItem] = {
-        paired.map {
-          case (stub, real) =>
-            ConversationItem(None, real.id.get, stub.imageUrl, stub.imageText)
+          log.trace(s"converting stubUser $stubUser")
+          val stubUserId = stubUser.id.get
+          conversationDao.swapConversations(stubUserId, userId)
+          phantomUsersDao.deleteOperation(stubUserId)
         }
       }
 

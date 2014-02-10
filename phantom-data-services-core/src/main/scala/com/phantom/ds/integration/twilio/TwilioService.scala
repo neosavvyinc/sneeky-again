@@ -5,11 +5,13 @@ import com.phantom.ds.framework.Logging
 import com.phantom.ds.DSConfiguration
 import com.phantom.dataAccess.DatabaseSupport
 import com.twilio.sdk.resource.instance.Sms
-import com.phantom.model.{ StubConversation, StubUser }
+import com.phantom.model._
+import com.phantom.model.Conversation
+import java.util.UUID
 
 trait TwilioService {
   def sendInvitationsToUnidentifiedUsers(invite : SendInvite) : Future[Seq[String]]
-  def sendInvitationsToStubUsers(stubUsers : Seq[StubUser]) : Future[Seq[StubUser]]
+  def sendInvitationsToStubUsers(stubUsers : Seq[PhantomUser]) : Future[Seq[PhantomUser]]
   def recordInvitationStatus(status : InviteMessageStatus) : Future[Unit]
 }
 
@@ -29,8 +31,8 @@ object TwilioService {
 
       //not sure how to handle failed known stub users...in theory..they shouldn't exist
       //blacklisted might be the only real case to look out for
-      def sendInvitationsToStubUsers(stubUsers : Seq[StubUser]) : Future[Seq[StubUser]] = {
-        val resultsF = sender.sendInvitations(stubUsers.map(_.phoneNumber)).map(x => toResults(stubUsers.zip(x)))
+      def sendInvitationsToStubUsers(stubUsers : Seq[PhantomUser]) : Future[Seq[PhantomUser]] = {
+        val resultsF = sender.sendInvitations(stubUsers.map(_.phoneNumber).flatten).map(x => toResults(stubUsers.zip(x)))
 
         for {
           results <- resultsF
@@ -38,17 +40,18 @@ object TwilioService {
         } yield results.failed
       }
 
-      private def updateInvitationCount(stubUsers : Seq[StubUser]) : Future[Int] = {
-        stubUsersDao.updateInvitationCount(stubUsers)
+      private def updateInvitationCount(stubUsers : Seq[PhantomUser]) : Future[Int] = {
+        phantomUsersDao.updateInvitationCount(stubUsers)
       }
 
-      private def createStubAccounts(contacts : Seq[String], fromUser : Long, imageText : String, imageUrl : String) : Future[Seq[StubUser]] = {
-        val stagedStubs = contacts.map(x => StubUser(None, x, 1))
+      private def createStubAccounts(contacts : Seq[String], fromUser : Long, imageText : String, imageUrl : String) : Future[Seq[PhantomUser]] = {
+        val stagedStubs = contacts.map(x => PhantomUser(None, UUID.randomUUID, None, None, None, false, Some(x), None, None, 1, Stub))
         future {
           db.withTransaction { implicit session =>
-            val stubUsers = stubUsersDao.insertAllOperation(stagedStubs)
-            val stagedConversations = stubUsers.map(x => StubConversation(None, fromUser, x.id.get, imageText, imageUrl))
-            stubConversationsDao.insertAllOperation(stagedConversations)
+            val stubUsers = phantomUsersDao.insertAllOperation(stagedStubs)
+            val stagedConversations = stubUsers.map(x => Conversation(None, fromUser, x.id.get))
+            val createdConversations = conversationDao.insertAllOperation(stagedConversations)
+            conversationItemDao.insertAllOperation(createdConversations.map(x => ConversationItem(None, x.id.get, imageUrl, imageText)))
             stubUsers
           }
         }

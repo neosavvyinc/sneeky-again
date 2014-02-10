@@ -3,7 +3,7 @@ package com.phantom.ds.integration.twilio
 import akka.actor.Actor
 import com.phantom.ds.DSConfiguration
 import com.phantom.ds.framework.Logging
-import com.phantom.model.StubUser
+import com.phantom.model.PhantomUser
 import scala.concurrent.ExecutionContext
 
 class TwilioActor(service : TwilioService)(implicit ec : ExecutionContext) extends Actor with DSConfiguration with Logging {
@@ -40,6 +40,6 @@ sealed trait TwilioMessage
 
 case class SendInvite(contacts : Set[String], from : Long, imageText : String, imageUrl : String, tries : Int = 0) extends TwilioMessage
 
-case class SendInviteToStubUsers(stubUsers : Seq[StubUser], tries : Int = 0) extends TwilioMessage
+case class SendInviteToStubUsers(stubUsers : Seq[PhantomUser], tries : Int = 0) extends TwilioMessage
 
 case class InviteMessageStatus(messageSid : String, status : String) extends TwilioMessage

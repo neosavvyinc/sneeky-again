@@ -2,12 +2,7 @@ package com.phantom.model
 
 import com.phantom.dataAccess.Profile
 import scala.slick.lifted.ColumnOption.DBType
-
-case class ConversationStarter(
-  toUsers : List[Long],
-  fromUser : Long,
-  imageUrl : String,
-  imageText : String)
+import java.util.UUID
 
 case class ConversationItem(id : Option[Long],
                             conversationId : Long,
@@ -17,13 +12,6 @@ case class ConversationItem(id : Option[Long],
 case class Conversation(id : Option[Long],
                         toUser : Long,
                         fromUser : Long)
-
-case class ConversationSummary(mostRecent : ConversationItem)
-
-case class ConversationDetail(id : Long,
-                              conversationItems : List[ConversationItem])
-
-//case class Feed(conversations : List[Conversation])
 
 case class ConversationInsertResponse(createdCount : Long)
 

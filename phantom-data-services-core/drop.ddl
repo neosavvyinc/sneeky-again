@@ -9,5 +9,3 @@ drop table `CONVERSATIONS`
 drop table `CONVERSATION_ITEMS`
 drop table `CONTACTS`
 drop table `SESSIONS`
-drop table `STUB_USERS`
-drop table `STUB_CONVERSATIONS`

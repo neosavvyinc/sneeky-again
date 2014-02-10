@@ -23,8 +23,6 @@ case class UserLogin(email : String,
 
 case class LoginSuccess(sessionUUID : UUID)
 
-case class PhantomUserDeleteMe(id : String)
-
 case class SessionIDWithPushNotifier(sessionUUID : UUID,
                                      pushNotifierToken : String,
                                      pushType : MobilePushType)
@@ -35,18 +33,22 @@ object UserStatus {
   def toStringRep(status : UserStatus) : String = status match {
     case Unverified => "unverified"
     case Verified   => "verified"
+    case Stub       => "stub"
   }
 
   def fromStringRep(str : String) : UserStatus = str.toLowerCase match {
     case "unverified" => Unverified
     case "verified"   => Verified
-    case x            => throw new Exception(s"unrecognized user status %x")
+    case "stub"       => Stub
+    case x            => throw new Exception(s"unrecognized user status $x")
   }
 }
 
 case object Unverified extends UserStatus
 
 case object Verified extends UserStatus
+
+case object Stub extends UserStatus
 
 sealed trait MobilePushType
 
@@ -60,7 +62,7 @@ object MobilePushType {
   def fromStringRep(str : String) : MobilePushType = str.toLowerCase match {
     case "apple"   => Apple
     case "android" => Android
-    case x         => throw new Exception(s"unrecognized push type %x")
+    case x         => throw new Exception(s"unrecognized push type $x")
   }
 
 }
@@ -77,18 +79,17 @@ object UUIDConversions {
 
 }
 
-trait Phantom {
-  def phoneNumber : String
-}
-
 case class PhantomUser(id : Option[Long],
                        uuid : UUID,
-                       email : String,
-                       password : String,
-                       birthday : LocalDate,
+                       email : Option[String],
+                       password : Option[String],
+                       birthday : Option[LocalDate],
                        active : Boolean,
-                       phoneNumber : String,
-                       status : UserStatus = Unverified) extends Phantom
+                       phoneNumber : Option[String],
+                       appleNoteSound : Option[String],
+                       appleNoteNewPicture : Option[String],
+                       invitationCount : Int,
+                       status : UserStatus = Unverified)
 
 object PhantomSession {
 
@@ -117,16 +118,17 @@ trait UserComponent { this : Profile =>
   object UserTable extends Table[PhantomUser]("USERS") {
     def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
     def uuid = column[UUID]("UUID")
-    def email = column[String]("EMAIL", DBType("VARCHAR(256)"))
-    def password = column[String]("PASSWORD", DBType("VARCHAR(300)"))
-    def birthday = column[LocalDate]("BIRTHDAY")
+    def email = column[String]("EMAIL", DBType("VARCHAR(256)"), O.Nullable)
+    def password = column[String]("PASSWORD", DBType("VARCHAR(300)"), O.Nullable)
+    def birthday = column[LocalDate]("BIRTHDAY", O.Nullable)
     def active = column[Boolean]("ACTIVE")
-    def phoneNumber = column[String]("PHONE_NUMBER")
+    def phoneNumber = column[String]("PHONE_NUMBER", O.Nullable)
     def status = column[UserStatus]("STATUS")
-    def appleNoteSound = column[String]("SOUND_NOTIF")
-    def appleNoteNewPicture = column[String]("NEW_PICTURE_NOTIF")
+    def appleNoteSound = column[String]("SOUND_NOTIF", O.Nullable)
+    def appleNoteNewPicture = column[String]("NEW_PICTURE_NOTIF", O.Nullable)
+    def invitationCount = column[Int]("INVITATION_COUNT")
 
-    def * = id.? ~ uuid ~ email ~ password ~ birthday ~ active ~ phoneNumber ~ status <> (PhantomUser, PhantomUser.unapply _)
+    def * = id.? ~ uuid ~ email.? ~ password.? ~ birthday.? ~ active ~ phoneNumber.? ~ appleNoteSound.? ~ appleNoteNewPicture.? ~ invitationCount ~ status <> (PhantomUser, PhantomUser.unapply _)
     def forInsert = * returning id
     //    def phoneUnique = index("phoneUnique", phoneNumber, unique = true)
 

@@ -7,7 +7,6 @@ import scala.concurrent.Future
 import org.specs2.mock.Mockito
 import com.twilio.sdk.resource.instance.Sms
 import scala.concurrent.ExecutionContext.Implicits.global
-import com.phantom.model.StubUser
 
 class TwilioServiceSpec extends Specification
     with BaseDAOSpec
@@ -29,15 +28,17 @@ class TwilioServiceSpec extends Specification
 
       results must beEmpty
 
-      val stubUsers = await(stubUsersDao.findByPhoneNumbers(contacts))
+      val stubUsers = await(phantomUsersDao.findByPhoneNumbers(contacts))
       val stubIds = stubUsers.map(_.id.get)
-      val stubConversations = await(stubConversationsDao.findByFromUserId(1))
+      val stubConversations = await(conversationDao.findConversationsAndItems(1))
 
       stubUsers must have size 2
-      stubConversations.foreach { x =>
-        x.toStubUser must beOneOf(stubIds : _*)
-        x.imageText must beEqualTo("text")
-        x.imageUrl must beEqualTo("url")
+      stubConversations.foreach {
+        case (c, items) =>
+          c.toUser must beOneOf(stubIds : _*)
+          items must have size 1
+          items.head.imageText must be equalTo "text"
+          items.head.imageUrl must be equalTo "url"
       }
 
       stubConversations must have size 2
@@ -52,9 +53,9 @@ class TwilioServiceSpec extends Specification
 
       results must beEmpty
 
-      val stubUsers = await(stubUsersDao.findByPhoneNumbers(contacts))
+      val stubUsers = await(phantomUsersDao.findByPhoneNumbers(contacts))
       stubUsers must beEmpty
-      val stubConversations = await(stubConversationsDao.findByFromUserId(1))
+      val stubConversations = await(conversationDao.findConversationsAndItems(1))
       stubConversations must beEmpty
     }
 
@@ -75,20 +76,20 @@ class TwilioServiceSpec extends Specification
     }*/
 
     "update stub users invitation count for successfully sent invitations to stub users" in withSetupTeardown {
-      val users = await(stubUsersDao.insertAll(Seq(StubUser(None, "123", 1), StubUser(None, "456", 1))))
+      val stubUser = createStubUser("123")
       val sender = mock[TwilioMessageSender]
       sender.sendInvitations(any[Seq[String]]) returns Future.successful(Seq(Right(new Sms(null)), Right(new Sms(null))))
       val svc = TwilioService(sender)
-      val results = await(svc.sendInvitationsToStubUsers(users))
+      val results = await(svc.sendInvitationsToStubUsers(Seq(stubUser)))
 
       results must beEmpty
-      val updatedStubUsers = await(stubUsersDao.findByPhoneNumbers(users.map(_.phoneNumber).toSet))
+      val updatedStubUsers = await(phantomUsersDao.findByPhoneNumbers(Set("123")))
 
       updatedStubUsers.foreach { x =>
         x.invitationCount must beEqualTo(2)
       }
 
-      updatedStubUsers must have size 2
+      updatedStubUsers must have size 1
     }
 
     //NOT IMPORTANT FOR NOW..NOT RETRYING

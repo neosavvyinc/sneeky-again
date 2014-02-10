@@ -15,9 +15,7 @@ class DataAccessLayer(override val profile : ExtendedProfile) extends Profile wi
     with ConversationComponent
     with ConversationItemComponent
     with ContactComponent
-    with UserSessionComponent
-    with StubUserComponent
-    with StubConversationComponent {
+    with UserSessionComponent {
 
   import profile.simple._
 
@@ -26,9 +24,7 @@ class DataAccessLayer(override val profile : ExtendedProfile) extends Profile wi
       ConversationTable.ddl ++
       ConversationItemTable.ddl ++
       ContactTable.ddl ++
-      SessionTable.ddl ++
-      StubUserTable.ddl ++
-      StubConversationTable.ddl
+      SessionTable.ddl
 
   val writer = new PrintWriter(new File("schema.ddl"))
   writer.write("drop database phantom;\n")

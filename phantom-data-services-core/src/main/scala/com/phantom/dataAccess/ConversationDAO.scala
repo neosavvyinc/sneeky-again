@@ -22,10 +22,10 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
   import dal.profile.simple._
 
   //ONLY USED BY TESTS
-  def insert(conversationItem : Conversation) : Conversation = {
+  def insert(conversation : Conversation) : Conversation = {
     db.withTransaction { implicit session =>
-      val id = ConversationTable.forInsert.insert(conversationItem)
-      Conversation(Some(id), conversationItem.toUser, conversationItem.fromUser)
+      val id = ConversationTable.forInsert.insert(conversation)
+      conversation.copy(id = Some(id))
     }
   }
 
@@ -63,6 +63,11 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
           .getOrElse(throw PhantomException.nonExistentConversation)
       }
     }
+  }
+
+  def swapConversations(sourceUser : Long, desUser : Long)(implicit session : Session) : Int = {
+    val q = for { c <- ConversationTable if c.toUser === sourceUser } yield c.toUser
+    q.update(desUser)
   }
 
   private val byIdAndUserQuery = for {
