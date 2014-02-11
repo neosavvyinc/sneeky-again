@@ -37,15 +37,12 @@ class SessionDAOSpec extends BaseDAOSpec {
 
       await {
         sessions.createSession(PhantomSession.newSession(user1, Some("123456")))
-      }
-
-      await {
         sessions.createSession(PhantomSession.newSession(user2, Some("234567")))
       }
 
       val result = sessions.findTokensByUserId(List(user1, user2).map(_.id.get))
 
-      result should be equalTo List("123456", "234567")
+      result.sorted should be equalTo List("123456", "234567")
     }
 
   }
