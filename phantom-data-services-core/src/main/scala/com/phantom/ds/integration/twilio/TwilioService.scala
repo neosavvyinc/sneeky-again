@@ -51,7 +51,7 @@ object TwilioService {
             val stubUsers = phantomUsersDao.insertAllOperation(stagedStubs)
             val stagedConversations = stubUsers.map(x => Conversation(None, fromUser, x.id.get))
             val createdConversations = conversationDao.insertAllOperation(stagedConversations)
-            conversationItemDao.insertAllOperation(createdConversations.map(x => ConversationItem(None, x.id.get, imageUrl, imageText)))
+            conversationItemDao.insertAllOperation(createdConversations.map(x => ConversationItem(None, x.id.get, imageUrl, imageText, x.toUser, fromUser)))
             stubUsers
           }
         }

@@ -48,7 +48,7 @@ class ConversationEndpointSpec extends Specification
     "return a user's feed" in withSetupTeardown {
       insertTestConverationsWithItems()
       val toUserConv = conversationDao.insert(Conversation(None, 2L, 1L))
-      val item = ConversationItem(None, toUserConv.id.get, "", "")
+      val item = ConversationItem(None, toUserConv.id.get, "", "", 2L, 1L)
       await(conversationItemDao.insertAll(Seq(item, item, item)))
       val user = phantomUsersDao.find(2L)
       authedUser = user
