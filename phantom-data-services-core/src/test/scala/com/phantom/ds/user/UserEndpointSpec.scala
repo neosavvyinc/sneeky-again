@@ -36,11 +36,13 @@ class UserEndpointSpec extends Specification
       }
     }
 
-    "fail logging in if a user is not verified" in withSetupTeardown {
+    "log in should succeed for an unverified user" in withSetupTeardown {
       val login = UserLogin("nsauro@ev.com", "password")
       createUnverifiedUser("nsauro@ev.com", "password")
       Post("/users/login", login) ~> userRoute ~> check {
-        assertFailure(104)
+        assertPayload[LoginSuccess] { response =>
+          response.sessionUUID must not be null
+        }
       }
     }
 
@@ -80,10 +82,21 @@ class UserEndpointSpec extends Specification
 
       authedUser = Some(createVerifiedUser("adam@somewheres.com", "anything"))
 
-      Post("/users/pushNotifier?sessionId=38400000-8cf0-11bd-b23e-10b96e4ef00d", SessionIDWithPushNotifier(
-        UUID.fromString("38400000-8cf0-11bd-b23e-10b96e4ef00d"),
+      Post("/users/pushNotifier?sessionId=38400000-8cf0-11bd-b23e-10b96e4ef00d", UpdatePushTokenRequest(
         "anysessionid",
         Apple
+      )) ~> userRoute ~> check {
+        status == StatusCodes.OK
+      }
+    }
+
+    "Sending a push setting for sound toggle with a session id" in withSetupTeardown {
+
+      authedUser = Some(createVerifiedUser("adam@somewheres.com", "anything"))
+
+      Post("/users/pushSettings?sessionId=38400000-8cf0-11bd-b23e-10b96e4ef00d", PushSettingsRequest(
+        false,
+        SoundOnNewNotification
       )) ~> userRoute ~> check {
         status == StatusCodes.OK
       }
@@ -104,71 +117,6 @@ class UserEndpointSpec extends Specification
       }
 
     }
-
-    //    "be able to update a user's contacts" in withSetupTeardown {
-    //      createVerifiedUser("adamparrish@something.com", "mypassword")
-    //      insertContacts
-    //      Post("/users/1/contacts", List("", "")) ~> userRoute ~> check {
-    //        assertPayload[List[Long]] { response =>
-    //          response.size must not be equalTo(0)
-    //        }
-    //      }
-    //    }
-
-    /*"return a NonexistantUserException if you try to update contacts for a nonexistant user" in withSetupTeardown {
-      val phoneNumbers = List("(614)499-3676", "(614)519-2050", "(614)206-1266")
-      Post("/users/1/contacts", phoneNumbers) ~> userRoute ~> check {
-        assertFailure(103)
-      }
-    }
-
-    "be able to update your contacts with a list of phone numbers" in withSetupTeardown {
-      val newUser = UserRegistration("adamparrish@something.com", birthday, "somethingelse")
-      registerUser(newUser)
-
-      val phoneNumbers = List("6144993676", "6145192050", "6142061266")
-      Post("/users/1/contacts", phoneNumbers) ~> userRoute ~> check {
-        status == OK
-        /*assertPayload[List[PhantomUser]] { response =>
-          //response.head.id must be equalTo "6144993676"
-        }*/
-      }
-    }
-
-    "be able to get a user's contacts" in withSetupTeardown {
-      val newUser = UserRegistration("ccaplinger@neosavvy.com", birthday, "mypassword")
-      registerUser(newUser)
-
-      val phoneNumbers = List("6144993676", "6145192050")
-      Post("/users/1/contacts", phoneNumbers) ~> userRoute ~> check {
-        status == OK
-      }
-
-      Get("/users/1/contacts") ~> userRoute ~> check {
-        status == OK
-        /*assertPayload[List[PhantomUser]] { response =>
-          response.head.id must be equalTo "6144993676"
-        }*/
-      }
-    }
-
-    "fail to find an unregistered user" in withSetupTeardown {
-      Get("/users/1") ~> userRoute ~> check {
-        assertFailure(103)
-      }
-    }
-
-    "be able to get a registered user" in withSetupTeardown {
-      val newUser = UserRegistration("ccaplinger@neosavvy.com", birthday, "mypassword")
-      registerUser(newUser)
-
-      Get("/users/1") ~> userRoute ~> check {
-        assertPayload[ClientSafeUserResponse] { response =>
-          response.email must be equalTo "ccaplinger@neosavvy.com"
-        }
-      }
-    }*/
-
   }
 
 }

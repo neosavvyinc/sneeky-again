@@ -91,7 +91,7 @@ class PhantomRequestAuthenticatorSpec extends Specification
       val sessionCreated = DateTime.now(DateTimeZone.UTC)
       val uuid = UUID.randomUUID()
       val s = uuid.toString
-      val u = phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, "email", "", LocalDate.now, true, "", Verified))
+      val u = phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some("email"), Some(""), Some(LocalDate.now), true, Some(""), Verified))
       Await.result(sessions.createSession(PhantomSession(uuid, u.id.get, sessionCreated, sessionCreated, None)), waitPeriod)
       val h = hashValues(d, s)
       val url = s"/test/protected?$hashP=$h&$dateP=$d&$sessionIdP=$s"
@@ -106,27 +106,11 @@ class PhantomRequestAuthenticatorSpec extends Specification
       val sessionCreated = DateTime.now(DateTimeZone.UTC)
       val uuid = UUID.randomUUID()
       val s = uuid.toString
-      val u = phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, "email", "", LocalDate.now, true, "", Unverified))
+      val u = phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some("email"), Some(""), Some(LocalDate.now), true, Some(""), Unverified))
       Await.result(sessions.createSession(PhantomSession(uuid, u.id.get, sessionCreated, sessionCreated, None)), waitPeriod)
       val h = hashValues(d, s)
       val url = s"/test/protected?$hashP=$h&$dateP=$d&$sessionIdP=$s"
       assertAuthFailure(url, testRoute)
     }
   }
-
-  /*private def hashValues(date : String, sessionId : String, secret : String = AuthConfiguration.secret) = {
-    val digest = MessageDigest.getInstance("SHA-256")
-    val concatBytes = s"${date}_${sessionId}_$secret".getBytes("UTF-8")
-    val hashedBytes = digest.digest(concatBytes)
-    URLEncoder.encode(Base64.encodeBase64String(hashedBytes), "UTF-8")
-  }
-
-  private def now = dateFormat.print(DateTime.now(DateTimeZone.UTC))
-
-  private def assertAuthFailure(url : String) = {
-    Get(url) ~> testRoute ~> check {
-      rejection must beAnInstanceOf[AuthenticationFailedRejection]
-    }
-  }*/
-
 }

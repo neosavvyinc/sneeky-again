@@ -50,8 +50,8 @@ class ConversationEndpointSpec extends Specification
       val toUserConv = conversationDao.insert(Conversation(None, 2L, 1L))
       val item = ConversationItem(None, toUserConv.id.get, "", "")
       await(conversationItemDao.insertAll(Seq(item, item, item)))
-      val user = await(phantomUsersDao.find(2L))
-      authedUser = Some(user)
+      val user = phantomUsersDao.find(2L)
+      authedUser = user
       Get(s"/conversation") ~> conversationRoute ~> check {
         assertPayload[List[(Conversation, List[ConversationItem])]] { response =>
 
@@ -70,8 +70,7 @@ class ConversationEndpointSpec extends Specification
     "support receiving a multi-part form post to start or update a conversation, if no image it throws error" in withSetupTeardown {
 
       insertTestUsers()
-      val user = await(phantomUsersDao.find(2L))
-      authedUser = Some(user)
+      authedUser = phantomUsersDao.find(2L)
 
       val multipartForm = MultipartFormData {
         Map(
@@ -87,8 +86,7 @@ class ConversationEndpointSpec extends Specification
 
     "support receiving a multi-part form post to start a conversation with image" in withSetupTeardown {
       insertTestUsers()
-      val user = await(phantomUsersDao.find(2L))
-      authedUser = Some(user)
+      authedUser = phantomUsersDao.find(2L)
 
       val multipartFormWithData = MultipartFormData {
         Map(
@@ -130,8 +128,7 @@ class ConversationEndpointSpec extends Specification
     "disallow responding to a conversation if the user is not a member" in withSetupTeardown {
       insertTestConverationsWithItems()
 
-      val user = await(phantomUsersDao.find(3L))
-      authedUser = Some(user)
+      authedUser = phantomUsersDao.find(3L)
 
       val multipartFormWithData = MultipartFormData {
         Map(
@@ -153,10 +150,10 @@ class ConversationEndpointSpec extends Specification
 
       await(contacts.insert(Contact(None, 2, 1)))
 
-      val user1 = await(phantomUsersDao.find(1L))
-      val user2 = await(phantomUsersDao.find(2L))
+      val user1 = phantomUsersDao.find(1L)
+      val user2 = phantomUsersDao.find(2L)
 
-      authedUser = Some(user1)
+      authedUser = user1
 
       Post("/conversation/block/1") ~> conversationRoute ~> check {
         assertPayload[BlockUserByConversationResponse] { response =>
@@ -166,7 +163,7 @@ class ConversationEndpointSpec extends Specification
         }
       }
 
-      authedUser = Some(user2)
+      authedUser = user2
 
       Post("/conversation/block/1") ~> conversationRoute ~> check {
         assertPayload[BlockUserByConversationResponse] { response =>
@@ -180,7 +177,7 @@ class ConversationEndpointSpec extends Specification
     "fail blocking if the user is not a member of the conversation" in withSetupTeardown {
       insertTestConverationsWithItems()
       insertTestContacts()
-      authedUser = Some(await(phantomUsersDao.find(3L)))
+      authedUser = phantomUsersDao.find(3L)
       Post("/conversation/block/1") ~> conversationRoute ~> check {
         assertFailure(203)
       }
@@ -191,8 +188,7 @@ class ConversationEndpointSpec extends Specification
       insertTestConverationsWithItems()
       insertTestContacts()
 
-      val user2 = await(phantomUsersDao.find(2L))
-      authedUser = Some(user2)
+      authedUser = phantomUsersDao.find(2L)
 
       Post("/conversation/block/1") ~> conversationRoute ~> check {
         assertPayload[BlockUserByConversationResponse] { response =>
@@ -206,7 +202,7 @@ class ConversationEndpointSpec extends Specification
     "fail blocking if the conversation doesn't exist" in withSetupTeardown {
       insertTestConverationsWithItems()
       insertTestContacts()
-      authedUser = Some(await(phantomUsersDao.find(3L)))
+      authedUser = phantomUsersDao.find(3L)
       Post("/conversation/block/100") ~> conversationRoute ~> check {
         assertFailure(203)
       }

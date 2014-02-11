@@ -3,7 +3,7 @@ package com.phantom.ds.user
 import org.specs2.mutable.Specification
 import com.phantom.ds.PhantomEndpointSpec
 import spray.testkit.Specs2RouteTest
-import com.phantom.ds.framework.auth.{ AuthenticatedSpec, PhantomEntryPointAuthenticator, PassThroughEntryPointAuthenticator, PhantomRequestAuthenticator }
+import com.phantom.ds.framework.auth.{ AuthenticatedSpec, PhantomEntryPointAuthenticator, PhantomRequestAuthenticator }
 import com.phantom.ds.dataAccess.BaseDAOSpec
 import scala.concurrent.duration._
 import org.joda.time.{ LocalDate, DateTimeZone, DateTime }
@@ -34,7 +34,7 @@ class UserLogoutSpec extends Specification
       val sessionCreated = DateTime.now(DateTimeZone.UTC)
       val uuid = UUID.randomUUID()
       val s = uuid.toString
-      val u = phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, "email", "", LocalDate.now, true, "", Verified))
+      val u = phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some("email"), Some(""), Some(LocalDate.now), true, Some(""), Verified))
       Await.result(sessions.createSession(PhantomSession(uuid, u.id.get, sessionCreated, sessionCreated, None)), waitPeriod)
       val h = hashValues(d, s)
       val url = s"/users/logout?$hashP=$h&$dateP=$d&$sessionIdP=$s"

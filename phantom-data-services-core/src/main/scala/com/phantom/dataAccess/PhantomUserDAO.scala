@@ -25,6 +25,14 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
+  def insertAllOperation(users : Seq[PhantomUser])(implicit session : Session) : Seq[PhantomUser] = {
+    val b = UserTable.forInsert.insertAll(users : _*)
+    b.zip(users).map {
+      case (id, user) =>
+        user.copy(id = Some(id))
+    }
+  }
+
   private def insertNoTransact(user : PhantomUser)(implicit session : Session) : PhantomUser = {
     log.trace(s"inserting user: $user")
     val id = UserTable.forInsert.insert(user)
@@ -51,19 +59,19 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
   }
 
   private def createUserRecord(reg : UserRegistration)(implicit session : Session) = {
-    insertNoTransact(PhantomUser(None, UUID.randomUUID, reg.email, Passwords.getSaltedHash(reg.password), reg.birthday, true, ""))
+    insertNoTransact(PhantomUser(None, UUID.randomUUID, Some(reg.email), Some(Passwords.getSaltedHash(reg.password)), Some(reg.birthday), true, None))
   }
 
   def login(loginRequest : UserLogin) : Future[PhantomUser] = {
     future {
       db.withSession { implicit session =>
         log.trace(s"logging in $loginRequest")
-        val userOpt = byEmailQuery(loginRequest.email).firstOption
-        val filtered = userOpt.filter(x => Passwords.check(loginRequest.password, x.password))
-        val user = filtered.getOrElse(throw PhantomException.nonExistentUser)
-        if (user.status == Unverified) {
-          throw PhantomException.unverifiedUser(user.uuid.toString)
-        }
+        val userOpt = for {
+          user <- byEmailQuery(loginRequest.email).firstOption
+          password <- user.password if Passwords.check(loginRequest.password, password)
+        } yield user
+
+        val user = userOpt.getOrElse(throw PhantomException.nonExistentUser)
         user
       }
     }
@@ -82,14 +90,20 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     uOpt.map(_.id.get)
   }
 
-  //TODO: FUTURE ME
-  def find(id : Long) : Future[PhantomUser] = {
+  private val stubUserByPhoneNumber = for {
+    phoneNumber <- Parameters[String]
+    u <- UserTable if u.phoneNumber === phoneNumber && u.status === (Stub : UserStatus)
+  } yield u
 
+  def findMatchingStubUserOperation(number : String)(implicit session : Session) : Option[PhantomUser] = {
+    stubUserByPhoneNumber(number).firstOption
+  }
+
+  private val findById = for { id <- Parameters[Long]; u <- UserTable if u.id === id } yield u
+
+  def find(id : Long) : Option[PhantomUser] = {
     db.withSession { implicit session =>
-      //log.info(s"finding contacts for user with id => $id")
-      Query(UserTable).filter(_.id is id)
-        .firstOption.map { u : PhantomUser => Future.successful(u) }
-        .getOrElse(Future.failed(PhantomException.nonExistentUser))
+      findById(id).firstOption
     }
   }
 
@@ -102,7 +116,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
-  //TODO: future me
+  //TODO: future me (or remove..used by dead code only)
   def findContacts(id : Long) : Future[List[PhantomUser]] = {
     db.withSession { implicit session =>
       val q = for {
@@ -124,9 +138,21 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
       } yield u
 
       val users = q.list
-      val notFound = contacts.partition(users.map(_.phoneNumber).contains(_))
+      val userNumbers = users.map(_.phoneNumber).flatten
+      val notFound = contacts.diff(userNumbers)
+      (users, notFound)
+    }
+  }
 
-      (users, notFound._2)
+  //how in the hell do i exec update blank from users set invite = invite +1 where id in(..) ?
+  def updateInvitationCount(users : Seq[PhantomUser]) : Future[Int] = {
+    future {
+      db.withTransaction { implicit session =>
+        val ids = users.map(_.id.get).mkString(",")
+        val statement = session.conn.createStatement()
+        val q = s"update USERS set invitation_count = invitation_count + 1 where id in ($ids)"
+        statement.executeUpdate(q)
+      }
     }
   }
 
@@ -134,5 +160,29 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     val q = for { c <- ContactTable if c.ownerId === id && c.contactType === (Blocked : ContactType) } yield c.contactType
     q.update(Friend)
   }
+
+  def deleteOperation(id : Long)(implicit session : Session) : Int = {
+    val q = for { u <- UserTable if u.id === id } yield u
+    q.delete
+  }
+
+  def updateSetting(userId : Long, userSetting : PushSettingType, userValue : Boolean) : Boolean = {
+
+    userSetting match {
+      case SoundOnNewNotification => db.withSession { implicit session =>
+        val upQuery = for { u <- UserTable if u.id is userId } yield u.settingSound
+        val numRows = upQuery.update(userValue)
+        numRows > 0
+      }
+      case NotificationOnNewPicture => db.withSession { implicit session =>
+        val upQuery = for { u <- UserTable if u.id is userId } yield u.settingNewPicture
+        val numRows = upQuery.update(userValue)
+        numRows > 0
+      }
+      case _ => false
+    }
+
+  }
+
 }
 

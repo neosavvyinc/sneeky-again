@@ -1,8 +1,9 @@
 package com.phantom.ds.dataAccess
 
 import java.util.UUID
-import com.phantom.model.{ Apple, Android, PhantomUser, PhantomSession }
+import com.phantom.model._
 import scala.concurrent.ExecutionContext.Implicits.global
+import com.phantom.model.PhantomUser
 
 /**
  * Created with IntelliJ IDEA.
