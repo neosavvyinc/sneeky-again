@@ -108,7 +108,7 @@ class RegistrationEndpointSpec extends Specification
 
         val conversations = await(conversationDao.findConversationsAndItems(user.id.get))
         conversations.foreach {
-          case (c, items) =>
+          case FeedEntry(c, items) =>
             items must have size 1
             items.head.imageText must be equalTo "text"
             items.head.imageUrl must be equalTo "url"

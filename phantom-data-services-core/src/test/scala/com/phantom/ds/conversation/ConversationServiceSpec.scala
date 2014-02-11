@@ -7,6 +7,7 @@ import com.phantom.ds.TestUtils
 import akka.actor.ActorRefFactory
 import spray.testkit.Specs2RouteTest
 import com.phantom.ds.integration.twilio.{ SendInvite, SendInviteToStubUsers }
+import com.phantom.model.FeedEntry
 
 /**
  * Created with IntelliJ IDEA.
@@ -52,7 +53,7 @@ class ConversationServiceSpec extends Specification
       tProbe.expectNoMsg()
 
       user1Conversation.foreach {
-        case (c, items) =>
+        case FeedEntry(c, items) =>
           items must have size 1
           items.head.imageText must beEqualTo("text")
           items.head.imageUrl must beEqualTo("url")
@@ -82,7 +83,7 @@ class ConversationServiceSpec extends Specification
       aProbe.expectNoMsg()
 
       startedStubs.foreach {
-        case (c, items) =>
+        case FeedEntry(c, items) =>
           c.toUser must beOneOf(userIds : _*)
           items must have size 1
           items.head
@@ -133,7 +134,7 @@ class ConversationServiceSpec extends Specification
       val userIds = Seq(user1.id, user2.id, stubUser1.id, stubUser2.id).flatten
 
       user1Conversation.foreach {
-        case (c, items) =>
+        case FeedEntry(c, items) =>
           items must have size 1
           items.head.imageText must beEqualTo("text")
           items.head.imageUrl must beEqualTo("url")

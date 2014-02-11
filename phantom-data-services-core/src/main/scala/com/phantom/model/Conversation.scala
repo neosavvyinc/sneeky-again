@@ -4,6 +4,8 @@ import com.phantom.dataAccess.Profile
 import scala.slick.lifted.ColumnOption.DBType
 import java.util.UUID
 
+case class FeedEntry(conversation : Conversation, items : List[ConversationItem])
+
 case class ConversationItem(id : Option[Long],
                             conversationId : Long,
                             imageUrl : String,

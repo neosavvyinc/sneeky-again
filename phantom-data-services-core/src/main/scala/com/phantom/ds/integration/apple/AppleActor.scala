@@ -9,6 +9,8 @@ import com.phantom.ds.framework.exception.PhantomException
 import scala.util.Try
 import com.relayrides.pushy.apns._
 import util._
+import java.io.BufferedInputStream
+import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
 
 class AppleAPNSRejectListener extends RejectedNotificationListener[SimpleApnsPushNotification] with Logging {
   def handleRejectedNotification(notification : SimpleApnsPushNotification, reason : RejectedNotificationReason) = {
@@ -20,7 +22,12 @@ class AppleAPNSRejectListener extends RejectedNotificationListener[SimpleApnsPus
 
 object AppleService extends DSConfiguration {
 
-  private val keystoreInputStream = new java.io.FileInputStream(ApplePushConfiguration.certPath)
+  private def readPem(location : String) = {
+    val in4 = this.getClass.getClassLoader.getResourceAsStream(location)
+    in4
+  }
+
+  private val keystoreInputStream = readPem(ApplePushConfiguration.certPath)
 
   val pushManager = for {
     keyStore <- Try(java.security.KeyStore.getInstance("PKCS12"))

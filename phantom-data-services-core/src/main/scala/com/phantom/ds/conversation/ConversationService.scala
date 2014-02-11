@@ -25,7 +25,7 @@ import scala.slick.session.Session
  */
 trait ConversationService {
 
-  def findFeed(userId : Long) : Future[List[(Conversation, List[ConversationItem])]]
+  def findFeed(userId : Long) : Future[List[FeedEntry]]
 
   def startConversation(fromUserId : Long,
                         contactNumbers : Set[String],
@@ -47,7 +47,7 @@ object ConversationService extends DSConfiguration {
 
   def apply(twilioActor : ActorRef, appleActor : ActorRef)(implicit ec : ExecutionContext) = new ConversationService with DatabaseSupport with Logging {
 
-    def findFeed(userId : Long) : Future[List[(Conversation, List[ConversationItem])]] = {
+    def findFeed(userId : Long) : Future[List[FeedEntry]] = {
       conversationDao.findConversationsAndItems(userId)
     }
 
