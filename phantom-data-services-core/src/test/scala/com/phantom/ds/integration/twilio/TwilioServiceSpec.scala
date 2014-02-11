@@ -7,6 +7,7 @@ import scala.concurrent.Future
 import org.specs2.mock.Mockito
 import com.twilio.sdk.resource.instance.Sms
 import scala.concurrent.ExecutionContext.Implicits.global
+import com.phantom.model.FeedEntry
 
 class TwilioServiceSpec extends Specification
     with BaseDAOSpec
@@ -34,7 +35,7 @@ class TwilioServiceSpec extends Specification
 
       stubUsers must have size 2
       stubConversations.foreach {
-        case (c, items) =>
+        case FeedEntry(c, items) =>
           c.toUser must beOneOf(stubIds : _*)
           items must have size 1
           items.head.imageText must be equalTo "text"
