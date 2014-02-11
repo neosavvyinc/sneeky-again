@@ -35,8 +35,11 @@ class SessionDAOSpec extends BaseDAOSpec {
       val user1 : PhantomUser = createVerifiedUser("lemmy@kilmister.com", "motorhead", "9998887766")
       val user2 : PhantomUser = createVerifiedUser("glenntipton@jp.com", "judas priest", "666666666")
 
-      val session = await {
+      await {
         sessions.createSession(PhantomSession.newSession(user1, Some("123456")))
+      }
+
+      await {
         sessions.createSession(PhantomSession.newSession(user2, Some("234567")))
       }
 
