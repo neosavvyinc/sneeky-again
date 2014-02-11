@@ -13,7 +13,6 @@ import com.phantom.model.ConversationInsertResponse
 import com.phantom.ds.framework.Logging
 import akka.actor.ActorRef
 import com.phantom.ds.integration.twilio.{ SendInvite, SendInviteToStubUsers }
-import com.phantom.ds.integration.apple.SendConversationNotification
 import com.phantom.ds.framework.exception.PhantomException
 import scala.slick.session.Session
 

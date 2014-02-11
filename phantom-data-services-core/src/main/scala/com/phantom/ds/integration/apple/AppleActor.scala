@@ -55,7 +55,7 @@ object AppleService extends DSConfiguration {
   keystoreInputStream.close()
 }
 
-class AppleActor extends Actor with Logging {
+class AppleActor extends Actor with DSConfiguration with Logging {
 
   def receive : Actor.Receive = {
     case token : String => {
@@ -64,7 +64,7 @@ class AppleActor extends Actor with Logging {
 
       val payloadBuilder = new ApnsPayloadBuilder()
       payloadBuilder.setBadgeNumber(1)
-      payloadBuilder.setAlertBody("you got a new dick pic!")
+      payloadBuilder.setAlertBody(ApplePushConfiguration.messageBody)
       payloadBuilder.setSoundFileName("default")
 
       val payload = payloadBuilder.buildWithDefaultMaximumLength()
@@ -76,5 +76,3 @@ class AppleActor extends Actor with Logging {
 }
 
 sealed trait AppleMessage
-
-case class SendConversationNotification(users : Seq[PhantomUser]) // for now
