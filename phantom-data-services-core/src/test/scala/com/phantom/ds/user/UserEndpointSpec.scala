@@ -36,11 +36,13 @@ class UserEndpointSpec extends Specification
       }
     }
 
-    "fail logging in if a user is not verified" in withSetupTeardown {
+    "log in should succeed for an unverified user" in withSetupTeardown {
       val login = UserLogin("nsauro@ev.com", "password")
       createUnverifiedUser("nsauro@ev.com", "password")
       Post("/users/login", login) ~> userRoute ~> check {
-        assertFailure(104)
+        assertPayload[LoginSuccess] { response =>
+          response.sessionUUID must not be null
+        }
       }
     }
 

@@ -7,7 +7,6 @@ import com.phantom.ds.TestUtils
 import com.phantom.ds.integration.apple.SendConversationNotification
 import akka.actor.ActorRefFactory
 import spray.testkit.Specs2RouteTest
-import com.phantom.model.StubUser
 import com.phantom.ds.integration.twilio.{ SendInvite, SendInviteToStubUsers }
 
 /**
@@ -62,7 +61,9 @@ class ConversationServiceSpec extends Specification
       val aProbe = TestProbe()
       val service = ConversationService(tProbe.ref, aProbe.ref)
 
-      val stubUsers = await(stubUsersDao.insertAll(Seq(StubUser(None, "123", 0), StubUser(None, "456", 0))))
+      val stubUser1 = createStubUser("123")
+      val stubUser2 = createStubUser("456")
+      val stubUsers = Seq(stubUser1, stubUser2)
       val starter = createVerifiedUser("starter@starter.com", "password")
       val results = await(service.startConversation(starter.id.get, Set("123", "456"), "text", "url"))
 
@@ -70,15 +71,18 @@ class ConversationServiceSpec extends Specification
 
       val userIds = stubUsers.map(_.id.get)
 
-      val startedStubs = await(stubConversationsDao.findByFromUserId(starter.id.get))
+      val startedStubs = await(conversationDao.findConversationsAndItems(starter.id.get))
 
       tProbe.expectMsg(SendInviteToStubUsers(stubUsers))
       aProbe.expectNoMsg()
 
-      startedStubs.foreach { x =>
-        x.toStubUser must beOneOf(userIds : _*)
-        x.imageText must beEqualTo("text")
-        x.imageUrl must beEqualTo("url")
+      startedStubs.foreach {
+        case (c, items) =>
+          c.toUser must beOneOf(userIds : _*)
+          items must have size 1
+          items.head
+          items.head.imageText must beEqualTo("text")
+          items.head.imageUrl must beEqualTo("url")
       }
 
       startedStubs must have size 2
@@ -107,12 +111,15 @@ class ConversationServiceSpec extends Specification
       val starter = createVerifiedUser("starter@starter.com", "password")
       val user1 = createVerifiedUser("email@email.com", "password", "12")
       val user2 = createVerifiedUser("email2@email.com", "password", "34")
-      val stubUsers = await(stubUsersDao.insertAll(Seq(StubUser(None, "56", 0), StubUser(None, "78", 0))))
+      val stubUser1 = createStubUser("56")
+      val stubUser2 = createStubUser("78")
+      val stubUsers = Seq(stubUser1, stubUser2)
+
       val nums = Set("12", "34", "56", "78", "90", "09")
       val results = await(service.startConversation(starter.id.get, nums, "text", "url"))
 
       val user1Conversation = await(conversationDao.findConversationsAndItems(starter.id.get))
-      val userIds = Seq(user1.id, user2.id).flatten
+      val userIds = Seq(user1.id, user2.id, stubUser1.id, stubUser2.id).flatten
 
       user1Conversation.foreach {
         case (c, items) =>
@@ -120,15 +127,6 @@ class ConversationServiceSpec extends Specification
           items.head.imageText must beEqualTo("text")
           items.head.imageUrl must beEqualTo("url")
           c.toUser must beOneOf(userIds : _*)
-      }
-
-      val startedStubs = await(stubConversationsDao.findByFromUserId(starter.id.get))
-      val stubUserIds = stubUsers.map(_.id.get)
-
-      startedStubs.foreach { x =>
-        x.toStubUser must beOneOf(stubUserIds : _*)
-        x.imageText must beEqualTo("text")
-        x.imageUrl must beEqualTo("url")
       }
 
       aProbe.expectMsg(user1)
@@ -143,7 +141,8 @@ class ConversationServiceSpec extends Specification
       val aProbe = TestProbe()
       val service = ConversationService(tProbe.ref, aProbe.ref)
 
-      await(stubUsersDao.insertAll(Seq(StubUser(None, "888", 3), StubUser(None, "999", 3))))
+      createStubUser("888", 3)
+      createStubUser("999", 3)
       val starter = createVerifiedUser("starter@starter.com", "password")
       val results = await(service.startConversation(starter.id.get, Set("888", "999"), "text", "url"))
 

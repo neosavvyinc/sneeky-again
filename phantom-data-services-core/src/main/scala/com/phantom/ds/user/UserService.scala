@@ -7,6 +7,7 @@ import com.phantom.model.UserLogin
 import com.phantom.model.PhantomUser
 import com.phantom.dataAccess.DatabaseSupport
 import java.util.UUID
+import com.phantom.ds.framework.exception.PhantomException
 
 trait UserService {
 
@@ -39,9 +40,13 @@ object UserService {
     }
 
     def findById(id : Long) : Future[PhantomUser] = {
-      phantomUsersDao.find(id)
+      future {
+        val opt = phantomUsersDao.find(id)
+        opt.getOrElse(throw PhantomException.nonExistentUser)
+      }
     }
 
+    ///TODO REMOVE : NOT USED
     def findContactsById(id : Long) : Future[List[PhantomUser]] = {
       phantomUsersDao.findContacts(id)
     }

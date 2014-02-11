@@ -57,10 +57,10 @@ object ConversationService extends DSConfiguration {
                           imageText : String,
                           imageUrl : String) : Future[ConversationInsertResponse] = {
       for {
-        (nonUsers, users) <- partitionUsers(contactNumbers)
-        (nonStubUsers, stubUsers) <- partitionStubUsers(nonUsers)
-        response <- createConversationRoots(users, stubUsers, fromUserId, imageText, imageUrl)
-        _ <- sendInvitations(nonStubUsers, stubUsers, fromUserId, imageText, imageUrl)
+        (nonUsers, allUsers) <- partitionUsers(contactNumbers)
+        (stubUsers, users) <- partitionStubUsers(allUsers)
+        response <- createConversationRoots(users ++ stubUsers, fromUserId, imageText, imageUrl)
+        _ <- sendInvitations(nonUsers, stubUsers, fromUserId, imageText, imageUrl)
         _ <- sendConversationNotifications(users)
       } yield response
     }
@@ -69,27 +69,25 @@ object ConversationService extends DSConfiguration {
       partition(phantomUsersDao.findByPhoneNumbers(contactNumbers), contactNumbers)
     }
 
-    private def partitionStubUsers(contactNumbers : Set[String]) : Future[(Set[String], Seq[StubUser])] = {
-      partition(stubUsersDao.findByPhoneNumbers(contactNumbers), contactNumbers)
+    private def partitionStubUsers(users : Seq[PhantomUser]) : Future[(Seq[PhantomUser], Seq[PhantomUser])] = {
+      Future.successful(users.partition(_.status == Stub))
     }
 
-    private def partition[T <: Phantom](phantomsF : Future[List[T]], contactNumbers : Set[String]) : Future[(Set[String], Seq[T])] = {
+    private def partition(phantomsF : Future[List[PhantomUser]], contactNumbers : Set[String]) : Future[(Set[String], Seq[PhantomUser])] = {
       phantomsF.map { users =>
-        val existingNumbers = users.map(_.phoneNumber).toSet
+        val existingNumbers = users.map(_.phoneNumber).flatten.toSet
         val nonUsers = contactNumbers.diff(existingNumbers)
         (nonUsers, users)
       }
     }
 
-    private def createConversationRoots(users : Seq[PhantomUser], stubUsers : Seq[StubUser], fromUserId : Long, imageText : String, imageUrl : String) : Future[ConversationInsertResponse] = {
+    private def createConversationRoots(users : Seq[PhantomUser], fromUserId : Long, imageText : String, imageUrl : String) : Future[ConversationInsertResponse] = {
       future {
         db.withTransaction { implicit session =>
           val conversations = users.map(x => Conversation(None, x.id.getOrElse(-1), fromUserId))
-          val stubConversations = stubUsers.map(x => StubConversation(None, fromUserId, x.id.getOrElse(-1), imageText, imageUrl))
           val createdConversations = conversationDao.insertAllOperation(conversations)
           val createdConversationItems = conversationItemDao.insertAllOperation(createConversationItemRoots(createdConversations, fromUserId, imageText, imageUrl))
-          val createdStubConversations = stubConversationsDao.insertAllOperation(stubConversations)
-          ConversationInsertResponse(createdConversations.size + createdStubConversations.size)
+          ConversationInsertResponse(createdConversations.size)
         }
       }
     }
@@ -104,7 +102,7 @@ object ConversationService extends DSConfiguration {
       }
     }
 
-    private def sendInvitations(contacts : Set[String], stubUsers : Seq[StubUser], fromUser : Long, imageText : String, imageUrl : String) : Future[Unit] = {
+    private def sendInvitations(contacts : Set[String], stubUsers : Seq[PhantomUser], fromUser : Long, imageText : String, imageUrl : String) : Future[Unit] = {
       //intentionally not creating a future here..as sending msgs in non blocking
       Future.successful {
         val invitable = stubUsers.filter(_.invitationCount < UserConfiguration.invitationMax)
