@@ -10,6 +10,6 @@ create table SESSIONS (SESSIONID VARCHAR(254) NOT NULL,USERID BIGINT NOT NULL,CR
 alter table CONVERSATIONS add constraint TO_USER_FK foreign key(TO_USER) references USERS(ID) on update NO ACTION on delete NO ACTION;
 alter table CONVERSATIONS add constraint FROM_USER_FK foreign key(FROM_USER) references USERS(ID) on update NO ACTION on delete NO ACTION;
 alter table CONVERSATION_ITEMS add constraint CONVERSATION_FK foreign key(CONVERSATION_ID) references CONVERSATIONS(id) on update NO ACTION on delete NO ACTION;
-alter table CONTACTS add constraint OWNER_FK foreign key(OWNER_ID) references USERS(ID) on update NO ACTION on delete NO ACTION;
 alter table CONTACTS add constraint CONTACT_FK foreign key(CONTACT_ID) references USERS(ID) on update NO ACTION on delete NO ACTION;
+alter table CONTACTS add constraint OWNER_FK foreign key(OWNER_ID) references USERS(ID) on update NO ACTION on delete NO ACTION;
 alter table SESSIONS add constraint USER_FK foreign key(USERID) references USERS(ID) on update NO ACTION on delete NO ACTION;

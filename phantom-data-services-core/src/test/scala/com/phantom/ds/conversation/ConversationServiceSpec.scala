@@ -4,7 +4,6 @@ import org.specs2.mutable.{ After, Specification }
 import akka.testkit.TestProbe
 import com.phantom.ds.dataAccess.BaseDAOSpec
 import com.phantom.ds.TestUtils
-import com.phantom.ds.integration.apple.SendConversationNotification
 import akka.actor.ActorRefFactory
 import spray.testkit.Specs2RouteTest
 import com.phantom.ds.integration.twilio.{ SendInvite, SendInviteToStubUsers }
@@ -36,6 +35,12 @@ class ConversationServiceSpec extends Specification
       val starter = createVerifiedUser("starter@starter.com", "password")
       val user1 = createVerifiedUser("email@email.com", "password", "12345")
       val user2 = createVerifiedUser("email2@email.com", "password", "56789")
+
+      await {
+        sessions.createSession(com.phantom.model.PhantomSession.newSession(user1, Some("123456")))
+        sessions.createSession(com.phantom.model.PhantomSession.newSession(user2, Some("234567")))
+      }
+
       val results = await(service.startConversation(starter.id.get, Set("12345", "56789"), "text", "url"))
 
       results.createdCount must beEqualTo(2)
@@ -43,7 +48,7 @@ class ConversationServiceSpec extends Specification
       val userIds = Seq(user1.id, user2.id).flatten
       val user1Conversation = await(conversationDao.findConversationsAndItems(starter.id.get))
 
-      aProbe.expectMsg(user1)
+      aProbe.expectMsgAllOf("123456", "234567")
       tProbe.expectNoMsg()
 
       user1Conversation.foreach {
@@ -111,6 +116,12 @@ class ConversationServiceSpec extends Specification
       val starter = createVerifiedUser("starter@starter.com", "password")
       val user1 = createVerifiedUser("email@email.com", "password", "12")
       val user2 = createVerifiedUser("email2@email.com", "password", "34")
+
+      await {
+        sessions.createSession(com.phantom.model.PhantomSession.newSession(user1, Some("3456789")))
+        sessions.createSession(com.phantom.model.PhantomSession.newSession(user2, Some("4567890")))
+      }
+
       val stubUser1 = createStubUser("56")
       val stubUser2 = createStubUser("78")
       val stubUsers = Seq(stubUser1, stubUser2)
@@ -129,11 +140,10 @@ class ConversationServiceSpec extends Specification
           c.toUser must beOneOf(userIds : _*)
       }
 
-      aProbe.expectMsg(user1)
+      aProbe.expectMsgAllOf("3456789", "4567890")
       tProbe.expectMsgAnyOf(SendInvite(Set("09", "90"), starter.id.get, "text", "url"), SendInviteToStubUsers(stubUsers))
       tProbe.expectMsgAnyOf(SendInvite(Set("09", "90"), starter.id.get, "text", "url"), SendInviteToStubUsers(stubUsers))
       results.createdCount must beEqualTo(4)
-
     }
 
     "not send invitations to stub users if their invitation count is maxed out" in withSetupTeardown {
