@@ -23,8 +23,7 @@ class AppleAPNSRejectListener extends RejectedNotificationListener[SimpleApnsPus
 object AppleService extends DSConfiguration {
 
   private def readPem(location : String) = {
-    val in4 = this.getClass.getClassLoader.getResourceAsStream(location)
-    in4
+    this.getClass.getClassLoader.getResourceAsStream(location)
   }
 
   private val keystoreInputStream = readPem(ApplePushConfiguration.certPath)
