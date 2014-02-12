@@ -19,7 +19,7 @@ package object exception {
     def contactNotUpdated = new PhantomException(301)
     def contactNotInserted = new PhantomException(302)
     def nonExistentContact = new PhantomException(303)
-
+    def apnsError(msg : String) = new PhantomException(400, msg)
   }
 
   object Errors {

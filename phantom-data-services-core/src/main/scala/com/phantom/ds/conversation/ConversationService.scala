@@ -13,7 +13,6 @@ import com.phantom.model.ConversationInsertResponse
 import com.phantom.ds.framework.Logging
 import akka.actor.ActorRef
 import com.phantom.ds.integration.twilio.{ SendInvite, SendInviteToStubUsers }
-import com.phantom.ds.integration.apple.SendConversationNotification
 import com.phantom.ds.framework.exception.PhantomException
 import scala.slick.session.Session
 
@@ -61,8 +60,15 @@ object ConversationService extends DSConfiguration {
         (stubUsers, users) <- partitionStubUsers(allUsers)
         response <- createConversationRoots(users ++ stubUsers, fromUserId, imageText, imageUrl)
         _ <- sendInvitations(nonUsers, stubUsers, fromUserId, imageText, imageUrl)
-        _ <- sendConversationNotifications(users)
+        tokens <- getTokens(allUsers.map(_.id.get))
+        _ <- sendConversationNotifications(tokens)
       } yield response
+    }
+
+    private def getTokens(userIds : Seq[Long]) : Future[List[String]] = {
+      future {
+        sessions.findTokensByUserId(userIds)
+      }
     }
 
     private def partitionUsers(contactNumbers : Set[String]) : Future[(Set[String], Seq[PhantomUser])] = {
@@ -96,9 +102,9 @@ object ConversationService extends DSConfiguration {
       conversations.map(x => ConversationItem(None, x.id.getOrElse(-1), imageUrl, imageText))
     }
 
-    private def sendConversationNotifications(phantomUsers : Seq[PhantomUser]) : Future[Unit] = {
+    private def sendConversationNotifications(pushTokens : List[String]) : Future[Unit] = {
       future {
-        phantomUsers.foreach(appleActor ! _)
+        pushTokens.foreach(appleActor ! _)
       }
     }
 
