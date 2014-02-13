@@ -85,8 +85,8 @@ class RegistrationEndpointSpec extends Specification
       val fromUser = createVerifiedUser("n@n.com", "password").id.get
       val user = createUnverifiedUser("email@email.com", "password")
       val stubUser = createStubUser("987654321")
-      val stubConversation = conversationDao.insert(Conversation(None, stubUser.id.get, fromUser))
-      conversationItemDao.insertAll(Seq(ConversationItem(None, stubConversation.id.get, "url", "text")))
+      val stubConversation = conversationDao.insert(Conversation(None, stubUser.id.get, fromUser, "9197419597"))
+      conversationItemDao.insertAll(Seq(ConversationItem(None, stubConversation.id.get, "url", "text", stubConversation.toUser, stubConversation.fromUser)))
       val regResponse = reg("pre", user.uuid.toString, "post")
 
       val formData = FormData(Map("AccountSid" -> regResponse.accountSid,

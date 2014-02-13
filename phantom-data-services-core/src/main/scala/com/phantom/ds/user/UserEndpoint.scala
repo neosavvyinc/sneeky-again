@@ -7,6 +7,7 @@ import spray.json._
 import com.phantom.ds.DataHttpService
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 import java.util.UUID
+import scala.concurrent.Future
 
 trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
   this : RequestAuthenticator with EntryPointAuthenticator =>
@@ -27,7 +28,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
       }
     } ~
       pathPrefix("users" / "logout") {
-        authenticate(request _) { user =>
+        authenticate(unverified _) { user =>
           get { //todo:  authenticate should return case class of User/Session
             parameter('sessionId) { session =>
               respondWithMediaType(`application/json`) {
@@ -38,7 +39,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
         }
       } ~
       pathPrefix("users" / "contacts") {
-        authenticate(request _) { user =>
+        authenticate(verified _) { user =>
           post {
             respondWithMediaType(`application/json`) {
               entity(as[Map[String, List[String]]]) { phoneNumbers =>
@@ -54,7 +55,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
         }
       } ~
       pathPrefix("users" / "clearblocklist") {
-        authenticate(request _) { user =>
+        authenticate(verified _) { user =>
           post {
             respondWithMediaType(`application/json`) {
               complete(userService.clearBlockList(user.id.get))
@@ -62,17 +63,18 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
           }
         }
       } ~
-      pathPrefix("users") { //TODO whats this used for?
-        authenticate(request _) { user =>
+      pathPrefix("users") {
+        authenticate(unverified _) { user =>
           get {
             respondWithMediaType(`application/json`) {
-              complete(userService.findById(user.id.get))
+              log.trace(s"identify function invoked : $user")
+              complete(Future.successful(SanitizedUser(user.uuid, user.birthday, user.status)))
             }
           }
         }
       } ~
       pathPrefix("users" / "pushNotifier") {
-        authenticate(request _) { user =>
+        authenticate(verified _) { user =>
           post {
             entity(as[UpdatePushTokenRequest]) { pushTokenRequest =>
               parameter('sessionId) { session =>
@@ -89,7 +91,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
         }
       } ~
       pathPrefix("users" / "pushSettings") {
-        authenticate(request _) { user =>
+        authenticate(verified _) { user =>
           post {
             entity(as[PushSettingsRequest]) { pushRequest =>
               parameter('sessionId) { session =>

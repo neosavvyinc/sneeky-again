@@ -32,15 +32,15 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with TestUtils {
 
   //override def after : Any = source.close _
 
-  def setupConversationItems(convId : Long) : List[ConversationItem] = {
+  def setupConversationItems(convId : Long, toUser : Long, fromUser : Long) : List[ConversationItem] = {
     val item1 = new ConversationItem(
-      None, convId, "image1Url", "image1Text"
+      None, convId, "image1Url", "image1Text", toUser, fromUser
     )
     val item2 = new ConversationItem(
-      None, convId, "image1Url", "image1Text"
+      None, convId, "image1Url", "image1Text", toUser, fromUser
     )
     val item3 = new ConversationItem(
-      None, convId, "image1Url", "image1Text"
+      None, convId, "image1Url", "image1Text", toUser, fromUser
     )
     List(item1, item2, item3)
   }
@@ -59,7 +59,7 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with TestUtils {
   }
 
   def createConversation(fromId : Long, toId : Long) : Conversation = {
-    conversationDao.insert(Conversation(None, toId, fromId))
+    conversationDao.insert(Conversation(None, toId, fromId, "9197419597"))
   }
 
   def insertTestUsers() {
@@ -88,9 +88,9 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with TestUtils {
 
   def insertTestConversations() {
 
-    val conv1 = new Conversation(None, 1, 2)
-    val conv2 = new Conversation(None, 3, 4)
-    val conv3 = new Conversation(None, 5, 6)
+    val conv1 = new Conversation(None, 1, 2, "9197419597")
+    val conv2 = new Conversation(None, 3, 4, "9197419597")
+    val conv3 = new Conversation(None, 5, 6, "9197419597")
     conversationDao.insert(conv1)
     conversationDao.insert(conv2)
     conversationDao.insert(conv3)
@@ -100,13 +100,13 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with TestUtils {
   def insertTestConverationsWithItems() {
     insertTestUsersAndConversations()
 
-    val conv1item1 = new ConversationItem(None, 1, "imageUrl1", "imageText1")
-    val conv1item2 = new ConversationItem(None, 1, "imageUrl2", "imageText2")
-    val conv1item3 = new ConversationItem(None, 1, "imageUrl3", "imageText3")
+    val conv1item1 = new ConversationItem(None, 1, "imageUrl1", "imageText1", 1, 2)
+    val conv1item2 = new ConversationItem(None, 1, "imageUrl2", "imageText2", 1, 2)
+    val conv1item3 = new ConversationItem(None, 1, "imageUrl3", "imageText3", 1, 2)
 
-    val conv2item1 = new ConversationItem(None, 2, "imageUrl1", "imageText1")
-    val conv2item2 = new ConversationItem(None, 2, "imageUrl2", "imageText2")
-    val conv2item3 = new ConversationItem(None, 2, "imageUrl3", "imageText3")
+    val conv2item1 = new ConversationItem(None, 2, "imageUrl1", "imageText1", 3, 4)
+    val conv2item2 = new ConversationItem(None, 2, "imageUrl2", "imageText2", 3, 4)
+    val conv2item3 = new ConversationItem(None, 2, "imageUrl3", "imageText3", 3, 4)
 
     await(conversationItemDao.insertAll(Seq(conv1item1, conv1item2, conv1item3, conv2item1, conv2item2, conv2item3)))
   }

@@ -8,6 +8,7 @@ import java.security.MessageDigest
 import org.apache.commons.codec.binary.Base64
 import spray.routing.AuthenticationFailedRejection
 import spray.routing.AuthenticationFailedRejection.CredentialsRejected
+import com.phantom.model.{ Stub, Unverified, Verified, UserStatus }
 
 trait Authenticator extends DSConfiguration {
 
@@ -31,6 +32,24 @@ trait Authenticator extends DSConfiguration {
     val digest = MessageDigest.getInstance("SHA-256")
     val bytes = withSuffix.getBytes("UTF-8")
     Base64.encodeBase64String(digest.digest(bytes))
+  }
+
+}
+
+/*very simple authorizer for now...will keep us afloat until we have more stringent requirements
+this just assumes the following auth hierarchy:
+- Verified -> Top dawg, can hit all points
+- Unverified -> can only hit endpoints for Unverified and Stubs
+- Stub       -> can only hit endpoints for Stus
+*/
+object PhantomAuthorizer {
+
+  private val weights : Map[UserStatus, Int] = Map(Verified -> 100, Unverified -> 10, Stub -> 1)
+
+  def authorize(securityRole : UserStatus, userRole : UserStatus) : Boolean = {
+    val securityWeight = weights.getOrElse(securityRole, -1)
+    val userWeight = weights.getOrElse(userRole, -1)
+    userWeight >= securityWeight
   }
 
 }

@@ -15,6 +15,7 @@ import akka.actor.ActorRef
 import com.phantom.ds.integration.twilio.{ SendInvite, SendInviteToStubUsers }
 import com.phantom.ds.framework.exception.PhantomException
 import scala.slick.session.Session
+import org.joda.time.DateTime
 
 /**
  * Created by Neosavvy
@@ -90,7 +91,7 @@ object ConversationService extends DSConfiguration {
     private def createConversationRoots(users : Seq[PhantomUser], fromUserId : Long, imageText : String, imageUrl : String) : Future[ConversationInsertResponse] = {
       future {
         db.withTransaction { implicit session =>
-          val conversations = users.map(x => Conversation(None, x.id.getOrElse(-1), fromUserId))
+          val conversations = users.map(x => Conversation(None, x.id.getOrElse(-1), fromUserId, x.phoneNumber.get))
           val createdConversations = conversationDao.insertAllOperation(conversations)
           val createdConversationItems = conversationItemDao.insertAllOperation(createConversationItemRoots(createdConversations, fromUserId, imageText, imageUrl))
           ConversationInsertResponse(createdConversations.size)
@@ -99,7 +100,7 @@ object ConversationService extends DSConfiguration {
     }
 
     private def createConversationItemRoots(conversations : Seq[Conversation], fromUserId : Long, imageText : String, imageUrl : String) : Seq[ConversationItem] = {
-      conversations.map(x => ConversationItem(None, x.id.getOrElse(-1), imageUrl, imageText))
+      conversations.map(x => ConversationItem(None, x.id.getOrElse(-1), imageUrl, imageText, x.toUser, fromUserId))
     }
 
     private def sendConversationNotifications(pushTokens : List[String]) : Future[Unit] = {
@@ -121,12 +122,43 @@ object ConversationService extends DSConfiguration {
       }
     }
 
+    def findToUser(toUser : Long, conversation : Conversation) : Long = {
+      if (conversation.toUser == toUser) {
+        toUser
+      } else {
+        conversation.fromUser
+      }
+    }
+
+    def findFromUser(toUser : Long, conversation : Conversation) : Long = {
+      if (conversation.toUser == toUser) {
+        conversation.fromUser
+      } else {
+        toUser
+      }
+    }
+
     override def respondToConversation(userId : Long, conversationId : Long, imageText : String, image : Array[Byte]) : Future[ConversationUpdateResponse] = {
       future {
         db.withTransaction { implicit session =>
           val citem = for {
             conversation <- conversationDao.findByIdAndUserOperation(conversationId, userId)
-          } yield conversationItemDao.insertOperation(ConversationItem(None, conversationId, saveFileForConversationId(image, conversationId), imageText))
+          } yield conversationItemDao.insertOperation(
+            ConversationItem(
+              None,
+              conversationId,
+              saveFileForConversationId(
+                image,
+                conversationId),
+              imageText,
+              findToUser(
+                userId,
+                conversation),
+              findFromUser(
+                userId,
+                conversation)
+            )
+          )
           citem.map(x => ConversationUpdateResponse(1)).getOrElse(throw PhantomException.nonExistentConversation)
         }
       }
