@@ -116,8 +116,6 @@ case class PhantomUser(id : Option[Long],
 
 case class SanitizedUser(uuid : UUID, birthday : Option[LocalDate], status : UserStatus)
 
-case class SanitizedUser(uuid : UUID, birthday : Option[LocalDate], status : UserStatus)
-
 object PhantomSession {
 
   def newSession(user : PhantomUser, token : Option[String] = None) : PhantomSession = {
