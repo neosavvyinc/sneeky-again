@@ -10,7 +10,7 @@ trait AuthTestPoint extends HttpService {
   val testRoute =
     pathPrefix("test" / "protected") {
       get {
-        authenticate(request _) {
+        authenticate(verified _) {
           user =>
             complete {
               StatusCodes.OK
@@ -27,6 +27,16 @@ trait AuthTestPoint extends HttpService {
               }
           }
         }
+      } ~ pathPrefix("test" / "unverified") {
+        get {
+          authenticate(unverified _) {
+            user =>
+              complete {
+                StatusCodes.OK
+              }
+          }
+        }
+
       }
 
 }

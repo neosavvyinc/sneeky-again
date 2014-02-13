@@ -26,7 +26,7 @@ trait ConversationEndpoint extends DataHttpService {
   val conversationRoute =
 
     pathPrefix(conversation) {
-      authenticate(request _) { user =>
+      authenticate(verified _) { user =>
         get {
           respondWithMediaType(`application/json`) {
             complete(
@@ -41,7 +41,7 @@ trait ConversationEndpoint extends DataHttpService {
       import spray.httpx.encoding.NoEncoding
       pathPrefix(conversation) {
         path("start") {
-          authenticate(request _) { user =>
+          authenticate(verified _) { user =>
             post {
               formFields('image.as[Array[Byte]], 'imageText, 'toUsers.as[String]) { (image, imageText, toUsers) =>
                 complete {
@@ -62,10 +62,9 @@ trait ConversationEndpoint extends DataHttpService {
       val ByteJsonFormat = null
 
       import spray.httpx.encoding.{ NoEncoding, Gzip }
-      //TODO are images required?
       pathPrefix(conversation) {
         path("respond") {
-          authenticate(request _) { user =>
+          authenticate(verified _) { user =>
             post {
               formFields('image.as[Array[Byte]], 'imageText, 'convId.as[Long]) { (image, imageText, convId) =>
                 complete {
@@ -84,7 +83,7 @@ trait ConversationEndpoint extends DataHttpService {
     } ~ {
       pathPrefix(conversation) {
         path("block" / IntNumber) { id =>
-          authenticate(request _) { user =>
+          authenticate(verified _) { user =>
             post {
               respondWithMediaType(`application/json`) {
                 complete {
