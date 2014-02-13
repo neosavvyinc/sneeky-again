@@ -58,8 +58,7 @@ class DataAccessLayer(override val profile : ExtendedProfile) extends Profile wi
         ddl.drop
       } catch {
         case e : Exception => {
-          println(">>>> COULD NOT DROP TABLES:")
-          println(e)
+          log.debug(e.toString())
         }
       }
     }
