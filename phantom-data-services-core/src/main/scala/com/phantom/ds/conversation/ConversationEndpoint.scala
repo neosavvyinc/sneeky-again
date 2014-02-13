@@ -97,7 +97,7 @@ trait ConversationEndpoint extends DataHttpService {
     } ~ {
       pathPrefix(conversation) {
         path("view" / IntNumber) { id =>
-          authenticate(request _) { user =>
+          authenticate(verified _) { user =>
             post {
               respondWithMediaType(`application/json`) {
                 complete {

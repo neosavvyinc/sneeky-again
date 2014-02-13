@@ -128,23 +128,10 @@ class ConversationEndpointSpec extends Specification
     "support setting viewed on a conversation item you are the toUser for" in withSetupTeardown {
       insertTestUsers()
       authedUser = phantomUsersDao.find(1L)
-
       insertTestConverationsWithItems()
-
-      val conversations = conversationDao.findByFromUserId(2)
-      conversations.map(print)
-
-      val conversationItems = conversationItemDao.findByConversationId(conversations(0).id.get)
-      conversationItems.map(println)
 
       Post("/conversation/view/2") ~> conversationRoute ~> check {
         assertPayload[Boolean] { response =>
-          val conversations = conversationDao.findByFromUserId(2)
-          conversations.map(print)
-
-          val conversationItems = conversationItemDao.findByConversationId(conversations(0).id.get)
-          conversationItems.map(println)
-
           status === OK and response === true
         }
       }
@@ -154,23 +141,10 @@ class ConversationEndpointSpec extends Specification
     "support setting viewed on a conversation item you are not the toUser for" in withSetupTeardown {
       insertTestUsers()
       authedUser = phantomUsersDao.find(2L)
-
       insertTestConverationsWithItems()
-
-      val conversations = conversationDao.findByFromUserId(2)
-      conversations.map(print)
-
-      val conversationItems = conversationItemDao.findByConversationId(conversations(0).id.get)
-      conversationItems.map(println)
 
       Post("/conversation/view/2") ~> conversationRoute ~> check {
         assertPayload[Boolean] { response =>
-          val conversations = conversationDao.findByFromUserId(2)
-          conversations.map(print)
-
-          val conversationItems = conversationItemDao.findByConversationId(conversations(0).id.get)
-          conversationItems.map(println)
-
           status === OK and response === false
         }
       }
