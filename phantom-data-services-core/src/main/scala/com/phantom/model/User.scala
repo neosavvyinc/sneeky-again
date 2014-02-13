@@ -114,7 +114,7 @@ case class PhantomUser(id : Option[Long],
                        settingSound : Boolean = true,
                        settingNewPicture : Boolean = true)
 
-case class SanitizedUser(uuid : UUID, birthday : Option[LocalDate], status : UserStatus)
+case class SanitizedUser(uuid : UUID, birthday : Option[LocalDate], status : UserStatus, phoneNumber : Option[String])
 
 object PhantomSession {
 
