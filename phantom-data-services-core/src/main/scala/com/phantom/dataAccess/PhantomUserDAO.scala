@@ -134,11 +134,15 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
   def findPhantomUserIdsByPhone(contacts : List[String]) : (List[PhantomUser], List[String]) = {
     db.withSession { implicit session =>
       val q = for {
-        u <- UserTable if u.phoneNumber inSet contacts
+        u <- UserTable if (u.status === (Verified : UserStatus)) && (u.phoneNumber inSet contacts)
       } yield u
 
       val users = q.list
       val userNumbers = users.map(_.phoneNumber).flatten
+
+      // note, checking on Verified above, so this will include unverified and stub users in
+      // addition to not found numbers. I suppose this is okay for now, as we're not actually
+      // using notFound for anything at the moment
       val notFound = contacts.diff(userNumbers)
       (users, notFound)
     }

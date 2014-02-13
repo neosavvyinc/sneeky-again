@@ -50,8 +50,8 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with TestUtils {
     phantomUsersDao.insert(user)
   }
 
-  def createUnverifiedUser(email : String, password : String) = {
-    phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some(email), Some(Passwords.getSaltedHash(password)), Some(LocalDate.now(DateTimeZone.UTC)), true, None, Unverified))
+  def createUnverifiedUser(email : String, password : String, phoneNumber : Option[String] = None) = {
+    phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some(email), Some(Passwords.getSaltedHash(password)), Some(LocalDate.now(DateTimeZone.UTC)), true, phoneNumber, Unverified))
   }
 
   def createStubUser(phone : String, count : Int = 1) = {
