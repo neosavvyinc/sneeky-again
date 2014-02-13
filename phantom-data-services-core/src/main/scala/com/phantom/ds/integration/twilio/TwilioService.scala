@@ -34,7 +34,11 @@ object TwilioService {
       }
 
       private def updateInvitationCount(stubUsers : Seq[PhantomUser]) : Future[Int] = {
-        phantomUsersDao.updateInvitationCount(stubUsers)
+        if (stubUsers.length > 0) {
+          phantomUsersDao.updateInvitationCount(stubUsers)
+        } else {
+          Future.successful(0)
+        }
       }
 
       private def toResults[T](seq : Seq[(T, Either[TwilioSendFail, Sms])]) : Results[T] = {
