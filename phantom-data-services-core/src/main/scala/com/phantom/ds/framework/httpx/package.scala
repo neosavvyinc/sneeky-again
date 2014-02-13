@@ -94,6 +94,15 @@ package object httpx {
       }
     }
 
+    implicit object ListTypeFormat extends JsonFormat[List[ConversationItem]] {
+      override def write(obj : List[ConversationItem]) : JsValue = JsArray(obj.map(conversationItemFormat.write))
+
+      override def read(json : JsValue) : List[ConversationItem] = json match {
+        case JsArray(x) => x.map(conversationItemFormat.read)
+        case _          => deserializationError("Expected String value for List[ConversationItem]")
+      }
+    }
+
     implicit val failureFormat = jsonFormat2(Failure)
     implicit val userRegistrationFormat = jsonFormat3(UserRegistration)
     implicit val userRegistrationResponseFormat = jsonFormat2(RegistrationResponse)
@@ -106,11 +115,11 @@ package object httpx {
     implicit val inviteMessageStatusFormat = jsonFormat2(InviteMessageStatus)
     implicit val sessionIdwithPushNotifier = jsonFormat2(UpdatePushTokenRequest)
     implicit val pushSettingsRequest = jsonFormat2(PushSettingsRequest)
+    implicit val conversationFormat = jsonFormat5(Conversation)
+    implicit val conversationItemFormat = jsonFormat10(ConversationItem)
 
-    implicit val conversationFormat = jsonFormat3(Conversation)
+    implicit val feedEntryRequest = jsonFormat2(FeedEntry)
     implicit val contactFormat = jsonFormat4(Contact)
-
-    implicit val conversationItemFormat = jsonFormat4(ConversationItem)
 
     implicit val conversationInsertResponse = jsonFormat1(ConversationInsertResponse)
     implicit val conversationUpdateResponse = jsonFormat1(ConversationUpdateResponse)

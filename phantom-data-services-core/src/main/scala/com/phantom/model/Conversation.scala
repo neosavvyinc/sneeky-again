@@ -3,15 +3,26 @@ package com.phantom.model
 import com.phantom.dataAccess.Profile
 import scala.slick.lifted.ColumnOption.DBType
 import java.util.UUID
+import org.joda.time.DateTime
+
+case class FeedEntry(conversation : Conversation, items : List[ConversationItem])
 
 case class ConversationItem(id : Option[Long],
                             conversationId : Long,
                             imageUrl : String,
-                            imageText : String)
+                            imageText : String,
+                            toUser : Long,
+                            fromUser : Long,
+                            isViewed : Boolean = false,
+                            createdDate : DateTime = DateTime.now(),
+                            toUserDeleted : Boolean = false,
+                            fromUserDeleted : Boolean = false)
 
 case class Conversation(id : Option[Long],
                         toUser : Long,
-                        fromUser : Long)
+                        fromUser : Long,
+                        receiverPhoneNumber : String,
+                        lastUpdated : DateTime = DateTime.now())
 
 case class ConversationInsertResponse(createdCount : Long)
 
@@ -29,17 +40,19 @@ trait ConversationComponent { this : Profile with UserComponent =>
     def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
     def toUser = column[Long]("TO_USER")
     def fromUser = column[Long]("FROM_USER")
+    def receiverPhoneNumber = column[String]("RECV_PHONE_NUMBER")
+    def lastUpdated = column[DateTime]("LAST_UPDATE_DATE")
     def toUserFK = foreignKey("TO_USER_FK", toUser, UserTable)(_.id)
     def fromUserFK = foreignKey("FROM_USER_FK", fromUser, UserTable)(_.id)
 
-    def * = id.? ~ toUser ~ fromUser <> (Conversation, Conversation.unapply _)
+    def * = id.? ~ toUser ~ fromUser ~ receiverPhoneNumber ~ lastUpdated <> (Conversation, Conversation.unapply _)
     def forInsert = * returning id
 
   }
 
 }
 
-trait ConversationItemComponent { this : Profile with ConversationComponent =>
+trait ConversationItemComponent { this : Profile with ConversationComponent with UserComponent =>
 
   import profile.simple._
   import com.github.tototoshi.slick.JodaSupport._
@@ -49,10 +62,19 @@ trait ConversationItemComponent { this : Profile with ConversationComponent =>
     def conversationId = column[Long]("CONVERSATION_ID")
     def imageUrl = column[String]("IMAGE_URL")
     def imageText = column[String]("IMAGE_TEXT")
+    def toUser = column[Long]("TO_USER")
+    def fromUser = column[Long]("FROM_USER")
+    def isViewed = column[Boolean]("IS_VIEWED")
+    def createdDate = column[DateTime]("CREATED_DATE")
+    def toUserDeleted = column[Boolean]("TO_USER_DELETE")
+    def fromUserDeleted = column[Boolean]("FROM_USER_DELETE")
+
+    def toUserConvFK = foreignKey("TO_CONV_USER_FK", toUser, UserTable)(_.id)
+    def fromUserConvFK = foreignKey("FROM_CONV_USER_FK", fromUser, UserTable)(_.id)
     def conversationFK = foreignKey("CONVERSATION_FK", conversationId, ConversationTable)(_.id)
 
-    def * = id.? ~ conversationId ~ imageUrl ~ imageText <> (ConversationItem, ConversationItem.unapply _)
-    def forInsert = id.? ~ conversationId ~ imageUrl ~ imageText <> (ConversationItem, ConversationItem.unapply _) returning id
+    def * = id.? ~ conversationId ~ imageUrl ~ imageText ~ toUser ~ fromUser ~ isViewed ~ createdDate ~ toUserDeleted ~ fromUserDeleted <> (ConversationItem, ConversationItem.unapply _)
+    def forInsert = id.? ~ conversationId ~ imageUrl ~ imageText ~ toUser ~ fromUser ~ isViewed ~ createdDate ~ toUserDeleted ~ fromUserDeleted <> (ConversationItem, ConversationItem.unapply _) returning id
   }
 
 }

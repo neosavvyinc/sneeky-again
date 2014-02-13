@@ -5,9 +5,12 @@ import scala.util.{ Success, Failure }
 import com.phantom.ds.DSConfiguration
 import com.phantom.ds.framework.Logging
 import com.phantom.model.PhantomUser
+import com.phantom.ds.framework.exception.PhantomException
 import scala.util.Try
 import com.relayrides.pushy.apns._
 import util._
+import java.io.BufferedInputStream
+import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
 
 class AppleAPNSRejectListener extends RejectedNotificationListener[SimpleApnsPushNotification] with Logging {
   def handleRejectedNotification(notification : SimpleApnsPushNotification, reason : RejectedNotificationReason) = {
@@ -19,62 +22,50 @@ class AppleAPNSRejectListener extends RejectedNotificationListener[SimpleApnsPus
 
 object AppleService extends DSConfiguration {
 
-  private val keystoreInputStream = new java.io.FileInputStream(ApplePushConfiguration.certPath)
+  private def readPem(location : String) = {
+    this.getClass.getClassLoader.getResourceAsStream(location)
+  }
 
-  private val keyStore = for {
-    ks <- Try(java.security.KeyStore.getInstance("PKCS12"))
-    _ <- Try(ks.load(keystoreInputStream, ApplePushConfiguration.keyStorePassword.toCharArray()))
-  } yield ks
+  private val keystoreInputStream = readPem(ApplePushConfiguration.certPath)
 
-  // TO DO
-  // Figure out some sort of "finally" syntax to always
-  // close keystore stream and/or error handling
-  // Try(keystoreInputStream.close())
-
-  //    keyStore match {
-  //      case Failure(ex) => {
-  //        // throw some exception here related to certs
-  //        println("Exception", ex.toString)
-  //        keystoreInputStream.close()
-  //      }
-  //      case Success(s) => println("Success")
-  //    }
-  //
-  val pushManager = new PushManager[SimpleApnsPushNotification](
-    ApnsEnvironment.getSandboxEnvironment(), // Production v. Sandbox
-    keyStore.get, // FIX THIS
-    ApplePushConfiguration.keyStorePassword.toCharArray()
-  )
-
-  private val listener = new AppleAPNSRejectListener()
-  pushManager.registerRejectedNotificationListener(listener)
-
-  pushManager.start()
-
-  // finally?
-  keystoreInputStream.close()
+  val pushManager = for {
+    keyStore <- Try(java.security.KeyStore.getInstance("PKCS12"))
+    _ <- Try(keyStore.load(keystoreInputStream, ApplePushConfiguration.keyStorePassword.toCharArray()))
+    pm <- Try(
+      new PushManager[SimpleApnsPushNotification](
+        ApnsEnvironment.getSandboxEnvironment(),
+        keyStore,
+        ApplePushConfiguration.keyStorePassword.toCharArray()
+      )
+    )
+    _ <- Try(pm.registerRejectedNotificationListener(new AppleAPNSRejectListener()))
+    _ <- Try(pm.start())
+    _ <- Try(keystoreInputStream.close())
+  } yield pm
 }
 
-class AppleActor extends Actor with Logging {
+class AppleActor extends Actor with DSConfiguration with Logging {
 
   def receive : Actor.Receive = {
-    case user : PhantomUser => {
-      log.trace(s"received $user")
-      val tokenString = "b4aa9a5aa1ac55ac0c038b8c55733e90b68290592ae1d76dd2d0837e38bfb0da" // chris
+    case token : String => {
+      log.trace(s"received $token")
+      //val tokenString = "b4aa9a5aa1ac55ac0c038b8c55733e90b68290592ae1d76dd2d0837e38bfb0da" // chris
 
       val payloadBuilder = new ApnsPayloadBuilder()
       payloadBuilder.setBadgeNumber(1)
-      payloadBuilder.setAlertBody("you got a new dick pic!")
-      payloadBuilder.setSoundFileName("dicks-on-the-phone-rang-rang.aiff")
+      payloadBuilder.setAlertBody(ApplePushConfiguration.messageBody)
+      payloadBuilder.setSoundFileName("default")
 
       val payload = payloadBuilder.buildWithDefaultMaximumLength()
 
-      AppleService.pushManager.enqueuePushNotification(
-        new SimpleApnsPushNotification(TokenUtil.tokenStringToByteArray(tokenString), payload))
+      AppleService.pushManager match {
+        case Failure(ex) => throw PhantomException.apnsError(ex.toString())
+        case Success(pm) => pm.enqueuePushNotification(
+          new SimpleApnsPushNotification(TokenUtil.tokenStringToByteArray(token), payload)
+        )
+      }
     }
   }
 }
 
 sealed trait AppleMessage
-
-case class SendConversationNotification(users : Seq[PhantomUser]) // for now

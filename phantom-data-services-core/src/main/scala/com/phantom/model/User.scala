@@ -111,16 +111,16 @@ case class PhantomUser(id : Option[Long],
                        phoneNumber : Option[String],
                        status : UserStatus = Unverified,
                        invitationCount : Int = 1,
-                       settingSound : Boolean = false,
-                       settingNewPicture : Boolean = false)
+                       settingSound : Boolean = true,
+                       settingNewPicture : Boolean = true)
 
 case class SanitizedUser(uuid : UUID, birthday : Option[LocalDate], status : UserStatus)
 
 object PhantomSession {
 
-  def newSession(user : PhantomUser) : PhantomSession = {
+  def newSession(user : PhantomUser, token : Option[String] = None) : PhantomSession = {
     val now = DateTime.now(DateTimeZone.UTC)
-    PhantomSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now, None, None)
+    PhantomSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now, token, None)
   }
 }
 
