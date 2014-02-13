@@ -11,7 +11,6 @@ import org.joda.time.LocalDate
 import com.phantom.ds.framework.auth.{ SuppliedUserRequestAuthenticator, PassThroughEntryPointAuthenticator, PassThroughRequestAuthenticator }
 import com.phantom.ds.dataAccess.BaseDAOSpec
 import spray.http.StatusCodes
-import java.util.UUID
 
 class UserEndpointSpec extends Specification
     with PhantomEndpointSpec
@@ -74,6 +73,18 @@ class UserEndpointSpec extends Specification
               res.sessionUUID must be equalTo uuid
             }
           }
+        }
+      }
+    }
+
+    "identify service should yield a sanitized object of the user" in withSetupTeardown {
+      val u = createVerifiedUser("adamparrish@something.com", "mypassword")
+      authedUser = Some(u)
+      Get("/users") ~> userRoute ~> check {
+        assertPayload[SanitizedUser] { response =>
+          response.uuid must be equalTo u.uuid
+          response.birthday must be equalTo u.birthday
+          response.status must be equalTo u.status
         }
       }
     }
