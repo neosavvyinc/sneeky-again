@@ -114,6 +114,8 @@ case class PhantomUser(id : Option[Long],
                        settingSound : Boolean = false,
                        settingNewPicture : Boolean = false)
 
+case class PhantomUserResponse(uuid : UUID)
+
 object PhantomSession {
 
   def newSession(user : PhantomUser, token : Option[String] = None) : PhantomSession = {

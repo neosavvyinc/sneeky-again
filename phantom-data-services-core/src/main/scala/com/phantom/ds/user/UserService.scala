@@ -5,6 +5,7 @@ import com.phantom.model._
 import com.phantom.ds.framework.Logging
 import com.phantom.model.UserLogin
 import com.phantom.model.PhantomUser
+import com.phantom.model.PhantomUserResponse
 import com.phantom.dataAccess.DatabaseSupport
 import java.util.UUID
 import com.phantom.ds.framework.exception.PhantomException
@@ -13,9 +14,7 @@ trait UserService {
 
   def login(loginRequest : UserLogin) : Future[LoginSuccess]
   def logout(sessionId : String) : Future[Int]
-  def findById(id : Long) : Future[PhantomUser]
-  def findContactsById(id : Long) : Future[List[PhantomUser]]
-  def updateContacts(id : Long, contacts : List[String]) : Future[List[PhantomUser]]
+  def updateContacts(id : Long, contacts : List[String]) : Future[List[PhantomUserResponse]]
   def clearBlockList(id : Long) : Future[Int]
 }
 
@@ -39,20 +38,8 @@ object UserService {
       sessionOpt.map(Future.successful).getOrElse(sessions.createSession(PhantomSession.newSession(user)))
     }
 
-    def findById(id : Long) : Future[PhantomUser] = {
-      future {
-        val opt = phantomUsersDao.find(id)
-        opt.getOrElse(throw PhantomException.nonExistentUser)
-      }
-    }
-
-    ///TODO REMOVE : NOT USED
-    def findContactsById(id : Long) : Future[List[PhantomUser]] = {
-      phantomUsersDao.findContacts(id)
-    }
-
     //TODO FIX ME..I DELETE BLOCKED USERS
-    def updateContacts(id : Long, contactList : List[String]) : Future[List[PhantomUser]] = {
+    def updateContacts(id : Long, contactList : List[String]) : Future[List[PhantomUserResponse]] = {
       val session = db.createSession
 
       future {
@@ -60,10 +47,7 @@ object UserService {
         val (users : List[PhantomUser], numbersNotFound : List[String]) = phantomUsersDao.findPhantomUserIdsByPhone(contactList)
         contacts.insertAll(users.map(u => Contact(None, id, u.id.get)))
 
-        // TO DO
-        // need to partition phone number request, update contacts for all
-        // users that exist, then take numbersNotFound and create stub users
-        users
+        users.map(u => PhantomUserResponse(u.uuid))
       }
     }
 
