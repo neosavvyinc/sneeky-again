@@ -40,7 +40,7 @@ class UserLogoutSpec extends Specification
       val url = s"/users/logout?$hashP=$h&$dateP=$d&$sessionIdP=$s"
       Get(url) ~> userRoute ~> check {
         status === OK
-        Get(s"/users/1/contacts?$hashP=$h&$dateP=$d&$sessionIdP=$s") ~> userRoute ~> check {
+        Get(s"/users/contacts?$hashP=$h&$dateP=$d&$sessionIdP=$s") ~> userRoute ~> check {
           rejection must beAnInstanceOf[AuthenticationFailedRejection]
         }
       }
