@@ -94,5 +94,23 @@ trait ConversationEndpoint extends DataHttpService {
           }
         }
       }
+    } ~ {
+      pathPrefix(conversation) {
+        path("view" / IntNumber) { id =>
+          authenticate(verified _) { user =>
+            post {
+              respondWithMediaType(`application/json`) {
+                complete {
+
+                  val userId = user.id.get
+                  log.debug(s"marking the $id conversation item as viewed for user $userId")
+
+                  conversationService.viewConversationItem(id, userId)
+                }
+              }
+            }
+          }
+        }
+      }
     }
 }

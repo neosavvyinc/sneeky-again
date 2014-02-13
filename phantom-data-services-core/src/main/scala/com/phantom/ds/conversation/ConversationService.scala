@@ -203,6 +203,16 @@ object ConversationService extends DSConfiguration {
       }
     }
 
+    def viewConversationItem(conversationItemId : Long, userId : Long) : Future[Boolean] = {
+
+      future {
+        db.withTransaction { implicit session =>
+          conversationItemDao.updateViewed(conversationItemId, userId) > 0
+        }
+      }
+
+    }
+
     private def backfillBlockedContact(ownerId : Long, contactId : Long)(implicit session : Session) : Contact = {
       contacts.insertOperation(Contact(None, ownerId, contactId, Blocked))
     }
