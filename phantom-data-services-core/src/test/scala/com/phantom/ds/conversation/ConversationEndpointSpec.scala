@@ -53,11 +53,10 @@ class ConversationEndpointSpec extends Specification
       val user = phantomUsersDao.find(2L)
       authedUser = user
       Get(s"/conversation") ~> conversationRoute ~> check {
-        assertPayload[List[FeedEntry]] { response =>
+        assertPayload[List[FeedWrapper]] { response =>
 
           response.foreach {
-            case FeedEntry(conv, items) => {
-              (conv.fromUser must be equalTo 2) or (conv.toUser must be equalTo 2)
+            case FeedWrapper(conv, items) => {
               items must have size 3
             }
           }

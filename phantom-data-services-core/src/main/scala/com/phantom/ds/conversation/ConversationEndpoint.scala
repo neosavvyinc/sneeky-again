@@ -30,7 +30,10 @@ trait ConversationEndpoint extends DataHttpService {
         get {
           respondWithMediaType(`application/json`) {
             complete(
-              conversationService.findFeed(user.id.get)
+
+              conversationService.findFeed(user.id.get) flatMap { resolvedFeed =>
+                conversationService.sanitizeFeed(resolvedFeed, user)
+              }
             )
           }
         }
@@ -46,7 +49,7 @@ trait ConversationEndpoint extends DataHttpService {
               formFields('image.as[Array[Byte]], 'imageText, 'toUsers.as[String]) { (image, imageText, toUsers) =>
                 complete {
                   conversationService.startConversation(
-                    user.id.get,
+                    user.id.get, //THIS NEEDS TO CHANGE TO UUID
                     toUsers.split(",").toSet,
                     imageText,
                     //todo: move this into the service, and future bound it
@@ -69,7 +72,7 @@ trait ConversationEndpoint extends DataHttpService {
               formFields('image.as[Array[Byte]], 'imageText, 'convId.as[Long]) { (image, imageText, convId) =>
                 complete {
                   conversationService.respondToConversation(
-                    user.id.get,
+                    user.id.get, //THIS NEEDS TO CHANGE TO UUID
                     convId,
                     imageText,
                     image)
