@@ -5,7 +5,7 @@ import com.phantom.model._
 import com.phantom.ds.framework.Logging
 import com.phantom.model.UserLogin
 import com.phantom.model.PhantomUser
-import com.phantom.model.PhantomUserResponse
+import com.phantom.model.SanitizedUser
 import com.phantom.dataAccess.DatabaseSupport
 import java.util.UUID
 import com.phantom.ds.framework.exception.PhantomException
@@ -14,7 +14,7 @@ trait UserService {
 
   def login(loginRequest : UserLogin) : Future[LoginSuccess]
   def logout(sessionId : String) : Future[Int]
-  def updateContacts(id : Long, contacts : List[String]) : Future[List[PhantomUserResponse]]
+  def updateContacts(id : Long, contacts : List[String]) : Future[List[SanitizedUser]]
   def clearBlockList(id : Long) : Future[Int]
 }
 
@@ -39,7 +39,7 @@ object UserService {
     }
 
     //TODO FIX ME..I DELETE BLOCKED USERS
-    def updateContacts(id : Long, contactList : List[String]) : Future[List[PhantomUserResponse]] = {
+    def updateContacts(id : Long, contactList : List[String]) : Future[List[SanitizedUser]] = {
       val session = db.createSession
 
       future {
@@ -47,7 +47,7 @@ object UserService {
         val (users : List[PhantomUser], numbersNotFound : List[String]) = phantomUsersDao.findPhantomUserIdsByPhone(contactList)
         contacts.insertAll(users.map(u => Contact(None, id, u.id.get)))
 
-        users.map(u => PhantomUserResponse(u.uuid))
+        users.map(u => SanitizedUser(u.uuid, u.birthday, u.status))
       }
     }
 
