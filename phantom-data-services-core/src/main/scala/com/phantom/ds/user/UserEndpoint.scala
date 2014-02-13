@@ -68,7 +68,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
           get {
             respondWithMediaType(`application/json`) {
               log.trace(s"identify function invoked : $user")
-              complete(Future.successful(SanitizedUser(user.uuid, user.birthday, user.status)))
+              complete(Future.successful(SanitizedUser(user.uuid, user.birthday, user.status, user.phoneNumber)))
             }
           }
         }

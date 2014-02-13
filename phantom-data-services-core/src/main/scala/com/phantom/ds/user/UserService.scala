@@ -54,7 +54,7 @@ object UserService {
         val (users : List[PhantomUser], numbersNotFound : List[String]) = phantomUsersDao.findPhantomUserIdsByPhone(contactList)
         contacts.insertAll(users.map(u => Contact(None, id, u.id.get)))
 
-        users.map(u => SanitizedUser(u.uuid, u.birthday, u.status))
+        users.map(u => SanitizedUser(u.uuid, u.birthday, u.status, u.phoneNumber))
       }
     }
 
