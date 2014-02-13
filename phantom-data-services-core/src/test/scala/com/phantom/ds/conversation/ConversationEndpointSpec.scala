@@ -125,6 +125,32 @@ class ConversationEndpointSpec extends Specification
       }
     }
 
+    "support setting viewed on a conversation item you are the toUser for" in withSetupTeardown {
+      insertTestUsers()
+      authedUser = phantomUsersDao.find(1L)
+      insertTestConverationsWithItems()
+
+      Post("/conversation/view/2") ~> conversationRoute ~> check {
+        assertPayload[Boolean] { response =>
+          status === OK and response === true
+        }
+      }
+
+    }
+
+    "support setting viewed on a conversation item you are not the toUser for" in withSetupTeardown {
+      insertTestUsers()
+      authedUser = phantomUsersDao.find(2L)
+      insertTestConverationsWithItems()
+
+      Post("/conversation/view/2") ~> conversationRoute ~> check {
+        assertPayload[Boolean] { response =>
+          status === OK and response === false
+        }
+      }
+
+    }
+
     "disallow responding to a conversation if the user is not a member" in withSetupTeardown {
       insertTestConverationsWithItems()
 
