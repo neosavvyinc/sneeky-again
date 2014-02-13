@@ -59,9 +59,8 @@ object ConversationService extends DSConfiguration {
       for {
         (nonUsers, allUsers) <- partitionUsers(contactNumbers)
         (stubUsers, users) <- partitionStubUsers(allUsers)
-        newStubUsers <- createStubUsers(nonUsers)
-        response <- createConversationRoots(users ++ stubUsers ++ newStubUsers, fromUserId, imageText, imageUrl)
-        _ <- sendInvitations(stubUsers ++ newStubUsers, fromUserId, imageText, imageUrl)
+        (newStubUsers, response) <- createStubUsersAndRoots(nonUsers, users ++ stubUsers, fromUserId, imageText, imageUrl)
+        _ <- sendInvitations(stubUsers ++ newStubUsers)
         tokens <- getTokens(allUsers.map(_.id.get))
         _ <- sendConversationNotifications(tokens)
       } yield response
@@ -89,21 +88,14 @@ object ConversationService extends DSConfiguration {
       }
     }
 
-    private def createStubUsers(numbers : Set[String]) = {
+    private def createStubUsersAndRoots(numbers : Set[String], users : Seq[PhantomUser], fromUserId : Long, imageText : String, imageUrl : String) : Future[(Seq[PhantomUser], ConversationInsertResponse)] = {
       future {
         db.withTransaction { implicit session : Session =>
-          phantomUsersDao.insertAllOperation(numbers.map(x => PhantomUser(None, UUID.randomUUID, None, None, None, false, Some(x), Stub, 0)).toSeq)
-        }
-      }
-    }
-
-    private def createConversationRoots(users : Seq[PhantomUser], fromUserId : Long, imageText : String, imageUrl : String) : Future[ConversationInsertResponse] = {
-      future {
-        db.withTransaction { implicit session =>
-          val conversations = users.map(x => Conversation(None, x.id.getOrElse(-1), fromUserId, x.phoneNumber.get))
+          val newUsers = phantomUsersDao.insertAllOperation(numbers.map(x => PhantomUser(None, UUID.randomUUID, None, None, None, false, Some(x), Stub, 0)).toSeq)
+          val conversations = (users ++ newUsers).map(x => Conversation(None, x.id.getOrElse(-1), fromUserId, x.phoneNumber.get))
           val createdConversations = conversationDao.insertAllOperation(conversations)
-          val createdConversationItems = conversationItemDao.insertAllOperation(createConversationItemRoots(createdConversations, fromUserId, imageText, imageUrl))
-          ConversationInsertResponse(createdConversations.size)
+          conversationItemDao.insertAllOperation(createConversationItemRoots(createdConversations, fromUserId, imageText, imageUrl))
+          (newUsers, ConversationInsertResponse(createdConversations.size))
         }
       }
     }
@@ -118,7 +110,8 @@ object ConversationService extends DSConfiguration {
       }
     }
 
-    private def sendInvitations(stubUsers : Seq[PhantomUser], fromUser : Long, imageText : String, imageUrl : String) : Future[Unit] = {
+    //TODO: FIRE A MESSAGE PER USER, NOT PER BATCH
+    private def sendInvitations(stubUsers : Seq[PhantomUser]) : Future[Unit] = {
       //intentionally not creating a future here..as sending msgs in non blocking
       Future.successful {
         val invitable = stubUsers.filter(_.invitationCount < UserConfiguration.invitationMax)
