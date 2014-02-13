@@ -46,12 +46,24 @@ class ConversationItemDAO(dal : DataAccessLayer, db : Database)(implicit ec : Ex
     }
   }
 
+  def findById(conversationItemId : Long) : ConversationItem = {
+    db.withSession { implicit session =>
+      val items = Query(ConversationItemTable) filter { _.id === conversationItemId }
+      items.first
+    }
+  }
+
   //ONLY USED BY TESTS
   def deleteByConversationId(conversationId : Long) : Int = {
     db.withTransaction { implicit session =>
       val deleteQuery = Query(ConversationItemTable) filter { _.conversationId === conversationId }
       deleteQuery delete
     }
+  }
+
+  def updateViewed(conversationItemId : Long, userId : Long)(implicit session : Session) : Int = {
+    val q = for { c <- ConversationItemTable if c.id === conversationItemId && c.toUser === userId } yield c.isViewed
+    q.update(true)
   }
 
   def swapConversationItems(sourceUser : Long, desUser : Long)(implicit session : Session) : Int = {
