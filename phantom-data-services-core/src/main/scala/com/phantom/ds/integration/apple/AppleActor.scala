@@ -26,6 +26,11 @@ object AppleService extends DSConfiguration {
     this.getClass.getClassLoader.getResourceAsStream(location)
   }
 
+  private val environment : ApnsEnvironment = ApplePushConfiguration.environment match {
+    case "production" => ApnsEnvironment.getProductionEnvironment()
+    case _            => ApnsEnvironment.getSandboxEnvironment()
+  }
+
   private val keystoreInputStream = readPem(ApplePushConfiguration.certPath)
 
   val pushManager = for {
@@ -33,7 +38,7 @@ object AppleService extends DSConfiguration {
     _ <- Try(keyStore.load(keystoreInputStream, ApplePushConfiguration.keyStorePassword.toCharArray()))
     pm <- Try(
       new PushManager[SimpleApnsPushNotification](
-        ApnsEnvironment.getSandboxEnvironment(),
+        environment,
         keyStore,
         ApplePushConfiguration.keyStorePassword.toCharArray()
       )
