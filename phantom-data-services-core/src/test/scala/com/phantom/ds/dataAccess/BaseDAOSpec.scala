@@ -59,7 +59,7 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with TestUtils {
   }
 
   def createConversation(fromId : Long, toId : Long) : Conversation = {
-    conversationDao.insert(Conversation(None, toId, fromId))
+    conversationDao.insert(Conversation(None, toId, fromId, "9197419597"))
   }
 
   def insertTestUsers() {
@@ -88,9 +88,9 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with TestUtils {
 
   def insertTestConversations() {
 
-    val conv1 = new Conversation(None, 1, 2)
-    val conv2 = new Conversation(None, 3, 4)
-    val conv3 = new Conversation(None, 5, 6)
+    val conv1 = new Conversation(None, 1, 2, "9197419597")
+    val conv2 = new Conversation(None, 3, 4, "9197419597")
+    val conv3 = new Conversation(None, 5, 6, "9197419597")
     conversationDao.insert(conv1)
     conversationDao.insert(conv2)
     conversationDao.insert(conv3)
