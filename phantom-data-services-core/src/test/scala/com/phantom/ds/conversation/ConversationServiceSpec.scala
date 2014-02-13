@@ -6,7 +6,7 @@ import com.phantom.ds.dataAccess.BaseDAOSpec
 import com.phantom.ds.TestUtils
 import akka.actor.ActorRefFactory
 import spray.testkit.Specs2RouteTest
-import com.phantom.ds.integration.twilio.{ SendInvite, SendInviteToStubUsers }
+import com.phantom.ds.integration.twilio.SendInviteToStubUsers
 import com.phantom.model.FeedEntry
 
 /**
@@ -103,10 +103,14 @@ class ConversationServiceSpec extends Specification
       val starter = createVerifiedUser("starter@starter.com", "password")
       val results = await(service.startConversation(starter.id.get, Set("123", "456"), "text", "url"))
 
-      tProbe.expectMsg(SendInvite(Set("123", "456"), starter.id.get, "text", "url"))
+      val newUsers = await(phantomUsersDao.findByPhoneNumbers(Set("123", "456")))
+
+      newUsers must have size 2
+
+      tProbe.expectMsg(SendInviteToStubUsers(newUsers))
       aProbe.expectNoMsg()
 
-      results.createdCount must beEqualTo(0)
+      results.createdCount must beEqualTo(2)
     }
 
     "start conversations with a mix of all three types of users" in withSetupTeardown {
@@ -130,8 +134,12 @@ class ConversationServiceSpec extends Specification
       val nums = Set("12", "34", "56", "78", "90", "09")
       val results = await(service.startConversation(starter.id.get, nums, "text", "url"))
 
+      val newUsers = await(phantomUsersDao.findByPhoneNumbers(Set("90", "09")))
+
+      val newUserIds = newUsers.map(_.id).flatten
+
       val user1Conversation = await(conversationDao.findConversationsAndItems(starter.id.get))
-      val userIds = Seq(user1.id, user2.id, stubUser1.id, stubUser2.id).flatten
+      val userIds = Seq(user1.id, user2.id, stubUser1.id, stubUser2.id).flatten ++ newUserIds
 
       user1Conversation.foreach {
         case FeedEntry(c, items) =>
@@ -142,9 +150,8 @@ class ConversationServiceSpec extends Specification
       }
 
       aProbe.expectMsgAllOf("3456789", "4567890")
-      tProbe.expectMsgAnyOf(SendInvite(Set("09", "90"), starter.id.get, "text", "url"), SendInviteToStubUsers(stubUsers))
-      tProbe.expectMsgAnyOf(SendInvite(Set("09", "90"), starter.id.get, "text", "url"), SendInviteToStubUsers(stubUsers))
-      results.createdCount must beEqualTo(4)
+      tProbe.expectMsg(SendInviteToStubUsers(stubUsers ++ newUsers))
+      results.createdCount must beEqualTo(6)
     }
 
     "not send invitations to stub users if their invitation count is maxed out" in withSetupTeardown {

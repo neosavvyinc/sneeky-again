@@ -17,7 +17,6 @@ import com.phantom.model.UserRegistration
 
 import org.joda.time.{ LocalDate, DateTimeZone, DateTime }
 import org.joda.time.format.ISODateTimeFormat
-import com.phantom.ds.integration.twilio.InviteMessageStatus
 
 package object httpx {
 
@@ -112,7 +111,6 @@ package object httpx {
     implicit val userLoginFormat = jsonFormat2(UserLogin)
     implicit val loginSuccessFormat = jsonFormat1(LoginSuccess)
     implicit val registrationVerificationFormat = jsonFormat6(RegistrationVerification)
-    implicit val inviteMessageStatusFormat = jsonFormat2(InviteMessageStatus)
     implicit val sessionIdwithPushNotifier = jsonFormat2(UpdatePushTokenRequest)
     implicit val pushSettingsRequest = jsonFormat2(PushSettingsRequest)
     implicit val conversationFormat = jsonFormat5(Conversation)

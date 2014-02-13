@@ -5,7 +5,6 @@ import com.phantom.ds.user.UserEndpoint
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 import com.phantom.ds.conversation.ConversationEndpoint
 import com.phantom.dataAccess.DatabaseSupport
-import com.phantom.ds.integration.twilio.TwilioEndpoint
 import com.phantom.ds.registration.RegistrationEndpoint
 
 /**
@@ -20,7 +19,6 @@ class PhantomRouteActor(val twilioActor : ActorRef, val appleActor : ActorRef) e
     with UserEndpoint
     with RegistrationEndpoint
     with ConversationEndpoint
-    with TwilioEndpoint
     with DatabaseSupport {
   this : RequestAuthenticator with EntryPointAuthenticator =>
 
@@ -32,6 +30,6 @@ class PhantomRouteActor(val twilioActor : ActorRef, val appleActor : ActorRef) e
   // other things here, like request stream processing
   // or timeout handling
   def receive = runRoute(
-    userRoute ~ conversationRoute ~ twilioRoute ~ registrationRoute
+    userRoute ~ conversationRoute ~ registrationRoute
   )
 }

@@ -12,10 +12,10 @@ import com.phantom.model.ConversationItem
 import com.phantom.model.ConversationInsertResponse
 import com.phantom.ds.framework.Logging
 import akka.actor.ActorRef
-import com.phantom.ds.integration.twilio.{ SendInvite, SendInviteToStubUsers }
+import com.phantom.ds.integration.twilio.SendInviteToStubUsers
 import com.phantom.ds.framework.exception.PhantomException
 import scala.slick.session.Session
-import org.joda.time.DateTime
+import java.util.UUID
 
 /**
  * Created by Neosavvy
@@ -59,8 +59,8 @@ object ConversationService extends DSConfiguration {
       for {
         (nonUsers, allUsers) <- partitionUsers(contactNumbers)
         (stubUsers, users) <- partitionStubUsers(allUsers)
-        response <- createConversationRoots(users ++ stubUsers, fromUserId, imageText, imageUrl)
-        _ <- sendInvitations(nonUsers, stubUsers, fromUserId, imageText, imageUrl)
+        (newStubUsers, response) <- createStubUsersAndRoots(nonUsers, users ++ stubUsers, fromUserId, imageText, imageUrl)
+        _ <- sendInvitations(stubUsers ++ newStubUsers)
         tokens <- getTokens(allUsers.map(_.id.get))
         _ <- sendConversationNotifications(tokens)
       } yield response
@@ -88,13 +88,14 @@ object ConversationService extends DSConfiguration {
       }
     }
 
-    private def createConversationRoots(users : Seq[PhantomUser], fromUserId : Long, imageText : String, imageUrl : String) : Future[ConversationInsertResponse] = {
+    private def createStubUsersAndRoots(numbers : Set[String], users : Seq[PhantomUser], fromUserId : Long, imageText : String, imageUrl : String) : Future[(Seq[PhantomUser], ConversationInsertResponse)] = {
       future {
-        db.withTransaction { implicit session =>
-          val conversations = users.map(x => Conversation(None, x.id.getOrElse(-1), fromUserId, x.phoneNumber.get))
+        db.withTransaction { implicit session : Session =>
+          val newUsers = phantomUsersDao.insertAllOperation(numbers.map(x => PhantomUser(None, UUID.randomUUID, None, None, None, false, Some(x), Stub, 0)).toSeq)
+          val conversations = (users ++ newUsers).map(x => Conversation(None, x.id.getOrElse(-1), fromUserId, x.phoneNumber.get))
           val createdConversations = conversationDao.insertAllOperation(conversations)
-          val createdConversationItems = conversationItemDao.insertAllOperation(createConversationItemRoots(createdConversations, fromUserId, imageText, imageUrl))
-          ConversationInsertResponse(createdConversations.size)
+          conversationItemDao.insertAllOperation(createConversationItemRoots(createdConversations, fromUserId, imageText, imageUrl))
+          (newUsers, ConversationInsertResponse(createdConversations.size))
         }
       }
     }
@@ -109,15 +110,13 @@ object ConversationService extends DSConfiguration {
       }
     }
 
-    private def sendInvitations(contacts : Set[String], stubUsers : Seq[PhantomUser], fromUser : Long, imageText : String, imageUrl : String) : Future[Unit] = {
+    //TODO: FIRE A MESSAGE PER USER, NOT PER BATCH
+    private def sendInvitations(stubUsers : Seq[PhantomUser]) : Future[Unit] = {
       //intentionally not creating a future here..as sending msgs in non blocking
       Future.successful {
         val invitable = stubUsers.filter(_.invitationCount < UserConfiguration.invitationMax)
         if (!invitable.isEmpty) {
           twilioActor ! SendInviteToStubUsers(invitable)
-        }
-        if (!contacts.isEmpty) {
-          twilioActor ! SendInvite(contacts, fromUser, imageText, imageUrl)
         }
       }
     }
