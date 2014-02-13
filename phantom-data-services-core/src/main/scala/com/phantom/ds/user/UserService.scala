@@ -38,6 +38,13 @@ object UserService {
       sessionOpt.map(Future.successful).getOrElse(sessions.createSession(PhantomSession.newSession(user)))
     }
 
+    def findById(id : Long) : Future[PhantomUser] = {
+      future {
+        val opt = phantomUsersDao.find(id)
+        opt.getOrElse(throw PhantomException.nonExistentUser)
+      }
+    }
+
     //TODO FIX ME..I DELETE BLOCKED USERS
     def updateContacts(id : Long, contactList : List[String]) : Future[List[SanitizedUser]] = {
       val session = db.createSession
