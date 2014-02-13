@@ -54,5 +54,10 @@ class ConversationItemDAO(dal : DataAccessLayer, db : Database)(implicit ec : Ex
     }
   }
 
+  def swapConversationItems(sourceUser : Long, desUser : Long)(implicit session : Session) : Int = {
+    val q = for { c <- ConversationItemTable if c.toUser === sourceUser } yield c.toUser
+    q.update(desUser)
+  }
+
 }
 

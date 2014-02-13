@@ -3,6 +3,7 @@ package com.phantom.ds.dataAccess
 import com.phantom.model.Conversation
 import com.phantom.ds.TestUtils
 import scala.concurrent.ExecutionContext.Implicits.global
+import org.joda.time.DateTime
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,11 +22,11 @@ class ConversationDAOSpec extends BaseDAOSpec with TestUtils {
       insertTestUsers
 
       val conv1 = conversationDao.insert(new Conversation(
-        None, 1, 2
+        None, 1, 2, "9197419597"
       ))
       println(conv1)
       val conv2 = conversationDao.insert(new Conversation(
-        None, 2, 3
+        None, 2, 3, "9197419598"
       ))
       println(conv2)
       conv2.id.get must equalTo(2)
@@ -35,8 +36,8 @@ class ConversationDAOSpec extends BaseDAOSpec with TestUtils {
     "support searching for a conversation by owner id" in withSetupTeardown {
       insertTestUsers
 
-      conversationDao.insert(new Conversation(None, 3, 2))
-      conversationDao.insert(new Conversation(None, 3, 4))
+      conversationDao.insert(new Conversation(None, 3, 2, "9197419597"))
+      conversationDao.insert(new Conversation(None, 3, 4, "9197419598"))
       val c = conversationDao.findByFromUserId(2)
       val c1 = conversationDao.findByFromUserId(4)
       (c(0).fromUser must equalTo(2)) and (c1(0).fromUser must equalTo(4))
@@ -45,9 +46,9 @@ class ConversationDAOSpec extends BaseDAOSpec with TestUtils {
     "support deleting conversations" in withSetupTeardown {
       insertTestUsers
 
-      conversationDao.insert(new Conversation(None, 1, 2))
-      conversationDao.insert(new Conversation(None, 3, 4))
-      conversationDao.insert(new Conversation(None, 5, 6))
+      conversationDao.insert(new Conversation(None, 1, 2, "9197419597"))
+      conversationDao.insert(new Conversation(None, 3, 4, "9197419597"))
+      conversationDao.insert(new Conversation(None, 5, 6, "9197419597"))
       (conversationDao.deleteById(1) must equalTo(1)) and
         (conversationDao.deleteById(2) must equalTo(1)) and
         (conversationDao.deleteById(3) must equalTo(1)) and
@@ -57,28 +58,38 @@ class ConversationDAOSpec extends BaseDAOSpec with TestUtils {
     "support finding one conversation by id" in withSetupTeardown {
       insertTestUsers
 
-      conversationDao.insert(new Conversation(None, 1, 2))
-      conversationDao.insert(new Conversation(None, 3, 4))
-      conversationDao.insert(new Conversation(None, 5, 6))
+      //dirty hack
+      var dtTime = DateTime.now()
+      dtTime = dtTime.minusMillis(dtTime.getMillisOfDay())
+
+      System.out.println(dtTime)
+
+      conversationDao.insert(new Conversation(None, 1, 2, "9197419597", dtTime))
+      conversationDao.insert(new Conversation(None, 3, 4, "9197419597", dtTime))
+      conversationDao.insert(new Conversation(None, 5, 6, "9197419597", dtTime))
 
       (await(conversationDao.findById(1)).id.get must equalTo(1)) and
         (await(conversationDao.findById(1)).toUser must equalTo(1)) and
         (await(conversationDao.findById(1)).fromUser must equalTo(2))
 
       val c = await(conversationDao.findById(1))
-      c must be_==(Conversation(Some(1), 1, 2))
+      c must be_==(Conversation(Some(1), 1, 2, "9197419597", dtTime))
     }
 
     "support inserting then updating a row" in withSetupTeardown {
       insertTestUsers
 
-      val inserted : Conversation = conversationDao.insert(new Conversation(None, 1, 2))
+      //dirty hack
+      var dtTime = DateTime.now()
+      dtTime = dtTime.minusMillis(dtTime.getMillisOfDay())
 
-      val numRowsAffected : Int = conversationDao.updateById(new Conversation(inserted.id, 4, 5))
+      val inserted : Conversation = conversationDao.insert(new Conversation(None, 1, 2, "9197419597", dtTime))
+
+      val numRowsAffected : Int = conversationDao.updateById(new Conversation(inserted.id, 4, 5, "9197419597", dtTime))
       numRowsAffected must equalTo(1)
 
       val insertedFromDb = conversationDao.findById(inserted.id.get)
-      insertedFromDb must be_==(Conversation(Some(1), 4, 5)).await
+      insertedFromDb must be_==(Conversation(Some(1), 4, 5, "9197419597", dtTime)).await
 
     }
   }

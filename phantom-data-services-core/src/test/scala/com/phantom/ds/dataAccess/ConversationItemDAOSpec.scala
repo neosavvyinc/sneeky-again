@@ -22,7 +22,7 @@ class ConversationItemDAOSpec extends BaseDAOSpec with TestUtils {
       insertTestUsersAndConversations()
 
       val item = new ConversationItem(
-        None, 1, "imageUrl", "imageText"
+        None, 1, "imageUrl", "imageText", 1, 2
       )
       val ret = db.withTransaction { implicit session : Session => conversationItemDao.insertOperation(item) }
 
@@ -37,7 +37,7 @@ class ConversationItemDAOSpec extends BaseDAOSpec with TestUtils {
 
       insertTestUsersAndConversations()
 
-      val list = setupConversationItems(1)
+      val list = setupConversationItems(1, 1, 2)
 
       await {
         conversationItemDao.insertAll(list)
@@ -53,8 +53,8 @@ class ConversationItemDAOSpec extends BaseDAOSpec with TestUtils {
 
       insertTestUsersAndConversations()
 
-      val conv1 = setupConversationItems(1)
-      val conv2 = setupConversationItems(2)
+      val conv1 = setupConversationItems(1, 1, 2)
+      val conv2 = setupConversationItems(2, 3, 4)
       conversationItemDao.insertAll(conv1)
       conversationItemDao.insertAll(conv2)
 

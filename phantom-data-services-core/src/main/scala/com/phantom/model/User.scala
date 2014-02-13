@@ -111,8 +111,8 @@ case class PhantomUser(id : Option[Long],
                        phoneNumber : Option[String],
                        status : UserStatus = Unverified,
                        invitationCount : Int = 1,
-                       settingSound : Boolean = false,
-                       settingNewPicture : Boolean = false)
+                       settingSound : Boolean = true,
+                       settingNewPicture : Boolean = true)
 
 object PhantomSession {
 
