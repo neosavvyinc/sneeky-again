@@ -9,19 +9,7 @@ import scala.concurrent.ExecutionContext
 class TwilioActor(service : TwilioService)(implicit ec : ExecutionContext) extends Actor with DSConfiguration with Logging {
 
   def receive : Actor.Receive = {
-    case x : SendInvite            => handleInviteUnidentifiedContacts(x)
     case x : SendInviteToStubUsers => handleInviteStubUsers(x)
-    case x : InviteMessageStatus   => service.recordInvitationStatus(x)
-  }
-
-  private def handleInviteUnidentifiedContacts(msg : SendInvite) = {
-    val failedSendsF = service.sendInvitationsToUnidentifiedUsers(msg)
-    /*failedSendsF.onSuccess {
-      case x if msg.tries < UserConfiguration.maxRetries => self ! msg.copy(contacts = x.toSet, tries = msg.tries + 1)
-    }*/
-    failedSendsF.onFailure {
-      case t : Throwable => log.error(t.getMessage, t)
-    }
   }
 
   private def handleInviteStubUsers(msg : SendInviteToStubUsers) = {
@@ -38,8 +26,4 @@ class TwilioActor(service : TwilioService)(implicit ec : ExecutionContext) exten
 
 sealed trait TwilioMessage
 
-case class SendInvite(contacts : Set[String], from : Long, imageText : String, imageUrl : String, tries : Int = 0) extends TwilioMessage
-
 case class SendInviteToStubUsers(stubUsers : Seq[PhantomUser], tries : Int = 0) extends TwilioMessage
-
-case class InviteMessageStatus(messageSid : String, status : String) extends TwilioMessage
