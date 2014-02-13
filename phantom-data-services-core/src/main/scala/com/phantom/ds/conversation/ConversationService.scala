@@ -48,6 +48,54 @@ object ConversationService extends DSConfiguration {
 
   def apply(twilioActor : ActorRef, appleActor : ActorRef)(implicit ec : ExecutionContext) = new ConversationService with DatabaseSupport with Logging {
 
+    private def sanitizeConversation(conversation : Conversation, loggedInUser : PhantomUser, itemsLength : Int) : FEConversation = {
+
+      val isLoggedInUserFromUser = (conversation.fromUser == loggedInUser.id.get)
+      if (isLoggedInUserFromUser) {
+        FEConversation(
+          conversation.id.get,
+          conversation.receiverPhoneNumber,
+          conversation.lastUpdated,
+          itemsLength
+        )
+      } else {
+        FEConversation(
+          conversation.id.get,
+          "",
+          conversation.lastUpdated,
+          itemsLength
+        )
+      }
+
+    }
+
+    private def sanitizeConversationItems(items : List[ConversationItem], loggedInUser : PhantomUser) : List[FEConversationItem] = {
+
+      items.map { conversationItem =>
+        val isFromUser = loggedInUser.id.get == conversationItem.fromUser
+        FEConversationItem(
+          conversationItem.id.get,
+          conversationItem.conversationId,
+          conversationItem.imageUrl,
+          conversationItem.imageText,
+          conversationItem.isViewed,
+          conversationItem.createdDate,
+          isFromUser
+        )
+      }
+
+    }
+
+    def sanitizeFeed(feed : List[FeedEntry], loggedInUser : PhantomUser) : Future[List[FeedWrapper]] = {
+      future {
+        feed.map { feedEntry =>
+          val conversation = sanitizeConversation(feedEntry.conversation, loggedInUser, feedEntry.items.length)
+          val conversationItems = sanitizeConversationItems(feedEntry.items, loggedInUser)
+          FeedWrapper(conversation, conversationItems)
+        }
+      }
+    }
+
     def findFeed(userId : Long) : Future[List[FeedEntry]] = {
       conversationDao.findConversationsAndItems(userId)
     }

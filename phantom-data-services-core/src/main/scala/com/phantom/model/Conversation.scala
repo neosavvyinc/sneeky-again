@@ -7,6 +7,16 @@ import org.joda.time.DateTime
 
 case class FeedEntry(conversation : Conversation, items : List[ConversationItem])
 
+case class FeedWrapper(conversation : FEConversation, items : List[FEConversationItem])
+
+case class FEConversationItem(id : Long,
+                              conversationId : Long,
+                              imageUrl : String,
+                              imageText : String,
+                              isViewed : Boolean,
+                              createdDate : DateTime,
+                              isFromSender : Boolean)
+
 case class ConversationItem(id : Option[Long],
                             conversationId : Long,
                             imageUrl : String,
@@ -17,6 +27,11 @@ case class ConversationItem(id : Option[Long],
                             createdDate : DateTime = DateTime.now(),
                             toUserDeleted : Boolean = false,
                             fromUserDeleted : Boolean = false)
+
+case class FEConversation(id : Long,
+                          receiverPhoneNumber : String,
+                          lastUpdated : DateTime,
+                          messagesInConversation : Int)
 
 case class Conversation(id : Option[Long],
                         toUser : Long,

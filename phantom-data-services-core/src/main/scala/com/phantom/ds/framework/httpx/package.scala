@@ -102,6 +102,15 @@ package object httpx {
       }
     }
 
+    implicit object FEListTypeFormat extends JsonFormat[List[FEConversationItem]] {
+      override def write(obj : List[FEConversationItem]) : JsValue = JsArray(obj.map(feConversationItem.write))
+
+      override def read(json : JsValue) : List[FEConversationItem] = json match {
+        case JsArray(x) => x.map(feConversationItem.read)
+        case _          => deserializationError("Expected String value for List[FEConversationItem]")
+      }
+    }
+
     implicit val failureFormat = jsonFormat2(Failure)
     implicit val userRegistrationFormat = jsonFormat3(UserRegistration)
     implicit val userRegistrationResponseFormat = jsonFormat2(RegistrationResponse)
@@ -117,6 +126,9 @@ package object httpx {
     implicit val conversationItemFormat = jsonFormat10(ConversationItem)
 
     implicit val feedEntryRequest = jsonFormat2(FeedEntry)
+    implicit val feConversation = jsonFormat4(FEConversation)
+    implicit val feConversationItem = jsonFormat7(FEConversationItem)
+    implicit val feedWrapper = jsonFormat2(FeedWrapper)
     implicit val contactFormat = jsonFormat4(Contact)
 
     implicit val conversationInsertResponse = jsonFormat1(ConversationInsertResponse)
