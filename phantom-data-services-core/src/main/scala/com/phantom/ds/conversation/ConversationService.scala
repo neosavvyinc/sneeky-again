@@ -56,6 +56,8 @@ object ConversationService extends DSConfiguration {
 
       def encodeBase64(bytes : Array[Byte]) = Base64.encodeBase64String(bytes)
 
+      println(encodeBase64(AES.encrypt(conversation.receiverPhoneNumber, "secret1234567890")))
+
       val isLoggedInUserFromUser = (conversation.fromUser == loggedInUser.id.get)
       if (isLoggedInUserFromUser) {
         FEConversation(
