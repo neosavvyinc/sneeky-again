@@ -49,7 +49,7 @@ trait ConversationEndpoint extends DataHttpService {
               formFields('image.as[Array[Byte]], 'imageText, 'toUsers.as[String]) { (image, imageText, toUsers) =>
                 complete {
                   conversationService.startConversation(
-                    user.id.get, //THIS NEEDS TO CHANGE TO UUID
+                    user.id.get,
                     toUsers.split(",").toSet,
                     imageText,
                     //todo: move this into the service, and future bound it
@@ -72,7 +72,7 @@ trait ConversationEndpoint extends DataHttpService {
               formFields('image.as[Array[Byte]], 'imageText, 'convId.as[Long]) { (image, imageText, convId) =>
                 complete {
                   conversationService.respondToConversation(
-                    user.id.get, //THIS NEEDS TO CHANGE TO UUID
+                    user.id.get,
                     convId,
                     imageText,
                     image)

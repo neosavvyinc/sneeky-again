@@ -16,6 +16,7 @@ import com.phantom.ds.integration.twilio.SendInviteToStubUsers
 import com.phantom.ds.framework.exception.PhantomException
 import scala.slick.session.Session
 import java.util.UUID
+import org.apache.commons.codec.binary.Base64
 
 /**
  * Created by Neosavvy
@@ -48,13 +49,18 @@ object ConversationService extends DSConfiguration {
 
   def apply(twilioActor : ActorRef, appleActor : ActorRef)(implicit ec : ExecutionContext) = new ConversationService with DatabaseSupport with Logging {
 
+    import com.phantom.ds.framework.crypto._
+    import com.phantom.ds.framework.protocol.defaults._
+
     private def sanitizeConversation(conversation : Conversation, loggedInUser : PhantomUser, itemsLength : Int) : FEConversation = {
+
+      def encodeBase64(bytes : Array[Byte]) = Base64.encodeBase64String(bytes)
 
       val isLoggedInUserFromUser = (conversation.fromUser == loggedInUser.id.get)
       if (isLoggedInUserFromUser) {
         FEConversation(
           conversation.id.get,
-          conversation.receiverPhoneNumber,
+          encodeBase64(AES.encrypt(conversation.receiverPhoneNumber, "secret1234567890")),
           conversation.lastUpdated,
           itemsLength
         )
