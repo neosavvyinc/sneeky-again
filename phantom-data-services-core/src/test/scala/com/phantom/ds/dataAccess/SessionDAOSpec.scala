@@ -42,20 +42,21 @@ class SessionDAOSpec extends BaseDAOSpec {
 
       val result = sessions.findTokensByUserId(List(user1, user2).map(_.id.get))
 
-      result.sorted should be equalTo List("123456", "234567")
+      result.sorted should be equalTo List(Some("123456"), Some("234567"))
     }
 
-    "should return only non-null tokens " in withSetupTeardown {
+    "should return null tokens as None type" in withSetupTeardown {
       val user1 : PhantomUser = createVerifiedUser("lemmy@kilmister.com", "motorhead", "9998887766")
       val user2 : PhantomUser = createVerifiedUser("glenntipton@jp.com", "judas priest", "666666666")
 
       await {
         sessions.createSession(PhantomSession.newSession(user1, Some("123456")))
+        sessions.createSession(PhantomSession.newSession(user2))
       }
 
       val result = sessions.findTokensByUserId(List(user1, user2).map(_.id.get))
 
-      result.sorted should be equalTo List("123456")
+      result.sorted should be equalTo List(None, Some("123456"))
     }
 
   }

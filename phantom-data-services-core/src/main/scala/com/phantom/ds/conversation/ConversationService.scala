@@ -13,6 +13,7 @@ import com.phantom.model.ConversationInsertResponse
 import com.phantom.ds.framework.Logging
 import akka.actor.ActorRef
 import com.phantom.ds.integration.twilio.SendInviteToStubUsers
+import com.phantom.ds.integration.apple.AppleNotification
 import com.phantom.ds.framework.exception.PhantomException
 import scala.slick.session.Session
 import java.util.UUID
@@ -129,11 +130,11 @@ object ConversationService extends DSConfiguration {
         (newStubUsers, response) <- createStubUsersAndRoots(nonUsers, users ++ stubUsers, fromUserId, imageText, imageUrl)
         _ <- sendInvitations(stubUsers ++ newStubUsers)
         tokens <- getTokens(allUsers.map(_.id.get))
-        _ <- sendConversationNotifications(tokens)
+        _ <- sendConversationNotifications(allUsers.map(_.settingSound).zip(tokens))
       } yield response
     }
 
-    private def getTokens(userIds : Seq[Long]) : Future[List[String]] = {
+    private def getTokens(userIds : Seq[Long]) : Future[List[Option[String]]] = {
       future {
         sessions.findTokensByUserId(userIds)
       }
@@ -171,9 +172,13 @@ object ConversationService extends DSConfiguration {
       conversations.map(x => ConversationItem(None, x.id.getOrElse(-1), imageUrl, imageText, x.toUser, fromUserId))
     }
 
-    private def sendConversationNotifications(pushTokens : List[String]) : Future[Unit] = {
+    private def sendConversationNotifications(notifications : Seq[(Boolean, Option[String])]) : Future[Unit] = {
       future {
-        pushTokens.foreach(appleActor ! _)
+        notifications.foreach { notification =>
+          val (shouldPlaySound, token) = notification
+          if (token.nonEmpty)
+            appleActor ! AppleNotification(shouldPlaySound, token)
+        }
       }
     }
 

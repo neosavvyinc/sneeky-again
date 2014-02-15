@@ -7,6 +7,7 @@ import com.phantom.ds.TestUtils
 import akka.actor.ActorRefFactory
 import spray.testkit.Specs2RouteTest
 import com.phantom.ds.integration.twilio.SendInviteToStubUsers
+import com.phantom.ds.integration.apple.AppleNotification
 import com.phantom.model.FeedEntry
 
 /**
@@ -49,7 +50,7 @@ class ConversationServiceSpec extends Specification
       val userIds = Seq(user1.id, user2.id).flatten
       val user1Conversation = await(conversationDao.findConversationsAndItems(starter.id.get))
 
-      aProbe.expectMsgAllOf("123456", "234567")
+      aProbe.expectMsgAllOf(AppleNotification(true, Some("123456")), AppleNotification(true, Some("234567")))
       tProbe.expectNoMsg()
 
       user1Conversation.foreach {
@@ -149,7 +150,7 @@ class ConversationServiceSpec extends Specification
           c.toUser must beOneOf(userIds : _*)
       }
 
-      aProbe.expectMsgAllOf("3456789", "4567890")
+      aProbe.expectMsgAllOf(AppleNotification(true, Some("3456789")), AppleNotification(true, Some("4567890")))
       tProbe.expectMsg(SendInviteToStubUsers(stubUsers ++ newUsers))
       results.createdCount must beEqualTo(6)
     }
