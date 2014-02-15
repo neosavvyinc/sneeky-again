@@ -56,7 +56,7 @@ trait ConversationComponent { this : Profile with UserComponent =>
     def toUser = column[Long]("TO_USER")
     def fromUser = column[Long]("FROM_USER")
     def receiverPhoneNumber = column[String]("RECV_PHONE_NUMBER")
-    def lastUpdated = column[DateTime]("LAST_UPDATE_DATE")
+    def lastUpdated = column[DateTime]("LAST_UPDATE_DATE", DBType("TIMESTAMP(3)"))
     def toUserFK = foreignKey("TO_USER_FK", toUser, UserTable)(_.id)
     def fromUserFK = foreignKey("FROM_USER_FK", fromUser, UserTable)(_.id)
 
@@ -80,7 +80,7 @@ trait ConversationItemComponent { this : Profile with ConversationComponent with
     def toUser = column[Long]("TO_USER")
     def fromUser = column[Long]("FROM_USER")
     def isViewed = column[Boolean]("IS_VIEWED")
-    def createdDate = column[DateTime]("CREATED_DATE")
+    def createdDate = column[DateTime]("CREATED_DATE", DBType("TIMESTAMP(3)"))
     def toUserDeleted = column[Boolean]("TO_USER_DELETE")
     def fromUserDeleted = column[Boolean]("FROM_USER_DELETE")
 
