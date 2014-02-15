@@ -3,7 +3,10 @@
  * User: aparrish
  * Date: 2/14/14
  * Time: 10:04 AM
- * To change this template use File | Settings | File Templates.
+ *
+ * Example of this code lifted from here:
+ * https://gist.github.com/mumoshu/1587327
+ *
  */
 package com.phantom.ds.framework.protocol {
 
