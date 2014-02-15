@@ -1,0 +1,191 @@
+{"id": "b2be0e6f-19ac-3cad-f40a-592e84cfc58d", "name": "Dev API Testing", "timestamp": 1391895877467, "requests": [
+    {
+        "collectionId": "b2be0e6f-19ac-3cad-f40a-592e84cfc58d",
+        "id": "26710c0f-24cc-76d0-6d3c-48448d7af9b4",
+        "name": "Update Push Settings - Sound",
+        "description": "",
+        "url": "http://api.phantom.neosavvy.com/users/pushSettings?sessionId=b8b2f449-cf8d-4a6f-843b-f50510a08b30",
+        "method": "POST",
+        "headers": "Content-Type: application/json\n",
+        "data": "{\n  \"pushSettingType\": \"sound-on-new-item\",\n  \"settingValue\": true\n} ",
+        "dataMode": "raw",
+        "timestamp": 0,
+        "version": 2,
+        "time": 1391992210744
+    },
+    {
+        "collectionId": "b2be0e6f-19ac-3cad-f40a-592e84cfc58d",
+        "id": "3704e6ce-fd69-924d-9704-39048766f204",
+        "name": "Register New User",
+        "description": "",
+        "url": "http://api.phantom.neosavvy.com/users/register",
+        "method": "POST",
+        "headers": "Content-Type: application/json\n",
+        "data": "{\n  \"email\": \"adamrocks1@neosavvy.com\",\n  \"birthday\": \"19800810\",\n  \"password\": \"blargh1\"\n} ",
+        "dataMode": "raw",
+        "timestamp": 0,
+        "version": 2,
+        "time": 1391897982866
+    },
+    {
+        "collectionId": "b2be0e6f-19ac-3cad-f40a-592e84cfc58d",
+        "id": "5f186557-c0e1-9124-a4c0-0dd6a2559913",
+        "name": "Start Conversation",
+        "description": "",
+        "url": "http://api.phantom.neosavvy.com/conversation/start?sessionId=2bd3ad32-d466-4be0-aa0b-319e1e1b9436",
+        "method": "POST",
+        "headers": "",
+        "data": [
+            {
+                "key": "image",
+                "value": "",
+                "type": "file"
+            },
+            {
+                "key": "imageText",
+                "value": "Anything I want",
+                "type": "text"
+            },
+            {
+                "key": "toUsers",
+                "value": "+19999999999",
+                "type": "text"
+            }
+        ],
+        "dataMode": "params",
+        "timestamp": 0,
+        "version": 2,
+        "time": 1392263092053
+    },
+    {
+        "collectionId": "b2be0e6f-19ac-3cad-f40a-592e84cfc58d",
+        "id": "73d48107-5143-a2c5-2205-7a7614119d72",
+        "name": "Respond to Conversation",
+        "description": "",
+        "url": "http://api.phantom.neosavvy.com/conversation/respond?sessionId=2bd3ad32-d466-4be0-aa0b-319e1e1b9436",
+        "method": "POST",
+        "headers": "",
+        "data": [
+            {
+                "key": "image",
+                "value": "",
+                "type": "file"
+            },
+            {
+                "key": "imageText",
+                "value": "Anything I want",
+                "type": "text"
+            },
+            {
+                "key": "convId",
+                "value": "1",
+                "type": "text"
+            }
+        ],
+        "dataMode": "params",
+        "timestamp": 0,
+        "version": 2,
+        "time": 1392263215004
+    },
+    {
+        "collectionId": "b2be0e6f-19ac-3cad-f40a-592e84cfc58d",
+        "id": "9797e00a-ccb0-e357-b25d-d84081627387",
+        "name": "Verify from Twilio",
+        "description": "",
+        "url": "http://api.phantom.neosavvy.com/users/verification",
+        "method": "POST",
+        "headers": "",
+        "data": [
+            {
+                "key": "AccountSid",
+                "value": "BS",
+                "type": "text"
+            },
+            {
+                "key": "MessageSid",
+                "value": "BS",
+                "type": "text"
+            },
+            {
+                "key": "From",
+                "value": "+19999999999",
+                "type": "text"
+            },
+            {
+                "key": "To",
+                "value": "+19197419597",
+                "type": "text"
+            },
+            {
+                "key": "Body",
+                "value": "This is the test message [94e0574f-c845-4a63-bfb8-381ebb0ad033] end",
+                "type": "text"
+            },
+            {
+                "key": "NumMedia",
+                "value": "0",
+                "type": "text"
+            }
+        ],
+        "dataMode": "urlencoded",
+        "timestamp": 0,
+        "version": 2,
+        "time": 1391992086377
+    },
+    {
+        "collectionId": "b2be0e6f-19ac-3cad-f40a-592e84cfc58d",
+        "id": "c5e16a9e-a048-3f2b-7a3d-13e8528c3fff",
+        "name": "Get Feed",
+        "description": "",
+        "url": "http://api.phantom.neosavvy.com/conversation/?sessionId=2bd3ad32-d466-4be0-aa0b-319e1e1b9436",
+        "method": "POST",
+        "headers": "",
+        "data": "",
+        "dataMode": "raw",
+        "timestamp": 0,
+        "version": 2,
+        "time": 1392263304992
+    },
+    {
+        "collectionId": "b2be0e6f-19ac-3cad-f40a-592e84cfc58d",
+        "id": "ccf6da15-4d83-b6a0-63f1-848e618ca356",
+        "name": "Update Push Settings - New Picture",
+        "description": "",
+        "url": "http://api.phantom.neosavvy.com/users/pushSettings?sessionId=b8b2f449-cf8d-4a6f-843b-f50510a08b30",
+        "method": "POST",
+        "headers": "Content-Type: application/json\n",
+        "data": "{\n  \"pushSettingType\": \"picture-received\",\n  \"settingValue\": true\n} ",
+        "dataMode": "raw",
+        "timestamp": 0,
+        "version": 2,
+        "time": 1391992243099
+    },
+    {
+        "collectionId": "b2be0e6f-19ac-3cad-f40a-592e84cfc58d",
+        "id": "df8bec85-5f1f-3aa1-7ba0-0e269dced066",
+        "name": "Add Push Notifier",
+        "description": "",
+        "url": "http://api.phantom.neosavvy.com/users/pushNotifier?sessionId=b8b2f449-cf8d-4a6f-843b-f50510a08b30",
+        "method": "POST",
+        "headers": "Content-Type: application/json\n",
+        "data": "{\n  \"pushNotifierToken\": \"adamsToken\",\n  \"pushType\": \"apple\"\n} ",
+        "dataMode": "raw",
+        "timestamp": 0,
+        "version": 2,
+        "time": 1391992125142
+    },
+    {
+        "collectionId": "b2be0e6f-19ac-3cad-f40a-592e84cfc58d",
+        "id": "f143b11e-a2e3-766b-fc0c-dc58dcdd1ef6",
+        "name": "Login as User",
+        "description": "",
+        "url": "http://api.phantom.neosavvy.com/users/login",
+        "method": "POST",
+        "headers": "Content-Type: application/json\n",
+        "data": "{\n  \"email\": \"adamrocks1@neosavvy.com\",\n  \"password\": \"blargh1\"\n} ",
+        "dataMode": "raw",
+        "timestamp": 0,
+        "version": 2,
+        "time": 1392263072781
+    }
+]}

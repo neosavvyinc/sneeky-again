@@ -16,6 +16,9 @@ import com.phantom.ds.integration.twilio.SendInviteToStubUsers
 import com.phantom.ds.framework.exception.PhantomException
 import scala.slick.session.Session
 import java.util.UUID
+import org.apache.commons.codec.binary.Base64
+import java.security.MessageDigest
+import org.joda.time.DateTime
 
 /**
  * Created by Neosavvy
@@ -48,13 +51,23 @@ object ConversationService extends DSConfiguration {
 
   def apply(twilioActor : ActorRef, appleActor : ActorRef)(implicit ec : ExecutionContext) = new ConversationService with DatabaseSupport with Logging {
 
-    private def sanitizeConversation(conversation : Conversation, loggedInUser : PhantomUser, itemsLength : Int) : FEConversation = {
+    import com.phantom.ds.framework.crypto._
+    import com.phantom.ds.framework.protocol.defaults._
 
+    private def encodeBase64(bytes : Array[Byte]) = Base64.encodeBase64String(bytes)
+    private def encryptField(fieldValue : String) : String = {
+      if (SecurityConfiguration.encryptFields)
+        encodeBase64(AES.encrypt(fieldValue, SecurityConfiguration.sharedSecret))
+      else
+        fieldValue
+    }
+
+    private def sanitizeConversation(conversation : Conversation, loggedInUser : PhantomUser, itemsLength : Int) : FEConversation = {
       val isLoggedInUserFromUser = (conversation.fromUser == loggedInUser.id.get)
       if (isLoggedInUserFromUser) {
         FEConversation(
           conversation.id.get,
-          conversation.receiverPhoneNumber,
+          encryptField(conversation.receiverPhoneNumber),
           conversation.lastUpdated,
           itemsLength
         )
@@ -69,6 +82,12 @@ object ConversationService extends DSConfiguration {
 
     }
 
+    private def getUrl(imageName : String) : String = {
+
+      FileStoreConfiguration.baseImageUrl + imageName
+
+    }
+
     private def sanitizeConversationItems(items : List[ConversationItem], loggedInUser : PhantomUser) : List[FEConversationItem] = {
 
       items.map { conversationItem =>
@@ -76,8 +95,8 @@ object ConversationService extends DSConfiguration {
         FEConversationItem(
           conversationItem.id.get,
           conversationItem.conversationId,
-          conversationItem.imageUrl,
-          conversationItem.imageText,
+          encryptField(getUrl(conversationItem.imageUrl)),
+          encryptField(conversationItem.imageText),
           conversationItem.isViewed,
           conversationItem.createdDate,
           isFromUser
@@ -213,11 +232,14 @@ object ConversationService extends DSConfiguration {
 
     def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String = {
 
-      val imageDir = FileStoreConfiguration.baseDirectory + conversationId
-      val imageUrl = imageDir + "/image"
+      val randomImageName : String = MessageDigest.getInstance("MD5").digest(DateTime.now().toString().getBytes).map("%02X".format(_)).mkString
+      val imageDir = FileStoreConfiguration.baseDirectory + "/" + conversationId
+      val imageUrl = imageDir + "/" + randomImageName
       val dir : File = new File(imageDir)
       if (!dir.exists())
         dir.mkdirs()
+
+      println("Writing out the image to: " + imageUrl)
 
       val fos : FileOutputStream = new FileOutputStream(imageUrl)
 
@@ -227,7 +249,7 @@ object ConversationService extends DSConfiguration {
         fos.close()
       }
 
-      imageUrl
+      conversationId + "/" + randomImageName
 
     }
 

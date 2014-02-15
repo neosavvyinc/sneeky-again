@@ -48,6 +48,7 @@ trait DSConfiguration {
   object FileStoreConfiguration {
 
     val baseDirectory = fileStoreConfiguration.getString("baseDirectory")
+    val baseImageUrl = fileStoreConfiguration.getString("baseImageUrl")
 
     private def fileStoreConfiguration = cfg.getConfig("fileStore")
 
@@ -57,7 +58,7 @@ trait DSConfiguration {
 
     val accountSid = twilioCfg.getString("accountSid")
     val authToken = twilioCfg.getString("authToken")
-    def phoneNumber = twilioCfg.getString("phoneNumber")
+    val phoneNumber = twilioCfg.getString("phoneNumber")
 
     private def twilioCfg = cfg.getConfig("twilio")
   }
@@ -78,6 +79,13 @@ trait DSConfiguration {
     val maxRetries = userCfg.getInt("maxRetries")
 
     private def userCfg = cfg.getConfig("user")
+  }
+
+  object SecurityConfiguration {
+    val sharedSecret = securityConfig.getString("sharedSecret")
+    val encryptFields = securityConfig.getBoolean("encryptFields")
+
+    private def securityConfig = cfg.getConfig("security")
   }
 
 }
