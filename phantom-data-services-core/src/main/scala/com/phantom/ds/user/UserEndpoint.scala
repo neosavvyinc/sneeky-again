@@ -39,7 +39,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
         }
       } ~
       pathPrefix("users" / "contacts") {
-        authenticate(verified _) { user =>
+        authenticate(unverified _) { user =>
           post {
             respondWithMediaType(`application/json`) {
               entity(as[Map[String, List[String]]]) { phoneNumbers =>
