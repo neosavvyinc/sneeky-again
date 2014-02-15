@@ -16,7 +16,7 @@ import java.util.UUID
 import com.phantom.model.UserRegistration
 
 import org.joda.time.{ LocalDate, DateTimeZone, DateTime }
-import org.joda.time.format.ISODateTimeFormat
+import org.joda.time.format.{ DateTimeFormat, ISODateTimeFormat }
 
 package object httpx {
 
@@ -26,7 +26,7 @@ package object httpx {
 
     implicit object JodaDateTimeFormat extends JsonFormat[DateTime] {
 
-      val formatter = ISODateTimeFormat.basicDateTimeNoMillis
+      val formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'hh:mm:ss.SSSZZ")
 
       def write(obj : DateTime) : JsValue = JsString(formatter.print(obj.toDateTime(DateTimeZone.UTC)))
 
