@@ -16,6 +16,10 @@ object Boot extends App with DSConfiguration with Logging {
   // create and start our service actor
 
   val phantomService = getActor
+  //println(phantomService.path)
+  //println(appleActor.path)
+  //println(twilioActor.path)
+  println(system)
 
   implicit val executor = scala.concurrent.ExecutionContext.Implicits.global //TODO <<<---change this to cachedThreadPool possibly
 
@@ -32,9 +36,9 @@ object Boot extends App with DSConfiguration with Logging {
     }
   }
 
-  private def twilioActor = system.actorOf(Props(new TwilioActor(twilioService)))
+  private def twilioActor = system.actorOf(Props(new TwilioActor(twilioService)), "twilio")
 
-  private def appleActor = system.actorOf(Props(new AppleActor()))
+  private def appleActor = system.actorOf(Props(new AppleActor()), "apple")
 
   private def twilioService = TwilioService(TwiioMessageSender(TwilioConfiguration.accountSid, TwilioConfiguration.authToken, TwilioConfiguration.phoneNumber))(executor)
 }

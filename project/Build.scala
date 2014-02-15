@@ -7,13 +7,23 @@ import sbtrelease.ReleasePlugin._
 import spray.revolver.RevolverPlugin.Revolver
 import scalariform.formatter.preferences._
 import AssemblyKeys._
+import com.typesafe.sbt.SbtAtmos.{ Atmos, atmosSettings }
+import com.typesafe.sbt.SbtAtmos.AtmosKeys.{ traceable, sampling }
 
 
 object Build extends sbt.Build {
 
+
+ traceable in Atmos := Seq(
+    "/user/twilio" -> true,  // trace this actor
+    "/user/apple"  -> true,  // trace all actors in this subtree
+    "/user/service"  -> true  // trace all actors in this subtree
+  )
+
+
   lazy val root =
     project(id = "phantom-data-services",
-      base = file(".")) aggregate(core)
+      base = file(".")) aggregate core
 
   lazy val core =
     project(id = "phantom-data-services-core",
@@ -43,7 +53,8 @@ object Build extends sbt.Build {
             resolvers += "spray" at "http://repo.spray.io/",
             compile <<= (compile in Compile) dependsOn (compile in Test, compile in IntegrationTest),
             libraryDependencies ++= Shared.testDeps
-          )).settings(Defaults.itSettings: _*).configs(IntegrationTest)
+          )).settings(Defaults.itSettings: _ *).settings(atmosSettings: _*).configs(IntegrationTest).configs(Atmos)
+
 
 
 }
@@ -80,8 +91,9 @@ object Shared {
   )
 
   val testDeps = Seq(
-    "org.specs2" %% "specs2" % "2.2.3" % "test",
-    "org.mockito" % "mockito-all" % "1.9.5"
+    "org.specs2" %% "specs2" % "2.2.3" % "test, it",
+    "org.mockito" % "mockito-all" % "1.9.5" % "test, it",
+    "net.databinder.dispatch" %% "dispatch-core" % "0.11.0" % "test, it"
   )
 
   val Other = Seq(
