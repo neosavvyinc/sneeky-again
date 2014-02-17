@@ -95,25 +95,7 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
       ci <- ConversationItemTable if {
         c.id === ci.conversationId && (c.fromUser === userId || c.toUser === userId)
       }
-    } yield (c, ci)).sortBy(_._2.createdDate.desc).list()
+    } yield (c, ci)).sortBy(_._2.createdDate.asc).list()
   }
-
-  /**
-   * def findConversationsAndItems(userId : Long) : Future[List[FeedEntry]] = {
-    implicit def dateTimeOrdering : Ordering[DateTime] = Ordering.fromLessThan(_ isAfter _)
-    future {
-      db.withSession { implicit session =>
-        val conversationPairs = (for {
-          c <- ConversationTable
-          ci <- ConversationItemTable if c.id === ci.conversationId && (c.fromUser === userId || c.toUser === userId)
-        } yield (c, ci)).sortBy(_._2.createdDate.asc).list()
-
-        conversationPairs.groupBy(_._1).map {
-          case (convo, cItem) => FeedEntry(convo, cItem.map(_._2))
-        }.toList.sortBy(_.conversation.lastUpdated)
-      }
-    }
-  }
-   */
 }
 

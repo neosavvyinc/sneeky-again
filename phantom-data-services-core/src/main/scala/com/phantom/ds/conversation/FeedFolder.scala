@@ -1,17 +1,21 @@
 package com.phantom.ds.conversation
 
 import com.phantom.model.{ FeedEntry, Conversation, ConversationItem }
+import org.joda.time.DateTime
 
 object FeedFolder {
 
+  implicit def dateTimeOrdering : Ordering[DateTime] = Ordering.fromLessThan(_ isAfter _)
+
   def foldFeed(userId : Long, raw : List[(Conversation, ConversationItem)]) : List[FeedEntry] = {
     val grouped = raw.groupBy(_._1)
+
     grouped.foldRight(List[FeedEntry]()) { (item, feed) =>
       toFeedEntry(userId, item._1, item._2) match {
         case None    => feed
         case Some(x) => x :: feed
       }
-    }
+    }.sortBy(_.conversation.lastUpdated)
   }
 
   private def toFeedEntry(userId : Long, conversation : Conversation, conversationItems : List[(Conversation, ConversationItem)]) : Option[FeedEntry] = {
