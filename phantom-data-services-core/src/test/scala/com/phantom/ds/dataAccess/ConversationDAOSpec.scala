@@ -19,7 +19,7 @@ class ConversationDAOSpec extends BaseDAOSpec with TestUtils {
   "ConversationDAO" should {
     "support inserting conversations for users" in withSetupTeardown {
 
-      insertTestUsers
+      insertTestUsers()
 
       val conv1 = conversationDao.insert(new Conversation(
         None, 1, 2, "9197419597"
@@ -34,7 +34,7 @@ class ConversationDAOSpec extends BaseDAOSpec with TestUtils {
     }
 
     "support searching for a conversation by owner id" in withSetupTeardown {
-      insertTestUsers
+      insertTestUsers()
 
       conversationDao.insert(new Conversation(None, 3, 2, "9197419597"))
       conversationDao.insert(new Conversation(None, 3, 4, "9197419598"))
@@ -43,20 +43,8 @@ class ConversationDAOSpec extends BaseDAOSpec with TestUtils {
       (c(0).fromUser must equalTo(2)) and (c1(0).fromUser must equalTo(4))
     }
 
-    "support deleting conversations" in withSetupTeardown {
-      insertTestUsers
-
-      conversationDao.insert(new Conversation(None, 1, 2, "9197419597"))
-      conversationDao.insert(new Conversation(None, 3, 4, "9197419597"))
-      conversationDao.insert(new Conversation(None, 5, 6, "9197419597"))
-      (conversationDao.deleteById(1) must equalTo(1)) and
-        (conversationDao.deleteById(2) must equalTo(1)) and
-        (conversationDao.deleteById(3) must equalTo(1)) and
-        (conversationDao.deleteById(4) must equalTo(0))
-    }
-
     "support finding one conversation by id" in withSetupTeardown {
-      insertTestUsers
+      insertTestUsers()
 
       //dirty hack
       var dtTime = DateTime.now()
@@ -75,11 +63,11 @@ class ConversationDAOSpec extends BaseDAOSpec with TestUtils {
     }
 
     "support inserting then updating a row" in withSetupTeardown {
-      insertTestUsers
+      insertTestUsers()
 
       //dirty hack
       var dtTime = DateTime.now()
-      dtTime = dtTime.minusMillis(dtTime.getMillisOfDay())
+      dtTime = dtTime.minusMillis(dtTime.getMillisOfDay)
 
       val inserted : Conversation = conversationDao.insert(new Conversation(None, 1, 2, "9197419597", dtTime))
 

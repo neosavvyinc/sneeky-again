@@ -42,6 +42,12 @@ trait ConversationService {
 
   def blockByConversationId(userId : Long, conversationId : Long) : Future[BlockUserByConversationResponse]
 
+  def viewConversationItem(conversationItemId : Long, userId : Long) : Future[Boolean]
+
+  def deleteConversation(userId : Long, conversationId : Long) : Future[Int]
+
+  def deleteConversationItem(userId : Long, conversationItemId : Long) : Future[Int]
+
 }
 
 object ConversationService extends DSConfiguration {
@@ -50,7 +56,7 @@ object ConversationService extends DSConfiguration {
 
     private def sanitizeConversation(conversation : Conversation, loggedInUser : PhantomUser, itemsLength : Int) : FEConversation = {
 
-      val isLoggedInUserFromUser = (conversation.fromUser == loggedInUser.id.get)
+      val isLoggedInUserFromUser = conversation.fromUser == loggedInUser.id.get
       if (isLoggedInUserFromUser) {
         FEConversation(
           conversation.id.get,
@@ -251,13 +257,38 @@ object ConversationService extends DSConfiguration {
     }
 
     def viewConversationItem(conversationItemId : Long, userId : Long) : Future[Boolean] = {
-
       future {
         db.withTransaction { implicit session =>
-          conversationItemDao.updateViewed(conversationItemId, userId) > 0
+          conversationItemDao.updateViewedOperation(conversationItemId, userId) > 0
         }
       }
+    }
 
+    def deleteConversation(userId : Long, conversationId : Long) : Future[Int] = {
+      future {
+        db.withTransaction { implicit session =>
+          val items = conversationItemDao.findByConversationIdAndUserOperation(conversationId, userId)
+          val (fromItems, toItems) = items.partition(_.fromUser == userId)
+          conversationItemDao.updateDeletedByFromUserOperation(fromItems.map(_.id.get) : _*)
+          conversationItemDao.updateDeletedByToUserOperation(toItems.map(_.id.get) : _*)
+
+        }
+      }
+    }
+
+    def deleteConversationItem(userId : Long, conversationItemId : Long) : Future[Int] = {
+      future {
+        db.withTransaction { implicit session =>
+          val itemOpt = conversationItemDao.findByIdAndUserOperation(conversationItemId, userId)
+          itemOpt.map { x =>
+            if (x.fromUser == userId) {
+              conversationItemDao.updateDeletedByFromUserOperation(conversationItemId)
+            } else {
+              conversationItemDao.updateDeletedByToUserOperation(conversationItemId)
+            }
+          }.getOrElse(0)
+        }
+      }
     }
 
     private def backfillBlockedContact(ownerId : Long, contactId : Long)(implicit session : Session) : Contact = {

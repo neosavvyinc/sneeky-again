@@ -18,6 +18,7 @@ import com.phantom.model.ConversationItem
 import com.phantom.model.Conversation
 import com.phantom.model.BlockUserByConversationResponse
 import com.phantom.model.Contact
+import scala.slick.session.Session
 
 /**
  * Created by Neosavvy
@@ -52,7 +53,7 @@ class ConversationEndpointSpec extends Specification
       await(conversationItemDao.insertAll(Seq(item, item, item)))
       val user = phantomUsersDao.find(2L)
       authedUser = user
-      Get(s"/conversation") ~> conversationRoute ~> check {
+      Get("/conversation") ~> conversationRoute ~> check {
         assertPayload[List[FeedWrapper]] { response =>
 
           response.foreach {
@@ -99,7 +100,9 @@ class ConversationEndpointSpec extends Specification
         status === OK
         val conversations = conversationDao.findByFromUserId(2)
         conversations.foreach { x =>
-          val items = conversationItemDao.findByConversationId(x.id.get)
+          val items = db.withSession { implicit session : Session =>
+            conversationItemDao.findByConversationIdAndUserOperation(x.id.get, authedUser.get.id.get)
+          }
           items should have size 1
           items.head.imageText must beEqualTo("This is the image text")
         }
@@ -232,6 +235,115 @@ class ConversationEndpointSpec extends Specification
         assertFailure(203)
       }
     }
+
+    "deleting and item should show up as deleted in the deleter's feed, and still show up in the other person's feed" in withSetupTeardown {
+      insertTestConverationsWithItems()
+      val user1 = phantomUsersDao.find(1L)
+      val user2 = phantomUsersDao.find(2L)
+      authedUser = user1
+      Post("/conversation/deleteitem/1") ~> conversationRoute ~> check {
+        status == OK
+      }
+
+      Get("/conversation") ~> conversationRoute ~> check {
+        assertPayload[List[FeedWrapper]] { response =>
+          response must have size 1
+          response.head.items must have size 2
+          response.head.items.map(_.imageText) must not contain "imageUrl1"
+        }
+      }
+
+      authedUser = user2
+      Get("/conversation") ~> conversationRoute ~> check {
+        assertPayload[List[FeedWrapper]] { response =>
+          response must have size 1
+          response.head.items must have size 3
+          response.head.items.map(_.imageText) must contain("imageUrl1")
+        }
+      }
+    }
+
+    "fail if a user tries to delete an item that belongs to a conversation that they are not in" in withSetupTeardown {
+      insertTestConverationsWithItems()
+      val user1 = phantomUsersDao.find(1L)
+      val user2 = phantomUsersDao.find(2L)
+      val user3 = phantomUsersDao.find(3L)
+      authedUser = user3
+      Post("/conversation/deleteitem/1") ~> conversationRoute ~> check {
+        status == OK
+      }
+
+      authedUser = user1
+      Get("/conversation") ~> conversationRoute ~> check {
+        assertPayload[List[FeedWrapper]] { response =>
+          response must have size 1
+          response.head.items must have size 3
+          response.head.items.map(_.imageText) must contain("imageUrl1")
+        }
+      }
+
+      authedUser = user2
+      Get("/conversation") ~> conversationRoute ~> check {
+        assertPayload[List[FeedWrapper]] { response =>
+          response must have size 1
+          response.head.items must have size 3
+          response.head.items.map(_.imageText) must contain("imageUrl1")
+        }
+      }
+    }
+
+    "deleting a conversation should mark all conversation items in a conversation as deleted, but not affect the other user" in withSetupTeardown {
+      insertTestConverationsWithItems()
+      val user1 = phantomUsersDao.find(1L)
+      val user2 = phantomUsersDao.find(2L)
+      authedUser = user1
+      Post("/conversation/delete/1") ~> conversationRoute ~> check {
+        status == OK
+      }
+
+      Get("/conversation") ~> conversationRoute ~> check {
+        assertPayload[List[FeedWrapper]] { response =>
+          response must have size 0
+        }
+      }
+
+      authedUser = user2
+      Get("/conversation") ~> conversationRoute ~> check {
+        assertPayload[List[FeedWrapper]] { response =>
+          response must have size 1
+          response.head.items must have size 3
+        }
+      }
+    }
+
+    "fail i a user tries to delete a conversation that they are not a member of" in withSetupTeardown {
+      insertTestConverationsWithItems()
+      val user1 = phantomUsersDao.find(1L)
+      val user2 = phantomUsersDao.find(2L)
+      val user3 = phantomUsersDao.find(3L)
+      authedUser = user3
+      Post("/conversation/delete/1") ~> conversationRoute ~> check {
+        status == OK
+      }
+
+      authedUser = user1
+      Get("/conversation") ~> conversationRoute ~> check {
+        assertPayload[List[FeedWrapper]] { response =>
+          response must have size 1
+          response.head.items must have size 3
+        }
+      }
+
+      authedUser = user2
+      Get("/conversation") ~> conversationRoute ~> check {
+        assertPayload[List[FeedWrapper]] { response =>
+          response must have size 1
+          response.head.items must have size 3
+          response.head.items.map(_.imageText) must contain("imageUrl1")
+        }
+      }
+    }
+
   }
 
   private def readImage : Array[Byte] = {

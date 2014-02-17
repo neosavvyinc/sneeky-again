@@ -114,6 +114,35 @@ trait ConversationEndpoint extends DataHttpService {
             }
           }
         }
+      } ~ {
+        pathPrefix(conversation) {
+          path("delete" / IntNumber) { id =>
+            authenticate(verified _) { user =>
+              post {
+                respondWithMediaType(`application/json`) {
+                  complete {
+                    conversationService.deleteConversation(user.id.get, id)
+                  }
+                }
+              }
+            }
+
+          }
+        }
+      } ~ {
+        pathPrefix(conversation) {
+          path("deleteitem" / IntNumber) { id =>
+            authenticate(verified _) { user =>
+              post {
+                respondWithMediaType(`application/json`) {
+                  complete {
+                    conversationService.deleteConversationItem(user.id.get, id)
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
 }

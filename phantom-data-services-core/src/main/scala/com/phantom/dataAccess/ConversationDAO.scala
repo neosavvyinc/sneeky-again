@@ -9,7 +9,7 @@ package com.phantom.dataAccess
  */
 
 import scala.slick.session.Database
-import com.phantom.model.{ FeedEntry, ConversationItem, Conversation }
+import com.phantom.model.{ FeedEntry, Conversation }
 import scala.concurrent.{ Future, ExecutionContext, future }
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.framework.exception.PhantomException
@@ -47,14 +47,6 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
   }
 
   //ONLY USED BY TESTS
-  def deleteById(conversationId : Long) : Int = {
-    db.withTransaction { implicit session =>
-      val deleteQuery = Query(ConversationTable) filter { _.id === conversationId }
-      deleteQuery delete
-    }
-  }
-
-  //ONLY USED BY TESTS
   def findById(conversationId : Long) : Future[Conversation] = {
     future {
       db.withSession { implicit session =>
@@ -66,7 +58,7 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
-  def swapConversations(sourceUser : Long, desUser : Long)(implicit session : Session) : Int = {
+  def swapConversationsOperation(sourceUser : Long, desUser : Long)(implicit session : Session) : Int = {
     val q = for { c <- ConversationTable if c.toUser === sourceUser } yield c.toUser
     q.update(desUser)
   }

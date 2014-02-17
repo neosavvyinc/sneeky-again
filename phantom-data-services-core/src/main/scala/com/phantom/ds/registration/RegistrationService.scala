@@ -64,8 +64,8 @@ object RegistrationService {
         stubUserOpt.map { stubUser =>
           log.trace(s"converting stubUser $stubUser")
           val stubUserId = stubUser.id.get
-          conversationDao.swapConversations(stubUserId, userId)
-          conversationItemDao.swapConversationItems(stubUserId, userId)
+          conversationDao.swapConversationsOperation(stubUserId, userId)
+          conversationItemDao.swapConversationItemsOperation(stubUserId, userId)
           phantomUsersDao.deleteOperation(stubUserId)
         }
       }
