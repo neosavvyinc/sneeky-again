@@ -30,7 +30,6 @@ trait ConversationEndpoint extends DataHttpService {
         get {
           respondWithMediaType(`application/json`) {
             complete(
-
               conversationService.findFeed(user.id.get) flatMap { resolvedFeed =>
                 conversationService.sanitizeFeed(resolvedFeed, user)
               }

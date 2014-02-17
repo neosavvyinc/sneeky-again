@@ -9,7 +9,7 @@ package com.phantom.dataAccess
  */
 
 import scala.slick.session.Database
-import com.phantom.model.{ FeedEntry, Conversation }
+import com.phantom.model.{ ConversationItem, FeedEntry, Conversation }
 import scala.concurrent.{ Future, ExecutionContext, future }
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.framework.exception.PhantomException
@@ -80,19 +80,13 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
-  def findConversationsAndItems(userId : Long) : Future[List[FeedEntry]] = {
-    future {
-      db.withSession { implicit session =>
-        val conversationPairs = (for {
-          c <- ConversationTable
-          ci <- ConversationItemTable if c.id === ci.conversationId && (c.fromUser === userId || c.toUser === userId)
-        } yield (c, ci)).sortBy(_._2.createdDate.desc).list()
-
-        conversationPairs.groupBy(_._1).map {
-          case (convo, cItem) => FeedEntry(convo, cItem.map(_._2))
-        }.toList
+  def findConversationsAndItemsOperation(userId : Long)(implicit session : Session) : List[(Conversation, ConversationItem)] = {
+    (for {
+      c <- ConversationTable
+      ci <- ConversationItemTable if {
+        c.id === ci.conversationId && (c.fromUser === userId || c.toUser === userId)
       }
-    }
+    } yield (c, ci)).sortBy(_._2.createdDate.desc).list()
   }
 }
 

@@ -48,7 +48,7 @@ class ConversationDAOSpec extends BaseDAOSpec with TestUtils {
 
       //dirty hack
       var dtTime = DateTime.now()
-      dtTime = dtTime.minusMillis(dtTime.getMillisOfDay())
+      dtTime = dtTime.minusMillis(dtTime.getMillisOfDay)
 
       conversationDao.insert(new Conversation(None, 1, 2, "9197419597", dtTime))
       conversationDao.insert(new Conversation(None, 3, 4, "9197419597", dtTime))

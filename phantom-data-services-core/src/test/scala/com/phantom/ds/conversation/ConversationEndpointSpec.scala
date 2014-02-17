@@ -249,7 +249,7 @@ class ConversationEndpointSpec extends Specification
         assertPayload[List[FeedWrapper]] { response =>
           response must have size 1
           response.head.items must have size 2
-          response.head.items.map(_.imageText) must not contain "imageUrl1"
+          response.head.items.map(_.imageText) must not contain "imageText1"
         }
       }
 
@@ -258,7 +258,7 @@ class ConversationEndpointSpec extends Specification
         assertPayload[List[FeedWrapper]] { response =>
           response must have size 1
           response.head.items must have size 3
-          response.head.items.map(_.imageText) must contain("imageUrl1")
+          response.head.items.map(_.imageText) must contain("imageText1")
         }
       }
     }
@@ -278,7 +278,7 @@ class ConversationEndpointSpec extends Specification
         assertPayload[List[FeedWrapper]] { response =>
           response must have size 1
           response.head.items must have size 3
-          response.head.items.map(_.imageText) must contain("imageUrl1")
+          response.head.items.map(_.imageText) must contain("imageText1")
         }
       }
 
@@ -287,7 +287,7 @@ class ConversationEndpointSpec extends Specification
         assertPayload[List[FeedWrapper]] { response =>
           response must have size 1
           response.head.items must have size 3
-          response.head.items.map(_.imageText) must contain("imageUrl1")
+          response.head.items.map(_.imageText) must contain("imageText1")
         }
       }
     }
@@ -316,7 +316,7 @@ class ConversationEndpointSpec extends Specification
       }
     }
 
-    "fail i a user tries to delete a conversation that they are not a member of" in withSetupTeardown {
+    "fail if a user tries to delete a conversation that they are not a member of" in withSetupTeardown {
       insertTestConverationsWithItems()
       val user1 = phantomUsersDao.find(1L)
       val user2 = phantomUsersDao.find(2L)
@@ -339,7 +339,7 @@ class ConversationEndpointSpec extends Specification
         assertPayload[List[FeedWrapper]] { response =>
           response must have size 1
           response.head.items must have size 3
-          response.head.items.map(_.imageText) must contain("imageUrl1")
+          response.head.items.map(_.imageText) must contain("imageText1")
         }
       }
     }
