@@ -241,7 +241,7 @@ class ConversationEndpointSpec extends Specification
       val user1 = phantomUsersDao.find(1L)
       val user2 = phantomUsersDao.find(2L)
       authedUser = user1
-      Post("/conversation/deleteitem/1") ~> conversationRoute ~> check {
+      Delete("/conversation/deleteitem/1") ~> conversationRoute ~> check {
         status == OK
       }
 
@@ -269,7 +269,7 @@ class ConversationEndpointSpec extends Specification
       val user2 = phantomUsersDao.find(2L)
       val user3 = phantomUsersDao.find(3L)
       authedUser = user3
-      Post("/conversation/deleteitem/1") ~> conversationRoute ~> check {
+      Delete("/conversation/deleteitem/1") ~> conversationRoute ~> check {
         status == OK
       }
 
@@ -297,7 +297,7 @@ class ConversationEndpointSpec extends Specification
       val user1 = phantomUsersDao.find(1L)
       val user2 = phantomUsersDao.find(2L)
       authedUser = user1
-      Post("/conversation/delete/1") ~> conversationRoute ~> check {
+      Delete("/conversation/delete/1") ~> conversationRoute ~> check {
         status == OK
       }
 
@@ -322,7 +322,7 @@ class ConversationEndpointSpec extends Specification
       val user2 = phantomUsersDao.find(2L)
       val user3 = phantomUsersDao.find(3L)
       authedUser = user3
-      Post("/conversation/delete/1") ~> conversationRoute ~> check {
+      Delete("/conversation/delete/1") ~> conversationRoute ~> check {
         status == OK
       }
 

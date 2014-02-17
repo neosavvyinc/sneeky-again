@@ -117,7 +117,7 @@ trait ConversationEndpoint extends DataHttpService {
         pathPrefix(conversation) {
           path("delete" / IntNumber) { id =>
             authenticate(verified _) { user =>
-              post {
+              delete {
                 respondWithMediaType(`application/json`) {
                   complete {
                     conversationService.deleteConversation(user.id.get, id)
@@ -132,7 +132,7 @@ trait ConversationEndpoint extends DataHttpService {
         pathPrefix(conversation) {
           path("deleteitem" / IntNumber) { id =>
             authenticate(verified _) { user =>
-              post {
+              delete {
                 respondWithMediaType(`application/json`) {
                   complete {
                     conversationService.deleteConversationItem(user.id.get, id)
