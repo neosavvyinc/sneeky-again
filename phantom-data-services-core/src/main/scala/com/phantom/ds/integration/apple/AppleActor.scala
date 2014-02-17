@@ -52,25 +52,30 @@ object AppleService extends DSConfiguration {
 class AppleActor extends Actor with DSConfiguration with Logging {
 
   def receive : Actor.Receive = {
-    case token : String => {
-      log.trace(s"received $token")
-      //val tokenString = "b4aa9a5aa1ac55ac0c038b8c55733e90b68290592ae1d76dd2d0837e38bfb0da" // chris
+    case AppleNotification(shouldPlaySound, token) => {
+      log.trace(s"received push notification request with $token")
 
       val payloadBuilder = new ApnsPayloadBuilder()
       payloadBuilder.setBadgeNumber(1)
       payloadBuilder.setAlertBody(ApplePushConfiguration.messageBody)
-      payloadBuilder.setSoundFileName("default")
+
+      if (shouldPlaySound)
+        payloadBuilder.setSoundFileName("default")
 
       val payload = payloadBuilder.buildWithDefaultMaximumLength()
 
       AppleService.pushManager match {
         case Failure(ex) => throw PhantomException.apnsError(ex.toString())
-        case Success(pm) => pm.enqueuePushNotification(
-          new SimpleApnsPushNotification(TokenUtil.tokenStringToByteArray(token), payload)
-        )
+        case Success(pm) => {
+
+          token match {
+            case Some(t) => pm.enqueuePushNotification(new SimpleApnsPushNotification(TokenUtil.tokenStringToByteArray(t), payload))
+            case None    => log.error(s"tried to send push notification via APNS but received an empty token.")
+          }
+        }
       }
     }
   }
 }
 
-sealed trait AppleMessage
+case class AppleNotification(shouldPlaySound : Boolean, token : Option[String])

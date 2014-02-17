@@ -86,7 +86,7 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
         val conversationPairs = (for {
           c <- ConversationTable
           ci <- ConversationItemTable if c.id === ci.conversationId && (c.fromUser === userId || c.toUser === userId)
-        } yield (c, ci)).list
+        } yield (c, ci)).sortBy(_._2.createdDate.desc).list()
 
         conversationPairs.groupBy(_._1).map {
           case (convo, cItem) => FeedEntry(convo, cItem.map(_._2))

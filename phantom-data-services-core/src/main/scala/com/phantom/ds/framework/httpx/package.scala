@@ -16,7 +16,7 @@ import java.util.UUID
 import com.phantom.model.UserRegistration
 
 import org.joda.time.{ LocalDate, DateTimeZone, DateTime }
-import org.joda.time.format.ISODateTimeFormat
+import org.joda.time.format.{ DateTimeFormat, ISODateTimeFormat }
 
 package object httpx {
 
@@ -26,7 +26,7 @@ package object httpx {
 
     implicit object JodaDateTimeFormat extends JsonFormat[DateTime] {
 
-      val formatter = ISODateTimeFormat.basicDateTimeNoMillis
+      val formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'hh:mm:ss.SSSZZ")
 
       def write(obj : DateTime) : JsValue = JsString(formatter.print(obj.toDateTime(DateTimeZone.UTC)))
 
@@ -116,7 +116,8 @@ package object httpx {
     implicit val userRegistrationResponseFormat = jsonFormat2(RegistrationResponse)
 
     implicit val userFormat = jsonFormat11(PhantomUser)
-    implicit val sanitizedUserFormat = jsonFormat4(SanitizedUser)
+    implicit val sanitizedUserFormat = jsonFormat6(SanitizedUser)
+    implicit val sanitizedContactFormat = jsonFormat4(SanitizedContact)
     implicit val userLoginFormat = jsonFormat2(UserLogin)
     implicit val loginSuccessFormat = jsonFormat1(LoginSuccess)
     implicit val registrationVerificationFormat = jsonFormat6(RegistrationVerification)
