@@ -9,7 +9,7 @@ package com.phantom.dataAccess
  */
 
 import scala.slick.session.Database
-import com.phantom.model.{ FeedEntry, ConversationItem, Conversation }
+import com.phantom.model.{ ConversationItem, FeedEntry, Conversation }
 import scala.concurrent.{ Future, ExecutionContext, future }
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.framework.exception.PhantomException
@@ -67,7 +67,7 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
-  def swapConversations(sourceUser : Long, desUser : Long)(implicit session : Session) : Int = {
+  def swapConversationsOperation(sourceUser : Long, desUser : Long)(implicit session : Session) : Int = {
     val q = for { c <- ConversationTable if c.toUser === sourceUser } yield c.toUser
     q.update(desUser)
   }
@@ -89,21 +89,13 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
-  def findConversationsAndItems(userId : Long) : Future[List[FeedEntry]] = {
-    implicit def dateTimeOrdering : Ordering[DateTime] = Ordering.fromLessThan(_ isAfter _)
-    future {
-      db.withSession { implicit session =>
-        val conversationPairs = (for {
-          c <- ConversationTable
-          ci <- ConversationItemTable if c.id === ci.conversationId && (c.fromUser === userId || c.toUser === userId)
-        } yield (c, ci)).sortBy(_._2.createdDate.asc).list()
-
-        conversationPairs.groupBy(_._1).map {
-          case (convo, cItem) => FeedEntry(convo, cItem.map(_._2))
-        }.toList.sortBy(_.conversation.lastUpdated)
+  def findConversationsAndItemsOperation(userId : Long)(implicit session : Session) : List[(Conversation, ConversationItem)] = {
+    (for {
+      c <- ConversationTable
+      ci <- ConversationItemTable if {
+        c.id === ci.conversationId && (c.fromUser === userId || c.toUser === userId)
       }
-    }
+    } yield (c, ci)).sortBy(_._2.createdDate.asc).list()
   }
-
 }
 

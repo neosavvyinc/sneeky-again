@@ -38,37 +38,50 @@ class ConversationItemDAO(dal : DataAccessLayer, db : Database)(implicit ec : Ex
     }
   }
 
-  //ONLY USED BY TESTS
-  def findByConversationId(conversationId : Long) : List[ConversationItem] = {
-    db.withSession { implicit session =>
-      val items = Query(ConversationItemTable) filter { _.conversationId === conversationId }
-      items.list()
-    }
+  private val findByConversationIdAndUserId = for {
+    (conversationId, userId) <- Parameters[(Long, Long)]
+    c <- ConversationItemTable if c.conversationId === conversationId && (c.fromUser === userId || c.toUser === userId)
+  } yield c
+
+  private val findByIdAndUserId = for {
+    (itemId, userId) <- Parameters[(Long, Long)]
+    c <- ConversationItemTable if c.id === itemId && (c.fromUser === userId || c.toUser === userId)
+  } yield c
+
+  def findByConversationIdAndUserOperation(conversationId : Long, userId : Long)(implicit session : Session) : List[ConversationItem] = {
+    findByConversationIdAndUserId(conversationId, userId).list
   }
 
-  def findById(conversationItemId : Long) : ConversationItem = {
-    db.withSession { implicit session =>
-      val items = Query(ConversationItemTable) filter { _.id === conversationItemId }
-      items.first
-    }
+  def findByIdAndUserOperation(itemId : Long, userId : Long)(implicit session : Session) : Option[ConversationItem] = {
+    findByIdAndUserId(itemId, userId).firstOption
   }
 
-  //ONLY USED BY TESTS
-  def deleteByConversationId(conversationId : Long) : Int = {
-    db.withTransaction { implicit session =>
-      val deleteQuery = Query(ConversationItemTable) filter { _.conversationId === conversationId }
-      deleteQuery delete
-    }
-  }
-
-  def updateViewed(conversationItemId : Long, userId : Long)(implicit session : Session) : Int = {
+  def updateViewedOperation(conversationItemId : Long, userId : Long)(implicit session : Session) : Int = {
     val q = for { c <- ConversationItemTable if c.id === conversationItemId && c.toUser === userId } yield c.isViewed
     q.update(true)
   }
 
-  def swapConversationItems(sourceUser : Long, desUser : Long)(implicit session : Session) : Int = {
+  def swapConversationItemsOperation(sourceUser : Long, desUser : Long)(implicit session : Session) : Int = {
     val q = for { c <- ConversationItemTable if c.toUser === sourceUser } yield c.toUser
     q.update(desUser)
+  }
+
+  def updateDeletedByToUserOperation(ids : Long*)(implicit session : Session) : Int = {
+    if (ids.size > 0) {
+      val q = for { c <- ConversationItemTable if c.id inSet ids } yield c.toUserDeleted
+      q.update(true)
+    } else {
+      0
+    }
+  }
+
+  def updateDeletedByFromUserOperation(ids : Long*)(implicit session : Session) : Int = {
+    if (ids.size > 0) {
+      val q = for { c <- ConversationItemTable if c.id inSet ids } yield c.fromUserDeleted
+      q.update(true)
+    } else {
+      0
+    }
   }
 
 }

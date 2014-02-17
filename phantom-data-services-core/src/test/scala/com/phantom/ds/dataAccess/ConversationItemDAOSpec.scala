@@ -43,31 +43,10 @@ class ConversationItemDAOSpec extends BaseDAOSpec with TestUtils {
         conversationItemDao.insertAll(list)
       }
 
-      val itemsFromDb = conversationItemDao.findByConversationId(1)
-
+      val itemsFromDb = db.withSession { implicit session : Session =>
+        conversationItemDao.findByConversationIdAndUserOperation(1, 1)
+      }
       itemsFromDb.length must equalTo(3)
-
-    }
-
-    "support inserting 3 records for one conv then 3 for another then delete by conv id" in withSetupTeardown {
-
-      insertTestUsersAndConversations()
-
-      val conv1 = setupConversationItems(1, 1, 2)
-      val conv2 = setupConversationItems(2, 3, 4)
-      conversationItemDao.insertAll(conv1)
-      conversationItemDao.insertAll(conv2)
-
-      val conv1FromDB = conversationItemDao.findByConversationId(1)
-      val conv2FromDB = conversationItemDao.findByConversationId(2)
-
-      conversationItemDao.deleteByConversationId(1)
-
-      val conv1FromDBAfterDelete = conversationItemDao.findByConversationId(1)
-      val conv2FromDBAfterDelete = conversationItemDao.findByConversationId(2)
-
-      (conv1FromDBAfterDelete.length must equalTo(0)) and
-        (conv2FromDBAfterDelete.length must equalTo(3))
 
     }
 

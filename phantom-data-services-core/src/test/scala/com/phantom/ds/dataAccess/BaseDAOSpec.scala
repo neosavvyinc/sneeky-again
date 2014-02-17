@@ -9,6 +9,8 @@ import java.util.UUID
 import com.phantom.ds.user.Passwords
 import com.phantom.ds.TestUtils
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.slick.session.Session
+import com.phantom.ds.conversation.FeedFolder
 
 /**
  * Created with IntelliJ IDEA.
@@ -115,5 +117,7 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with TestUtils {
     insertTestUsers()
     insertTestConversations()
   }
+
+  def getFeed(id : Long) = db.withSession { session : Session => FeedFolder.foldFeed(id, conversationDao.findConversationsAndItemsOperation(id)(session)) }
 
 }

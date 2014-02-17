@@ -48,7 +48,7 @@ class ConversationServiceSpec extends Specification
       results.createdCount must beEqualTo(2)
 
       val userIds = Seq(user1.id, user2.id).flatten
-      val user1Conversation = await(conversationDao.findConversationsAndItems(starter.id.get))
+      val user1Conversation = await(service.findFeed(starter.id.get))
 
       aProbe.expectMsgAllOf(AppleNotification(true, Some("123456")), AppleNotification(true, Some("234567")))
       tProbe.expectNoMsg()
@@ -78,7 +78,7 @@ class ConversationServiceSpec extends Specification
 
       val userIds = stubUsers.map(_.id.get)
 
-      val startedStubs = await(conversationDao.findConversationsAndItems(starter.id.get))
+      val startedStubs = await(service.findFeed(starter.id.get))
 
       tProbe.expectMsg(SendInviteToStubUsers(stubUsers))
       aProbe.expectNoMsg()
@@ -139,7 +139,7 @@ class ConversationServiceSpec extends Specification
 
       val newUserIds = newUsers.map(_.id).flatten
 
-      val user1Conversation = await(conversationDao.findConversationsAndItems(starter.id.get))
+      val user1Conversation = await(service.findFeed(starter.id.get))
       val userIds = Seq(user1.id, user2.id, stubUser1.id, stubUser2.id).flatten ++ newUserIds
 
       user1Conversation.foreach {

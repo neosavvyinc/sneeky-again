@@ -20,6 +20,8 @@ import java.util.UUID
 import org.apache.commons.codec.binary.Base64
 import java.security.MessageDigest
 import org.joda.time.DateTime
+import com.phantom.ds.framework.crypto._
+import com.phantom.ds.framework.protocol.defaults._
 
 /**
  * Created by Neosavvy
@@ -46,16 +48,22 @@ trait ConversationService {
 
   def blockByConversationId(userId : Long, conversationId : Long) : Future[BlockUserByConversationResponse]
 
+  def viewConversationItem(conversationItemId : Long, userId : Long) : Future[Boolean]
+
+  def deleteConversation(userId : Long, conversationId : Long) : Future[Int]
+
+  def deleteConversationItem(userId : Long, conversationItemId : Long) : Future[Int]
+
 }
 
 object ConversationService extends DSConfiguration {
 
   def apply(twilioActor : ActorRef, appleActor : ActorRef)(implicit ec : ExecutionContext) = new ConversationService with DatabaseSupport with Logging {
 
-    import com.phantom.ds.framework.crypto._
-    import com.phantom.ds.framework.protocol.defaults._
-
+    //TODO: move this into another class/trait
     private def encodeBase64(bytes : Array[Byte]) = Base64.encodeBase64String(bytes)
+
+    //TODO: move this into another class/trait
     private def encryptField(fieldValue : String) : String = {
       if (SecurityConfiguration.encryptFields)
         encodeBase64(AES.encrypt(fieldValue, SecurityConfiguration.sharedSecret))
@@ -63,7 +71,9 @@ object ConversationService extends DSConfiguration {
         fieldValue
     }
 
+    //TODO: this is going to grow..let's also move this into its own object
     private def sanitizeConversation(conversation : Conversation, loggedInUser : PhantomUser, itemsLength : Int) : FEConversation = {
+
       val isLoggedInUserFromUser = (conversation.fromUser == loggedInUser.id.get)
       if (isLoggedInUserFromUser) {
         FEConversation(
@@ -80,14 +90,9 @@ object ConversationService extends DSConfiguration {
           itemsLength
         )
       }
-
     }
 
-    private def getUrl(imageName : String) : String = {
-
-      FileStoreConfiguration.baseImageUrl + imageName
-
-    }
+    private def getUrl(imageName : String) : String = FileStoreConfiguration.baseImageUrl + imageName
 
     private def sanitizeConversationItems(items : List[ConversationItem], loggedInUser : PhantomUser) : List[FEConversationItem] = {
 
@@ -117,9 +122,15 @@ object ConversationService extends DSConfiguration {
     }
 
     def findFeed(userId : Long) : Future[List[FeedEntry]] = {
-      conversationDao.findConversationsAndItems(userId)
+      future {
+        val rawFeed = db.withSession { implicit session : Session =>
+          conversationDao.findConversationsAndItemsOperation(userId)
+        }
+        FeedFolder.foldFeed(userId, rawFeed)
+      }
     }
 
+    //TODO: ther'es a lot in this..we should make a new service just for starting conversations
     def startConversation(fromUserId : Long,
                           contactNumbers : Set[String],
                           imageText : String,
@@ -277,13 +288,38 @@ object ConversationService extends DSConfiguration {
     }
 
     def viewConversationItem(conversationItemId : Long, userId : Long) : Future[Boolean] = {
-
       future {
         db.withTransaction { implicit session =>
-          conversationItemDao.updateViewed(conversationItemId, userId) > 0
+          conversationItemDao.updateViewedOperation(conversationItemId, userId) > 0
         }
       }
+    }
 
+    def deleteConversation(userId : Long, conversationId : Long) : Future[Int] = {
+      future {
+        db.withTransaction { implicit session =>
+          val items = conversationItemDao.findByConversationIdAndUserOperation(conversationId, userId)
+          val (fromItems, toItems) = items.partition(_.fromUser == userId)
+          conversationItemDao.updateDeletedByFromUserOperation(fromItems.map(_.id.get) : _*)
+          conversationItemDao.updateDeletedByToUserOperation(toItems.map(_.id.get) : _*)
+
+        }
+      }
+    }
+
+    def deleteConversationItem(userId : Long, conversationItemId : Long) : Future[Int] = {
+      future {
+        db.withTransaction { implicit session =>
+          val itemOpt = conversationItemDao.findByIdAndUserOperation(conversationItemId, userId)
+          itemOpt.map { x =>
+            if (x.fromUser == userId) {
+              conversationItemDao.updateDeletedByFromUserOperation(conversationItemId)
+            } else {
+              conversationItemDao.updateDeletedByToUserOperation(conversationItemId)
+            }
+          }.getOrElse(0)
+        }
+      }
     }
 
     private def backfillBlockedContact(ownerId : Long, contactId : Long)(implicit session : Session) : Contact = {

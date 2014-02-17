@@ -79,10 +79,10 @@ trait ConversationItemComponent { this : Profile with ConversationComponent with
     def imageText = column[String]("IMAGE_TEXT")
     def toUser = column[Long]("TO_USER")
     def fromUser = column[Long]("FROM_USER")
-    def isViewed = column[Boolean]("IS_VIEWED")
+    def isViewed = column[Boolean]("IS_VIEWED", O.Default(false))
     def createdDate = column[DateTime]("CREATED_DATE", DBType("TIMESTAMP(3)"))
-    def toUserDeleted = column[Boolean]("TO_USER_DELETE")
-    def fromUserDeleted = column[Boolean]("FROM_USER_DELETE")
+    def toUserDeleted = column[Boolean]("TO_USER_DELETE", O.Default(false))
+    def fromUserDeleted = column[Boolean]("FROM_USER_DELETE", O.Default(false))
 
     def toUserConvFK = foreignKey("TO_CONV_USER_FK", toUser, UserTable)(_.id)
     def fromUserConvFK = foreignKey("FROM_CONV_USER_FK", fromUser, UserTable)(_.id)

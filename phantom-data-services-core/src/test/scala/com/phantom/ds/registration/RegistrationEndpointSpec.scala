@@ -31,55 +31,55 @@ class RegistrationEndpointSpec extends Specification
 
   "Registration Service" should {
 
-    /*"be able to register a user" in withSetupTeardown {
+    "be able to register a user" in withSetupTeardown {
 
-        implicit val routeTestTimeout = RouteTestTimeout(duration.FiniteDuration(5, TimeUnit.SECONDS))
+      implicit val routeTestTimeout = RouteTestTimeout(duration.FiniteDuration(5, TimeUnit.SECONDS))
 
-        val newUser = UserRegistration("adamparrish@something.com", birthday, "mypassword")
-        Post("/users/register", newUser) ~> registrationRoute ~> check {
-          assertPayload[RegistrationResponse] { response =>
-            response.sessionUUID must not be null
-            response.verificationUUID must not be null
-          }
+      val newUser = UserRegistration("adamparrish@something.com", birthday, "mypassword")
+      Post("/users/register", newUser) ~> registrationRoute ~> check {
+        assertPayload[RegistrationResponse] { response =>
+          response.sessionUUID must not be null
+          response.verificationUUID must not be null
         }
       }
+    }
 
-      "fail if registering a user with a duplicate email" in withSetupTeardown {
-        val newUser = UserRegistration("adamparrish@something.com", birthday, "somethingelse")
-        createVerifiedUser(newUser.email, newUser.password)
+    "fail if registering a user with a duplicate email" in withSetupTeardown {
+      val newUser = UserRegistration("adamparrish@something.com", birthday, "somethingelse")
+      createVerifiedUser(newUser.email, newUser.password)
 
-        Post("/users/register", newUser) ~> registrationRoute ~> check {
-          assertFailure(101)
-        }
+      Post("/users/register", newUser) ~> registrationRoute ~> check {
+        assertFailure(101)
       }
+    }
 
-      "fail if registering user doesn't meet password complexity" in withSetupTeardown {
-        val newUser = UserRegistration("adamparrish@something.com", birthday, "s")
-        Post("/users/register", newUser) ~> registrationRoute ~> check {
-          assertFailure(105)
-        }
+    "fail if registering user doesn't meet password complexity" in withSetupTeardown {
+      val newUser = UserRegistration("adamparrish@something.com", birthday, "s")
+      Post("/users/register", newUser) ~> registrationRoute ~> check {
+        assertFailure(105)
       }
+    }
 
-      "be able to verify a registration" in withSetupTeardown {
+    "be able to verify a registration" in withSetupTeardown {
 
-        val user = createUnverifiedUser("email@email.com", "password")
-        user.id must not beNone
-        val regResponse = reg("pre", user.uuid.toString, "post")
+      val user = createUnverifiedUser("email@email.com", "password")
+      user.id must not beNone
+      val regResponse = reg("pre", user.uuid.toString, "post")
 
-        val formData = FormData(Map("AccountSid" -> regResponse.accountSid,
-          "MessageSid" -> regResponse.messageSid,
-          "From" -> "987654321",
-          "To" -> regResponse.to,
-          "Body" -> regResponse.body,
-          "NumMedia" -> regResponse.numMedia.toString))
+      val formData = FormData(Map("AccountSid" -> regResponse.accountSid,
+        "MessageSid" -> regResponse.messageSid,
+        "From" -> "987654321",
+        "To" -> regResponse.to,
+        "Body" -> regResponse.body,
+        "NumMedia" -> regResponse.numMedia.toString))
 
-        Post("/users/verification", formData) ~> registrationRoute ~> check {
-          status == OK
-          val updatedUser = phantomUsersDao.find(user.id.get).get
-          updatedUser.status must be equalTo Verified
-          updatedUser.phoneNumber must be equalTo Some("987654321")
-        }
-      }*/
+      Post("/users/verification", formData) ~> registrationRoute ~> check {
+        status == OK
+        val updatedUser = phantomUsersDao.find(user.id.get).get
+        updatedUser.status must be equalTo Verified
+        updatedUser.phoneNumber must be equalTo Some("987654321")
+      }
+    }
 
     "be able to convert a StubUser" in withSetupTeardown {
       val fromUser = createVerifiedUser("n@n.com", "password").id.get
@@ -103,10 +103,10 @@ class RegistrationEndpointSpec extends Specification
         updatedUser.phoneNumber must be equalTo Some("987654321")
         val stubUsers = phantomUsersDao.find(stubUser.id.get)
         stubUsers must beNone
-        val stubConversations = await(conversationDao.findConversationsAndItems(stubUser.id.get))
+        val stubConversations = getFeed(stubUser.id.get)
         stubConversations must beEmpty
 
-        val conversations = await(conversationDao.findConversationsAndItems(user.id.get))
+        val conversations = getFeed(user.id.get)
         conversations.foreach {
           case FeedEntry(c, items) =>
             items must have size 1

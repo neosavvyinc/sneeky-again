@@ -30,7 +30,6 @@ trait ConversationEndpoint extends DataHttpService {
         get {
           respondWithMediaType(`application/json`) {
             complete(
-
               conversationService.findFeed(user.id.get) flatMap { resolvedFeed =>
                 conversationService.sanitizeFeed(resolvedFeed, user)
               }
@@ -109,6 +108,35 @@ trait ConversationEndpoint extends DataHttpService {
                   log.debug(s"marking the $id conversation item as viewed for user $userId")
 
                   conversationService.viewConversationItem(id, userId)
+                }
+              }
+            }
+          }
+        }
+      } ~ {
+        pathPrefix(conversation) {
+          path("delete" / IntNumber) { id =>
+            authenticate(verified _) { user =>
+              post {
+                respondWithMediaType(`application/json`) {
+                  complete {
+                    conversationService.deleteConversation(user.id.get, id)
+                  }
+                }
+              }
+            }
+
+          }
+        }
+      } ~ {
+        pathPrefix(conversation) {
+          path("deleteitem" / IntNumber) { id =>
+            authenticate(verified _) { user =>
+              post {
+                respondWithMediaType(`application/json`) {
+                  complete {
+                    conversationService.deleteConversationItem(user.id.get, id)
+                  }
                 }
               }
             }
