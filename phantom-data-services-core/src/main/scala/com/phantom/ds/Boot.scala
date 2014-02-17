@@ -7,8 +7,13 @@ import com.phantom.ds.framework.auth._
 import com.phantom.ds.integration.twilio.{ TwiioMessageSender, TwilioService, TwilioActor }
 import com.phantom.ds.integration.apple.{ AppleActor, AppleService }
 import com.phantom.ds.framework.Logging
+import java.util.TimeZone
+import org.joda.time.DateTimeZone
 
 object Boot extends App with DSConfiguration with Logging {
+
+  TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
+  DateTimeZone.setDefault(DateTimeZone.UTC)
 
   // we need an ActorSystem to host our application in
   implicit val system = ActorSystem("on-spray-can")

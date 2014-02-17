@@ -16,6 +16,7 @@ package object exception {
     def passwordsComplexity = new PhantomException(105)
     def noFeedFound = new PhantomException(201)
     def nonExistentConversation = new PhantomException(203)
+    def unableToUpdateConversationLastChanged = new PhantomException(204)
     def contactNotUpdated = new PhantomException(301)
     def contactNotInserted = new PhantomException(302)
     def nonExistentContact = new PhantomException(303)
