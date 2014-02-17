@@ -13,6 +13,7 @@ import com.phantom.model.{ ConversationItem, FeedEntry, Conversation }
 import scala.concurrent.{ Future, ExecutionContext, future }
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.framework.exception.PhantomException
+import org.joda.time.DateTime
 
 class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionContext)
     extends BaseDAO(dal, db)
@@ -43,6 +44,14 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     db.withSession { implicit session =>
       val items = Query(ConversationTable) filter { _.fromUser === fromUserId }
       items.list()
+    }
+  }
+
+  //ONLY USED BY TESTS
+  def deleteById(conversationId : Long) : Int = {
+    db.withTransaction { implicit session =>
+      val deleteQuery = Query(ConversationTable) filter { _.id === conversationId }
+      deleteQuery delete
     }
   }
 
@@ -88,5 +97,23 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
       }
     } yield (c, ci)).sortBy(_._2.createdDate.desc).list()
   }
+
+  /**
+   * def findConversationsAndItems(userId : Long) : Future[List[FeedEntry]] = {
+    implicit def dateTimeOrdering : Ordering[DateTime] = Ordering.fromLessThan(_ isAfter _)
+    future {
+      db.withSession { implicit session =>
+        val conversationPairs = (for {
+          c <- ConversationTable
+          ci <- ConversationItemTable if c.id === ci.conversationId && (c.fromUser === userId || c.toUser === userId)
+        } yield (c, ci)).sortBy(_._2.createdDate.asc).list()
+
+        conversationPairs.groupBy(_._1).map {
+          case (convo, cItem) => FeedEntry(convo, cItem.map(_._2))
+        }.toList.sortBy(_.conversation.lastUpdated)
+      }
+    }
+  }
+   */
 }
 

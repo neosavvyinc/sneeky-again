@@ -31,6 +31,9 @@ object TwiioMessageSender {
     }
 
     def sendInvitation(phone : String) : Future[Either[TwilioSendFail, Sms]] = {
+
+      log.debug(s"Sending a twilio invitation to [$phone]")
+
       future {
         val response = Try {
           val factory = account.getSmsFactory

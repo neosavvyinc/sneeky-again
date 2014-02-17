@@ -204,27 +204,19 @@ object ConversationService extends DSConfiguration {
       }
     }
 
-    def findToUser(toUser : Long, conversation : Conversation) : Long = {
-      if (conversation.toUser == toUser) {
-        toUser
-      } else {
+    def findToUser(loggedInUser : Long, conversation : Conversation) : Long = {
+      if (conversation.toUser == loggedInUser) {
         conversation.fromUser
+      } else {
+        conversation.toUser
       }
     }
 
-    def findFromUser(toUser : Long, conversation : Conversation) : Long = {
-      if (conversation.toUser == toUser) {
-        conversation.fromUser
-      } else {
-        toUser
-      }
-    }
-
-    override def respondToConversation(userId : Long, conversationId : Long, imageText : String, image : Array[Byte]) : Future[ConversationUpdateResponse] = {
+    override def respondToConversation(loggedInUser : Long, conversationId : Long, imageText : String, image : Array[Byte]) : Future[ConversationUpdateResponse] = {
       future {
         db.withTransaction { implicit session =>
           val citem = for {
-            conversation <- conversationDao.findByIdAndUserOperation(conversationId, userId)
+            conversation <- conversationDao.findByIdAndUserOperation(conversationId, loggedInUser)
           } yield conversationItemDao.insertOperation(
             ConversationItem(
               None,
@@ -233,14 +225,21 @@ object ConversationService extends DSConfiguration {
                 image,
                 conversationId),
               imageText,
-              findToUser(
-                userId,
-                conversation),
-              findFromUser(
-                userId,
-                conversation)
+              findToUser(loggedInUser, conversation),
+              loggedInUser
             )
           )
+
+          val conversation = conversationDao.findById(conversationId)
+          conversation onSuccess {
+            case conversation =>
+
+              conversationDao.updateById(Conversation(
+                conversation.id,
+                conversation.toUser,
+                conversation.fromUser,
+                conversation.receiverPhoneNumber))
+          }
           citem.map(x => ConversationUpdateResponse(1)).getOrElse(throw PhantomException.nonExistentConversation)
         }
       }
