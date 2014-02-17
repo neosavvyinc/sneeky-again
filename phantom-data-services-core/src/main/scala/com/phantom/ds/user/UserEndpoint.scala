@@ -64,11 +64,19 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
         }
       } ~
       pathPrefix("users") {
+        //TODO: This should be something like "activeUser" instead of "users" since it doesn't imply a single user
         authenticate(unverified _) { user =>
           get {
             respondWithMediaType(`application/json`) {
               log.trace(s"identify function invoked : $user")
-              complete(Future.successful(SanitizedUser(user.uuid, user.birthday, user.status, user.phoneNumber)))
+              complete(Future.successful(SanitizedUser(
+                user.uuid,
+                user.birthday,
+                user.status,
+                user.phoneNumber,
+                user.settingSound,
+                user.settingNewPicture
+              )))
             }
           }
         }

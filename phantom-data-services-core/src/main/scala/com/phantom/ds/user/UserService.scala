@@ -14,7 +14,7 @@ trait UserService {
 
   def login(loginRequest : UserLogin) : Future[LoginSuccess]
   def logout(sessionId : String) : Future[Int]
-  def updateContacts(id : Long, contacts : List[String]) : Future[List[SanitizedUser]]
+  def updateContacts(id : Long, contacts : List[String]) : Future[List[SanitizedContact]]
   def clearBlockList(id : Long) : Future[Int]
 }
 
@@ -46,7 +46,7 @@ object UserService {
     }
 
     //TODO FIX ME..I DELETE BLOCKED USERS
-    def updateContacts(id : Long, contactList : List[String]) : Future[List[SanitizedUser]] = {
+    def updateContacts(id : Long, contactList : List[String]) : Future[List[SanitizedContact]] = {
       val session = db.createSession
 
       future {
@@ -54,7 +54,12 @@ object UserService {
         val (users : List[PhantomUser], numbersNotFound : List[String]) = phantomUsersDao.findPhantomUserIdsByPhone(contactList)
         contacts.insertAll(users.map(u => Contact(None, id, u.id.get)))
 
-        users.map(u => SanitizedUser(u.uuid, u.birthday, u.status, u.phoneNumber))
+        users.map(u => SanitizedContact(
+          u.uuid,
+          u.birthday,
+          u.status,
+          u.phoneNumber)
+        )
       }
     }
 
