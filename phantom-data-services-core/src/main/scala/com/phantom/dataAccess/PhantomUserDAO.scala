@@ -40,13 +40,13 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     user.copy(id = Some(id))
   }
 
-  private val byEmailQuery = for (email <- Parameters[String]; u <- UserTable if u.email is email) yield u
+  private val byEmailQuery = for (email <- Parameters[String]; u <- UserTable if u.email.toLowerCase is email.toLowerCase) yield u
 
-  private val existsQuery = for (email <- Parameters[String]; u <- UserTable if u.email is email) yield u.exists
+  private val existsQuery = for (email <- Parameters[String]; u <- UserTable if u.email.toLowerCase is email.toLowerCase) yield u.exists
 
   def registerOperation(registrationRequest : UserRegistration)(implicit session : Session) : PhantomUser = {
     log.trace(s"registering $registrationRequest")
-    val ex = existsQuery(registrationRequest.email).firstOption
+    val ex = existsQuery(registrationRequest.email.toLowerCase).firstOption
     val mapped = ex.map { e =>
       if (e) {
         log.trace(s"duplicate email detected when registering $registrationRequest")
@@ -59,7 +59,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
   }
 
   private def createUserRecord(reg : UserRegistration)(implicit session : Session) = {
-    insertNoTransact(PhantomUser(None, UUID.randomUUID, Some(reg.email), Some(Passwords.getSaltedHash(reg.password)), Some(reg.birthday), true, None))
+    insertNoTransact(PhantomUser(None, UUID.randomUUID, Some(reg.email.toLowerCase), Some(Passwords.getSaltedHash(reg.password)), Some(reg.birthday), true, None))
   }
 
   def login(loginRequest : UserLogin) : Future[PhantomUser] = {
@@ -67,7 +67,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
       db.withSession { implicit session =>
         log.trace(s"logging in $loginRequest")
         val userOpt = for {
-          user <- byEmailQuery(loginRequest.email).firstOption
+          user <- byEmailQuery(loginRequest.email.toLowerCase).firstOption
           password <- user.password if Passwords.check(loginRequest.password, password)
         } yield user
 
@@ -104,6 +104,14 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
   def find(id : Long) : Option[PhantomUser] = {
     db.withSession { implicit session =>
       findById(id).firstOption
+    }
+  }
+
+  private val findUserByUUID = for { uuid <- Parameters[UUID]; u <- UserTable if u.uuid === uuid } yield u
+
+  def findByUUID(uuid : UUID) : Option[PhantomUser] = {
+    db.withSession { implicit session =>
+      findUserByUUID(uuid).firstOption
     }
   }
 

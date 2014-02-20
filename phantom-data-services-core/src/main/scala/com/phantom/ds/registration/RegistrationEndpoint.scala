@@ -20,7 +20,11 @@ trait RegistrationEndpoint extends DataHttpService
             entity(as[UserRegistration]) {
               reg =>
                 log.trace(s"registering $reg")
-                complete(registrationService.register(reg))
+                complete(registrationService.register(UserRegistration(
+                  reg.email.toLowerCase,
+                  reg.birthday,
+                  reg.password
+                )))
             }
           }
       }

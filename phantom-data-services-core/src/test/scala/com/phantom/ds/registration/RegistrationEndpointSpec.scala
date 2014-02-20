@@ -44,6 +44,21 @@ class RegistrationEndpointSpec extends Specification
       }
     }
 
+    "make sure registering a user with all caps emails makes them LOWER" in withSetupTeardown {
+
+      implicit val routeTestTimeout = RouteTestTimeout(duration.FiniteDuration(5, TimeUnit.SECONDS))
+
+      val newUser = UserRegistration("ALLCAPS@ALLCAPSDOMAIN.CX", birthday, "mypassword")
+      Post("/users/register", newUser) ~> registrationRoute ~> check {
+        assertPayload[RegistrationResponse] { response =>
+          val email = getUser(response.verificationUUID).email
+          println(">>>" + email.get)
+          email.get must be matching "allcaps@allcapsdomain.cx"
+        }
+      }
+
+    }
+
     "fail if registering a user with a duplicate email" in withSetupTeardown {
       val newUser = UserRegistration("adamparrish@something.com", birthday, "somethingelse")
       createVerifiedUser(newUser.email, newUser.password)
