@@ -25,8 +25,7 @@ object UserService {
     def login(loginRequest : UserLogin) : Future[LoginSuccess] = {
       for {
         user <- phantomUsersDao.login(loginRequest)
-        existingSession <- sessions.existingSession(user.id.get)
-        session <- getOrCreateSession(user, existingSession)
+        session <- sessions.createSession(PhantomSession.newSession(user))
       } yield LoginSuccess(session.sessionId)
     }
 

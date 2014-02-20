@@ -75,7 +75,7 @@ class UserEndpointSpec extends Specification
           }
         }
       }
-    }
+    }.pendingUntilFixed("For now they don't want this as it is causing an issue on multiple devices")
 
     "identify service should yield a sanitized object of the user" in withSetupTeardown {
       val u = createVerifiedUser("adamparrish@something.com", "mypassword")
