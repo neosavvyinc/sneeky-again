@@ -240,7 +240,6 @@ object ConversationService extends DSConfiguration {
               for {
                 user <- future(phantomUsersDao.find(conversation.toUser))
                 tokens <- getTokens(Seq(conversation.toUser))
-                _ <- future(println("tokens>>>>", tokens))
                 _ <- sendConversationNotifications(Seq((user.map(_.settingSound).getOrElse(false), tokens.head)))
               } yield (user, tokens)
 
