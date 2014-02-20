@@ -99,6 +99,11 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with TestUtils {
 
   }
 
+  def getUser(verificationId : UUID) : PhantomUser = {
+    val user = phantomUsersDao.findByUUID(verificationId);
+    user.get
+  }
+
   def insertTestConverationsWithItems() {
     insertTestUsersAndConversations()
 
@@ -118,6 +123,12 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with TestUtils {
     insertTestConversations()
   }
 
-  def getFeed(id : Long) = db.withSession { session : Session => FeedFolder.foldFeed(id, conversationDao.findConversationsAndItemsOperation(id)(session)) }
+  def getFeed(id : Long) = db.withSession {
+    session : Session =>
+      FeedFolder.foldFeed(
+        id,
+        conversationDao.findConversationsAndItemsOperation(id)(session)
+      )
+  }
 
 }

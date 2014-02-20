@@ -107,6 +107,14 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
+  private val findUserByUUID = for { uuid <- Parameters[UUID]; u <- UserTable if u.uuid === uuid } yield u
+
+  def findByUUID(uuid : UUID) : Option[PhantomUser] = {
+    db.withSession { implicit session =>
+      findUserByUUID(uuid).firstOption
+    }
+  }
+
   def findByPhoneNumbers(phoneNumbers : Set[String]) : Future[List[PhantomUser]] = {
     future {
       db.withSession { implicit session =>
