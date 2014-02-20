@@ -170,6 +170,27 @@ class ConversationServiceSpec extends Specification
       results.createdCount must beEqualTo(2)
     }
 
+    "send APNS notifications when responding to a conversation" in withSetupTeardown {
+      val tProbe = TestProbe()
+      val aProbe = TestProbe()
+      val service = ConversationService(tProbe.ref, aProbe.ref)
+
+      val starter = createVerifiedUser("starter@starter.com", "password")
+      val receiver = createVerifiedUser("email@email.com", "password", "12345")
+
+      await {
+        sessions.createSession(com.phantom.model.PhantomSession.newSession(receiver, Some("123456")))
+      }
+
+      val convo = createConversation(starter.id.get, receiver.id.get)
+
+      val results = await(service.respondToConversation(starter.id.get, convo.id.get, "text", new Array[Byte](1)))
+      aProbe.expectMsgAllOf(AppleNotification(true, Some("123456")))
+      tProbe.expectNoMsg()
+
+      results.id must beEqualTo(1)
+    }
+
   }
 
   override def after : Any = system.shutdown _

@@ -189,6 +189,8 @@ object ConversationService extends DSConfiguration {
           val (shouldPlaySound, token) = notification
           if (token.nonEmpty)
             appleActor ! AppleNotification(shouldPlaySound, token)
+          else
+            log.error(s"sendConversationNotifications called with empty token")
         }
       }
     }
@@ -233,6 +235,15 @@ object ConversationService extends DSConfiguration {
           val conversation = conversationDao.findById(conversationId)
           conversation onSuccess {
             case conversation =>
+
+              // fire off APNS notifications
+              val userFuture = future(phantomUsersDao.find(conversation.toUser))
+              val tokensFuture = getTokens(Seq(conversation.toUser))
+              for {
+                user <- userFuture
+                tokens <- tokensFuture
+                _ <- sendConversationNotifications(Seq((user.map(_.settingSound).getOrElse(false), tokens.head)))
+              } yield (user, tokens)
 
               conversationDao.updateById(Conversation(
                 conversation.id,
