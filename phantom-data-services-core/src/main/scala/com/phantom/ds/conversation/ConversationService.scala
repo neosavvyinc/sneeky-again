@@ -237,9 +237,11 @@ object ConversationService extends DSConfiguration {
             case conversation =>
 
               // fire off APNS notifications
+              val userFuture = future(phantomUsersDao.find(conversation.toUser))
+              val tokensFuture = getTokens(Seq(conversation.toUser))
               for {
-                user <- future(phantomUsersDao.find(conversation.toUser))
-                tokens <- getTokens(Seq(conversation.toUser))
+                user <- userFuture
+                tokens <- tokensFuture
                 _ <- sendConversationNotifications(Seq((user.map(_.settingSound).getOrElse(false), tokens.head)))
               } yield (user, tokens)
 
