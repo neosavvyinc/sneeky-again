@@ -263,6 +263,31 @@ class ConversationEndpointSpec extends Specification
       }
     }
 
+    "deleting an item in a conversation started by and sent to the same user should not show up in the feed" in withSetupTeardown {
+
+      createVerifiedUser("aparrish@neosavvy.com", "password", "111111")
+      val conv1 = new Conversation(None, 1, 1, "9197419597")
+      conversationDao.insert(conv1)
+      val conv1item1 = new ConversationItem(None, 1, "imageUrl1", "imageText1", 1, 1)
+      val conv1item2 = new ConversationItem(None, 1, "imageUrl2", "imageText2", 1, 1)
+      await(conversationItemDao.insertAll(Seq(conv1item1, conv1item2)))
+
+      val user1 = phantomUsersDao.find(1L)
+      authedUser = user1
+      Delete("/conversation/deleteitem/1") ~> conversationRoute ~> check {
+        status == OK
+      }
+
+      Get("/conversation") ~> conversationRoute ~> check {
+        assertPayload[List[FeedWrapper]] { response =>
+          response must have size 1
+          response.head.items must have size 1
+          response.head.items.map(_.imageText) must contain("imageText2")
+        }
+      }
+
+    }
+
     "fail if a user tries to delete an item that belongs to a conversation that they are not in" in withSetupTeardown {
       insertTestConverationsWithItems()
       val user1 = phantomUsersDao.find(1L)

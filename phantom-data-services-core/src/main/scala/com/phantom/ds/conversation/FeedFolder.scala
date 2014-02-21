@@ -29,8 +29,13 @@ object FeedFolder {
 
     override def isDefinedAt(x : (Conversation, ConversationItem)) : Boolean = {
       val item = x._2
-      (item.fromUser == userId && !item.fromUserDeleted) || (item.toUser == userId && !item.toUserDeleted) ||
-        (item.toUser == item.fromUser &&  ( !item.fromUserDeleted || !item.toUserDeleted ) )
+
+      //TODO: Decide if allowing users to send to themselves is wise to support
+      if (item.toUser == item.fromUser) {
+        !(item.fromUserDeleted || item.toUserDeleted)
+      } else {
+        (item.fromUser == userId && !item.fromUserDeleted) || (item.toUser == userId && !item.toUserDeleted)
+      }
     }
 
     override def apply(v1 : (Conversation, ConversationItem)) : ConversationItem = v1._2
