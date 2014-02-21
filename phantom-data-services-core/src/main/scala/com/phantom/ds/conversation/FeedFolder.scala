@@ -29,7 +29,8 @@ object FeedFolder {
 
     override def isDefinedAt(x : (Conversation, ConversationItem)) : Boolean = {
       val item = x._2
-      (item.fromUser == userId && !item.fromUserDeleted) || (item.toUser == userId && !item.toUserDeleted)
+      (item.fromUser == userId && !item.fromUserDeleted) || (item.toUser == userId && !item.toUserDeleted) ||
+        (item.toUser == item.fromUser &&  ( !item.fromUserDeleted || !item.toUserDeleted ) )
     }
 
     override def apply(v1 : (Conversation, ConversationItem)) : ConversationItem = v1._2
