@@ -132,7 +132,7 @@ case class SanitizedContact(uuid : UUID,
                             status : UserStatus,
                             phoneNumber : Option[String])
 
-case class ForgotPasswordRequest(emailAddress : String)
+case class ForgotPasswordRequest(email : String)
 
 object PhantomSession {
 

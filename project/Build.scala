@@ -100,7 +100,8 @@ object Shared {
     "commons-codec"  % "commons-codec"   % "1.8",
     "com.twilio.sdk" % "twilio-java-sdk" % "3.3.9",
     "com.relayrides" % "pushy"           % "0.2",
-    "commons-codec"  % "commons-codec"   % "1.6"
+    "commons-codec"  % "commons-codec"   % "1.6",
+    "com.mandrillapp.wrapper.lutung" % "lutung" % "0.0.4"
   )
 
   val Slick = Seq(

@@ -120,7 +120,9 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
         post {
           entity(as[ForgotPasswordRequest]) { forgotPasswordRequest =>
             complete {
-              StatusCodes.OK
+              userService.forgotPassword(
+                forgotPasswordRequest.email
+              )
             }
           }
         }
