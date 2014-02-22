@@ -178,7 +178,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     q.delete
   }
 
-  def updateSetting(userId : Long, userSetting : PushSettingType, userValue : Boolean) : Boolean = {
+  def updateSetting(userId : Long, userSetting : SettingType, userValue : Boolean) : Boolean = {
 
     userSetting match {
       case SoundOnNewNotification => db.withSession { implicit session =>
@@ -188,6 +188,11 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
       }
       case NotificationOnNewPicture => db.withSession { implicit session =>
         val upQuery = for { u <- UserTable if u.id is userId } yield u.settingNewPicture
+        val numRows = upQuery.update(userValue)
+        numRows > 0
+      }
+      case MutualContactMessaging => db.withSession { implicit session =>
+        val upQuery = for { u <- UserTable if u.id is userId } yield u.mutualContactSetting
         val numRows = upQuery.update(userValue)
         numRows > 0
       }

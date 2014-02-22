@@ -105,9 +105,21 @@ class UserEndpointSpec extends Specification
 
       authedUser = Some(createVerifiedUser("adam@somewheres.com", "anything"))
 
-      Post("/users/pushSettings?sessionId=38400000-8cf0-11bd-b23e-10b96e4ef00d", PushSettingsRequest(
+      Post("/users/settings?sessionId=38400000-8cf0-11bd-b23e-10b96e4ef00d", SettingsRequest(
         false,
         SoundOnNewNotification
+      )) ~> userRoute ~> check {
+        status == StatusCodes.OK
+      }
+    }
+
+    "Sending a push setting for mobile push type with a session id" in withSetupTeardown {
+
+      authedUser = Some(createVerifiedUser("adam@somewheres.com", "anything"))
+
+      Post("/users/settings?sessionId=38400000-8cf0-11bd-b23e-10b96e4ef00d", SettingsRequest(
+        false,
+        MutualContactMessaging
       )) ~> userRoute ~> check {
         status == StatusCodes.OK
       }

@@ -10,7 +10,7 @@ import scala.concurrent.Future
 //shamelessly stolen: http://stackoverflow.com/questions/2860943/suggestions-for-library-to-hash-passwords-in-java
 object Passwords {
 
-  val iterations = 10 * 1024
+  val iterations = 10
   val saltLen = 32
   val desiredKeyLen = 256
 

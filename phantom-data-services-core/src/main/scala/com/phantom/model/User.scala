@@ -26,8 +26,8 @@ case class LoginSuccess(sessionUUID : UUID)
 case class UpdatePushTokenRequest(pushNotifierToken : String,
                                   pushType : MobilePushType)
 
-case class PushSettingsRequest(settingValue : Boolean,
-                               pushSettingType : PushSettingType)
+case class SettingsRequest(settingValue : Boolean,
+                           settingType : SettingType)
 
 sealed trait UserStatus
 
@@ -52,26 +52,30 @@ case object Verified extends UserStatus
 
 case object Stub extends UserStatus
 
-sealed trait PushSettingType
+sealed trait SettingType
 
-object PushSettingType {
+object SettingType {
 
-  def toStringRep(pushSettingType : PushSettingType) : String = pushSettingType match {
+  def toStringRep(pushSettingType : SettingType) : String = pushSettingType match {
     case NotificationOnNewPicture => "picture-received"
     case SoundOnNewNotification   => "sound-on-new-item"
+    case MutualContactMessaging   => "mutual-contacts"
   }
 
-  def fromStringRep(str : String) : PushSettingType = str.toLowerCase match {
+  def fromStringRep(str : String) : SettingType = str.toLowerCase match {
     case "picture-received"  => NotificationOnNewPicture
     case "sound-on-new-item" => SoundOnNewNotification
+    case "mutual-contacts"   => MutualContactMessaging
     case x                   => throw new Exception(s"unrecognized push setting $x")
   }
 
 }
 
-case object SoundOnNewNotification extends PushSettingType
+case object SoundOnNewNotification extends SettingType
 
-case object NotificationOnNewPicture extends PushSettingType
+case object NotificationOnNewPicture extends SettingType
+
+case object MutualContactMessaging extends SettingType
 
 sealed trait MobilePushType
 
@@ -112,14 +116,16 @@ case class PhantomUser(id : Option[Long],
                        status : UserStatus = Unverified,
                        invitationCount : Int = 1,
                        settingSound : Boolean = true,
-                       settingNewPicture : Boolean = true)
+                       settingNewPicture : Boolean = true,
+                       mutualContactSetting : Boolean = false)
 
 case class SanitizedUser(uuid : UUID,
                          birthday : Option[LocalDate],
                          status : UserStatus,
                          phoneNumber : Option[String],
                          settingSound : Boolean,
-                         settingNewPicture : Boolean)
+                         settingNewPicture : Boolean,
+                         mutualContactSetting : Boolean)
 
 case class SanitizedContact(uuid : UUID,
                             birthday : Option[LocalDate],
@@ -161,9 +167,10 @@ trait UserComponent { this : Profile =>
     def status = column[UserStatus]("STATUS")
     def settingSound = column[Boolean]("SOUND_NOTIF")
     def settingNewPicture = column[Boolean]("NEW_PICTURE_NOTIF")
+    def mutualContactSetting = column[Boolean]("MUTUAL_CONTACT_ONLY")
     def invitationCount = column[Int]("INVITATION_COUNT")
 
-    def * = id.? ~ uuid ~ email.? ~ password.? ~ birthday.? ~ active ~ phoneNumber.? ~ status ~ invitationCount ~ settingSound ~ settingNewPicture <> (PhantomUser, PhantomUser.unapply _)
+    def * = id.? ~ uuid ~ email.? ~ password.? ~ birthday.? ~ active ~ phoneNumber.? ~ status ~ invitationCount ~ settingSound ~ settingNewPicture ~ mutualContactSetting <> (PhantomUser, PhantomUser.unapply _)
     def forInsert = * returning id
 
   }
