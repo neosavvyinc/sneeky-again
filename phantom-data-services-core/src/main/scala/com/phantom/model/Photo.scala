@@ -6,10 +6,7 @@ case class Photo(id : Option[Long],
                  categoryId : Long,
                  url : String)
 
-case class Category(id : Option[Long],
-                    name : String)
-
-trait PhotoComponent { this : Profile with CategoryComponent =>
+trait PhotoComponent { this : Profile with PhotoCategoryComponent =>
 
   import profile.simple._
 
@@ -20,19 +17,6 @@ trait PhotoComponent { this : Profile with CategoryComponent =>
 
     def * = id.? ~ categoryId ~ url <> (Photo, Photo.unapply _)
     def forInsert = * returning id
-    def category = foreignKey("CATEGORY_FK", categoryId, CategoryTable)(_.id)
-  }
-}
-
-trait CategoryComponent { this : Profile =>
-
-  import profile.simple._
-
-  object CategoryTable extends Table[Category]("CATEGORIES") {
-    def id = column[Long]("OWNER_ID")
-    def name = column[String]("NAME")
-
-    def * = id.? ~ name <> (Category, Category.unapply _)
-    def forInsert = * returning id
+    def category = foreignKey("PHOTO_CATEGORY_FK", categoryId, PhotoCategoryTable)(_.id)
   }
 }
