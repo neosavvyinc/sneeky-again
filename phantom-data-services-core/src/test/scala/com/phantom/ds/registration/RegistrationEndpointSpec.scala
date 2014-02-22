@@ -52,7 +52,6 @@ class RegistrationEndpointSpec extends Specification
       Post("/users/register", newUser) ~> registrationRoute ~> check {
         assertPayload[RegistrationResponse] { response =>
           val email = getUser(response.verificationUUID).email
-          println(">>>" + email.get)
           email.get must be matching "allcaps@allcapsdomain.cx"
         }
       }

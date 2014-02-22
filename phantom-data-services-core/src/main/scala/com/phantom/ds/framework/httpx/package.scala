@@ -131,6 +131,7 @@ package object httpx {
     implicit val feConversationItem = jsonFormat7(FEConversationItem)
     implicit val feedWrapper = jsonFormat2(FeedWrapper)
     implicit val contactFormat = jsonFormat4(Contact)
+    implicit val forgotPasswordRequest = jsonFormat1(ForgotPasswordRequest)
 
     implicit val conversationInsertResponse = jsonFormat1(ConversationInsertResponse)
     implicit val conversationUpdateResponse = jsonFormat1(ConversationUpdateResponse)

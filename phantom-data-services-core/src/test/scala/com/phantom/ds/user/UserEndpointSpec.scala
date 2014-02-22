@@ -125,6 +125,16 @@ class UserEndpointSpec extends Specification
       }
     }
 
+    "Requesting a forgot password should accept the email address of the user" in withSetupTeardown {
+
+      Post("/users/forgotPassword", ForgotPasswordRequest(
+        "aparrish@neosavvy.com"
+      )) ~> userRoute ~> check {
+        status == StatusCodes.OK
+      }
+
+    }
+
     "clear a blocked list" in withSetupTeardown {
       insertTestUsers()
       val user = createVerifiedUser("email@email.com", "anything")

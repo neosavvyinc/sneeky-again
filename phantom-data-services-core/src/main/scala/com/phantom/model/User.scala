@@ -132,6 +132,8 @@ case class SanitizedContact(uuid : UUID,
                             status : UserStatus,
                             phoneNumber : Option[String])
 
+case class ForgotPasswordRequest(emailAddress : String)
+
 object PhantomSession {
 
   def newSession(user : PhantomUser, token : Option[String] = None) : PhantomSession = {
