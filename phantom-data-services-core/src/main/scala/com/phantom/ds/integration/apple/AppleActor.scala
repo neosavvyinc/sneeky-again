@@ -31,7 +31,12 @@ object AppleService extends DSConfiguration {
     case _            => ApnsEnvironment.getSandboxEnvironment()
   }
 
-  private val keystoreInputStream = readPem(ApplePushConfiguration.certPath)
+  private val certificate : String = ApplePushConfiguration.environment match {
+    case "production" => ApplePushConfiguration.productionCert
+    case _            => ApplePushConfiguration.developmentCert
+  }
+
+  private val keystoreInputStream = readPem(certificate)
 
   val pushManager = for {
     keyStore <- Try(java.security.KeyStore.getInstance("PKCS12"))

@@ -65,7 +65,8 @@ trait DSConfiguration {
 
   object ApplePushConfiguration {
     val keyStorePassword = applePushCfg.getString("keyStorePassword")
-    val certPath = applePushCfg.getString("certPath")
+    val developmentCert = applePushCfg.getString("developmentCertPath")
+    val productionCert = applePushCfg.getString("productionCertPath")
     val messageBody = applePushCfg.getString("messageBody")
     val environment = applePushCfg.getString("environment")
 
