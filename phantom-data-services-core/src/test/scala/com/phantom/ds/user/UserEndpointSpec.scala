@@ -80,7 +80,7 @@ class UserEndpointSpec extends Specification
     "identify service should yield a sanitized object of the user" in withSetupTeardown {
       val u = createVerifiedUser("adamparrish@something.com", "mypassword")
       authedUser = Some(u)
-      Get("/users") ~> userRoute ~> check {
+      Get("/users/active") ~> userRoute ~> check {
         assertPayload[SanitizedUser] { response =>
           response.uuid must be equalTo u.uuid
           response.birthday must be equalTo u.birthday
