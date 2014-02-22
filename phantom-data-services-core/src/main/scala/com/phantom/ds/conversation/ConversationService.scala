@@ -141,7 +141,7 @@ object ConversationService extends DSConfiguration {
         (newStubUsers, response) <- createStubUsersAndRoots(nonUsers, users ++ stubUsers, fromUserId, imageText, imageUrl)
         _ <- sendInvitations(stubUsers ++ newStubUsers)
         tokens <- getTokens(allUsers.map(_.id.get))
-        _ <- sendConversationNotifications(allUsers.map(_.settingSound).zip(tokens))
+        _ <- sendConversationNotifications(allUsers.zip(tokens))
       } yield response
     }
 
@@ -183,12 +183,12 @@ object ConversationService extends DSConfiguration {
       conversations.map(x => ConversationItem(None, x.id.getOrElse(-1), imageUrl, imageText, x.toUser, fromUserId))
     }
 
-    private def sendConversationNotifications(notifications : Seq[(Boolean, Option[String])]) : Future[Unit] = {
+    private def sendConversationNotifications(notifications : Seq[(PhantomUser, Option[String])]) : Future[Unit] = {
       future {
         notifications.foreach { notification =>
-          val (shouldPlaySound, token) = notification
-          if (token.nonEmpty)
-            appleActor ! AppleNotification(shouldPlaySound, token)
+          val (user, tokenOption) = notification
+          if (tokenOption.nonEmpty && user.settingNewPicture)
+            appleActor ! AppleNotification(user.settingSound, tokenOption)
           else
             log.error(s"sendConversationNotifications called with empty token")
         }
@@ -240,9 +240,13 @@ object ConversationService extends DSConfiguration {
               val userFuture = future(phantomUsersDao.find(conversation.toUser))
               val tokensFuture = getTokens(Seq(conversation.toUser))
               for {
-                user <- userFuture
-                tokens <- tokensFuture
-                _ <- sendConversationNotifications(Seq((user.map(_.settingSound).getOrElse(false), tokens.head)))
+                user : Option[PhantomUser] <- userFuture
+                tokens : List[Option[String]] <- tokensFuture
+                _ <- future {
+                  user.map { u : PhantomUser =>
+                    sendConversationNotifications(Seq((u, tokens.head)))
+                  }
+                }
               } yield (user, tokens)
 
               conversationDao.updateById(Conversation(
