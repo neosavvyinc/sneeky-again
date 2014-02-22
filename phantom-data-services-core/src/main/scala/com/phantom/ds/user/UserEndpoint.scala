@@ -63,8 +63,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
           }
         }
       } ~
-      pathPrefix("users") {
-        //TODO: This should be something like "activeUser" instead of "users" since it doesn't imply a single user
+      pathPrefix("users" / "active") {
         authenticate(unverified _) { user =>
           get {
             respondWithMediaType(`application/json`) {
@@ -75,7 +74,8 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
                 user.status,
                 user.phoneNumber,
                 user.settingSound,
-                user.settingNewPicture
+                user.settingNewPicture,
+                user.mutualContactSetting
               )))
             }
           }
@@ -98,15 +98,32 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
           }
         }
       } ~
-      pathPrefix("users" / "pushSettings") {
+      pathPrefix("users" / "settings") {
         authenticate(verified _) { user =>
           post {
-            entity(as[PushSettingsRequest]) { pushRequest =>
+            entity(as[SettingsRequest]) { pushRequest =>
               parameter('sessionId) { session =>
                 complete {
-                  userService.updatePushSetting(
+                  userService.updateSetting(
                     user.id.get,
-                    pushRequest.pushSettingType,
+                    pushRequest.settingType,
+                    pushRequest.settingValue
+                  )
+                }
+              }
+            }
+          }
+        }
+      } ~
+      pathPrefix("users" / "mutualContacts") {
+        authenticate(verified _) { user =>
+          post {
+            entity(as[SettingsRequest]) { pushRequest =>
+              parameter('sessionId) { session =>
+                complete {
+                  userService.updateSetting(
+                    user.id.get,
+                    pushRequest.settingType,
                     pushRequest.settingValue
                   )
                 }

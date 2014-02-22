@@ -77,7 +77,7 @@ object UserService {
       }
     }
 
-    def updatePushSetting(userId : Long, pushSettingType : PushSettingType, value : Boolean) : Future[Boolean] = {
+    def updateSetting(userId : Long, pushSettingType : SettingType, value : Boolean) : Future[Boolean] = {
       future {
         phantomUsersDao.updateSetting(userId, pushSettingType, value)
       }
