@@ -75,6 +75,10 @@ object UserService {
       }
     }
 
+    def findFromSessionId(sessionId : String) : Future[PhantomSession] = {
+      sessions.sessionByUUID(UUID.fromString(sessionId))
+    }
+
     def updatePushNotifier(sessionUUID : UUID, applePushToken : String, mobilePushType : MobilePushType) : Future[Boolean] = {
       future {
         sessions.updatePushNotifier(sessionUUID, applePushToken, mobilePushType)

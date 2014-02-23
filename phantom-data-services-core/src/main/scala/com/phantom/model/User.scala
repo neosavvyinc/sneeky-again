@@ -125,7 +125,8 @@ case class SanitizedUser(uuid : UUID,
                          phoneNumber : Option[String],
                          settingSound : Boolean,
                          settingNewPicture : Boolean,
-                         mutualContactSetting : Boolean)
+                         mutualContactSetting : Boolean,
+                         sessionInvalid : Boolean = false)
 
 case class SanitizedContact(birthday : Option[LocalDate],
                             status : UserStatus,

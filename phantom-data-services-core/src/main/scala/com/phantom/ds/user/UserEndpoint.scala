@@ -7,7 +7,7 @@ import spray.json._
 import com.phantom.ds.DataHttpService
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 import java.util.UUID
-import scala.concurrent.Future
+import scala.concurrent.{ Await, Future }
 import spray.http.StatusCodes
 
 trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
@@ -66,18 +66,31 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
       } ~
       pathPrefix("users" / "active") {
         authenticate(unverified _) { user =>
-          get {
-            respondWithMediaType(`application/json`) {
-              log.trace(s"identify function invoked : $user")
-              complete(Future.successful(SanitizedUser(
-                user.uuid,
-                user.birthday,
-                user.status,
-                user.phoneNumber,
-                user.settingSound,
-                user.settingNewPicture,
-                user.mutualContactSetting
-              )))
+          parameter('sessionId) { session =>
+            get {
+              respondWithMediaType(`application/json`) {
+                log.trace(s"identify function invoked : $user")
+
+                //TODO: Hack time....need to clean this up
+                import scala.concurrent.duration._
+                val sessionObject = Await.result(userService.findFromSessionId(session), 1 seconds)
+
+                complete(
+                  Future.successful(
+                    SanitizedUser(
+                      user.uuid,
+                      user.birthday,
+                      user.status,
+                      user.phoneNumber,
+                      user.settingSound,
+                      user.settingNewPicture,
+                      user.mutualContactSetting,
+                      sessionObject.sessionInvalid
+                    )
+                  )
+                )
+
+              }
             }
           }
         }

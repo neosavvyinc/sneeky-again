@@ -22,6 +22,11 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     (s, u) <- SessionTable innerJoin UserTable on ((sess, user) => sess.userId === user.id && sess.userId === id)
   } yield s
 
+  private val bySessionId = for {
+    uuid <- Parameters[UUID]
+    s <- SessionTable if s.sessionId === uuid
+  } yield s
+
   //TODO future me
   def findFromSession(session : UUID) : Option[PhantomUser] = {
     db.withSession { implicit s =>
@@ -40,6 +45,14 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     future {
       db.withSession { implicit session =>
         byUserId(userId).firstOption
+      }
+    }
+  }
+
+  def sessionByUUID(uuid : UUID) : Future[PhantomSession] = {
+    future {
+      db.withSession { implicit session =>
+        bySessionId(uuid).first
       }
     }
   }
