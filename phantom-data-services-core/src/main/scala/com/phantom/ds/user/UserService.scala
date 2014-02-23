@@ -59,7 +59,6 @@ object UserService {
         contacts.insertAll(users.map(u => Contact(None, id, u.id.get)))
 
         users.map(u => SanitizedContact(
-          u.uuid,
           u.birthday,
           u.status,
           u.phoneNumber)
