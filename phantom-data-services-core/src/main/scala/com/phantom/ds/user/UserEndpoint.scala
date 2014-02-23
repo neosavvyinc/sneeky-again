@@ -8,6 +8,7 @@ import com.phantom.ds.DataHttpService
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 import java.util.UUID
 import scala.concurrent.Future
+import spray.http.StatusCodes
 
 trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
   this : RequestAuthenticator with EntryPointAuthenticator =>
@@ -111,6 +112,17 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
                   )
                 }
               }
+            }
+          }
+        }
+      } ~
+      pathPrefix("users" / "forgotPassword") {
+        post {
+          entity(as[ForgotPasswordRequest]) { forgotPasswordRequest =>
+            complete {
+              userService.forgotPassword(
+                forgotPasswordRequest.email
+              )
             }
           }
         }

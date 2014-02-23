@@ -115,6 +115,14 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
+  private val findUserByEmail = for { email <- Parameters[String]; u <- UserTable if u.email === email } yield u
+
+  def findByEmail(email : String) : Option[PhantomUser] = {
+    db.withSession { implicit session =>
+      findUserByEmail(email).firstOption
+    }
+  }
+
   def findByPhoneNumbers(phoneNumbers : Set[String]) : Future[List[PhantomUser]] = {
     future {
       db.withSession { implicit session =>
@@ -199,6 +207,14 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
       case _ => false
     }
 
+  }
+
+  def updatePasswordForUser(email : String, newPassword : String) : Boolean = {
+    db.withSession { implicit session =>
+      val updateQuery = for { u <- UserTable if u.email === email } yield u.password
+      val numRows = updateQuery.update(newPassword)
+      numRows > 0
+    }
   }
 
 }
