@@ -44,6 +44,15 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     }
   }
 
+  def invalidateAllForUser(id : Long) : Future[Int] = {
+    future {
+      db.withSession { implicit session =>
+        val updateQuery = for { s <- SessionTable if s.userId === id } yield s.sessionInvalidated
+        updateQuery.update(true)
+      }
+    }
+  }
+
   def createSession(session : PhantomSession) : Future[PhantomSession] = {
     future {
       db.withTransaction { implicit s => createSessionOperation(session) }
