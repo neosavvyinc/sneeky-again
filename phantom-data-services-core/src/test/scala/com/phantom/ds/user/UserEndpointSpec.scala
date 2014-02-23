@@ -11,6 +11,8 @@ import org.joda.time.LocalDate
 import com.phantom.ds.framework.auth.{ SuppliedUserRequestAuthenticator, PassThroughEntryPointAuthenticator, PassThroughRequestAuthenticator }
 import com.phantom.ds.dataAccess.BaseDAOSpec
 import spray.http.StatusCodes
+import scala.concurrent.duration
+import java.util.concurrent.TimeUnit
 
 class UserEndpointSpec extends Specification
     with PhantomEndpointSpec
@@ -126,7 +128,7 @@ class UserEndpointSpec extends Specification
     }
 
     "Requesting a forgot password should accept the email address of the user" in withSetupTeardown {
-
+      implicit val routeTestTimeout = RouteTestTimeout(duration.FiniteDuration(5, TimeUnit.SECONDS))
       Post("/users/forgotPassword", ForgotPasswordRequest(
         "aparrish@neosavvy.com"
       )) ~> userRoute ~> check {
