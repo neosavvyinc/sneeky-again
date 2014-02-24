@@ -59,7 +59,6 @@ object UserService {
         contacts.insertAll(users.map(u => Contact(None, id, u.id.get)))
 
         users.map(u => SanitizedContact(
-          u.uuid,
           u.birthday,
           u.status,
           u.phoneNumber)
@@ -109,6 +108,11 @@ object UserService {
           ), email, newPassword)
 
         // mark all the sessions as INVALIDATED
+        val numSessionsInvalidated = for {
+          activeUser <- phantomUsersDao.findUser(email)
+          numSessionsInvalidated <- sessions.invalidateAllForUser(activeUser.id.get)
+        } yield numSessionsInvalidated
+        log.trace(s"There were $numSessionsInvalidated invalidated for user by email: $email ")
 
         // if anything fails return the code for each failure scenario
         passwordUpdated

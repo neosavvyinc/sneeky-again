@@ -77,6 +77,20 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
+  def findUser(email : String) : Future[PhantomUser] = {
+    future {
+      db.withSession { implicit session =>
+        val userOpt = for {
+          user <- byEmailQuery(email.toLowerCase).firstOption
+
+        } yield user
+
+        val user = userOpt.getOrElse(throw PhantomException.nonExistentUser)
+        user
+      }
+    }
+  }
+
   def verifyUserOperation(uuid : UUID, phoneNumber : String)(implicit session : Session) : Option[Long] = {
     //inefficient
     val uOpt = (for { u <- UserTable if u.uuid === uuid && u.status === (Unverified : UserStatus) } yield u).firstOption

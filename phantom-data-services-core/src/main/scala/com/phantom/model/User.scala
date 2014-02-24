@@ -127,8 +127,7 @@ case class SanitizedUser(uuid : UUID,
                          settingNewPicture : Boolean,
                          mutualContactSetting : Boolean)
 
-case class SanitizedContact(uuid : UUID,
-                            birthday : Option[LocalDate],
+case class SanitizedContact(birthday : Option[LocalDate],
                             status : UserStatus,
                             phoneNumber : Option[String])
 
@@ -147,7 +146,8 @@ case class PhantomSession(sessionId : UUID,
                           created : DateTime,
                           lastAccessed : DateTime,
                           pushNotifierToken : Option[String] = None,
-                          pushNotifierType : Option[MobilePushType] = None)
+                          pushNotifierType : Option[MobilePushType] = None,
+                          sessionInvalid : Boolean = false)
 
 trait UserComponent { this : Profile =>
 
@@ -192,7 +192,8 @@ trait UserSessionComponent { this : Profile with UserComponent =>
     def lastAccessed = column[DateTime]("LASTACCESSED")
     def pushNotifierToken = column[String]("PUSH_NOTIFIER_TOKEN", O.Nullable)
     def pushNotifierType = column[MobilePushType]("PUSH_NOTIFIER_TYPE", O.Nullable)
-    def * = sessionId ~ userId ~ created ~ lastAccessed ~ pushNotifierToken.? ~ pushNotifierType.? <> (PhantomSession.apply _, PhantomSession.unapply _)
+    def sessionInvalidated = column[Boolean]("SESSION_INVALID")
+    def * = sessionId ~ userId ~ created ~ lastAccessed ~ pushNotifierToken.? ~ pushNotifierType.? ~ sessionInvalidated <> (PhantomSession.apply _, PhantomSession.unapply _)
 
     def owner = foreignKey("USER_FK", userId, UserTable)(_.id)
     //def userUnqiue = index("userUnique", userId, unique = true)

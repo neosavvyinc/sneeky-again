@@ -117,7 +117,7 @@ package object httpx {
 
     implicit val userFormat = jsonFormat12(PhantomUser)
     implicit val sanitizedUserFormat = jsonFormat7(SanitizedUser)
-    implicit val sanitizedContactFormat = jsonFormat4(SanitizedContact)
+    implicit val sanitizedContactFormat = jsonFormat3(SanitizedContact)
     implicit val userLoginFormat = jsonFormat2(UserLogin)
     implicit val loginSuccessFormat = jsonFormat1(LoginSuccess)
     implicit val registrationVerificationFormat = jsonFormat6(RegistrationVerification)
