@@ -183,14 +183,18 @@ object ConversationService extends DSConfiguration {
       conversations.map(x => ConversationItem(None, x.id.getOrElse(-1), imageUrl, imageText, x.toUser, fromUserId))
     }
 
-    private def sendNewConversationNotifications(notifications : (PhantomUser, Seq[Option[String]])) : Future[Unit] = {
-      val user = notifications._1
+    private def sendNewConversationNotifications(notifications : (Seq[PhantomUser], Seq[Option[String]])) : Future[Unit] = {
+      val users = notifications._1
       val tokens = notifications._2
       tokens.foreach { token =>
-        log.debug(s">>>>>>> sending a push notification for a new conversation $user and $token")
+        log.debug(s">>>>>>> sending a push notification for a new conversation $users and $token")
       }
 
-      sendConversationNotifications(notifications)
+      future {
+        users.foreach { user =>
+          sendConversationNotifications((user, tokens))
+        }
+      }
     }
 
     private def sendConversationNotifications(notifications : (PhantomUser, Seq[Option[String]])) : Future[Unit] = {
