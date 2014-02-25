@@ -65,7 +65,7 @@ class AppleActor extends Actor with DSConfiguration with Logging {
       payloadBuilder.setAlertBody(ApplePushConfiguration.messageBody)
 
       if (shouldPlaySound) {
-        log.trace(s"Turning off sound since user user with $token prefers not to hear sound")
+        log.trace(s"Turning ON sound since user user with $token prefers TO hear sound")
         payloadBuilder.setSoundFileName("default")
       }
 
