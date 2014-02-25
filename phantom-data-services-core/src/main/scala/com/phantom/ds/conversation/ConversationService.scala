@@ -141,7 +141,7 @@ object ConversationService extends DSConfiguration {
         (newStubUsers, response) <- createStubUsersAndRoots(nonUsers, users ++ stubUsers, fromUserId, imageText, imageUrl)
         _ <- sendInvitations(stubUsers ++ newStubUsers)
         tokens <- getTokens(allUsers.map(_.id.get))
-        _ <- sendNewConversationNotifications((allUsers, tokens))
+        _ <- sendNewConversationNotifications(allUsers, tokens)
       } yield response
     }
 
@@ -183,26 +183,24 @@ object ConversationService extends DSConfiguration {
       conversations.map(x => ConversationItem(None, x.id.getOrElse(-1), imageUrl, imageText, x.toUser, fromUserId))
     }
 
-    private def sendNewConversationNotifications(notifications : (Seq[PhantomUser], Seq[Option[String]])) : Future[Unit] = {
-      val users = notifications._1
-      val tokens = notifications._2
+    private def sendNewConversationNotifications(users : Seq[PhantomUser], tokens : Seq[Option[String]]) : Future[Unit] = {
       tokens.foreach { token =>
         log.debug(s">>>>>>> sending a push notification for a new conversation $users and $token")
       }
 
       future {
         users.foreach { user =>
-          sendConversationNotifications((user, tokens))
+          sendConversationNotifications(user, tokens)
         }
       }
     }
 
-    private def sendConversationNotifications(notifications : (PhantomUser, Seq[Option[String]])) : Future[Unit] = {
+    private def sendConversationNotifications(user : PhantomUser, tokens : Seq[Option[String]]) : Future[Unit] = {
       future {
-        log.debug(s"notifications are $notifications")
+        log.debug(s"notifications are $tokens")
 
-        val user = notifications._1
-        notifications._2.foreach { token =>
+
+        tokens.foreach { token =>
           log.debug(s"User is $user and token is $token and nonEmpty is: $token.nonEmpty")
           if (token.nonEmpty && user.settingNewPicture) {
             log.debug(s"sending an apple notification to the apple actor")
@@ -256,15 +254,15 @@ object ConversationService extends DSConfiguration {
             case conversation =>
 
               // fire off APNS notifications
-              val userFuture = future(phantomUsersDao.find(conversation.toUser))
-              val tokensFuture = getTokens(Seq(conversation.toUser))
+              val userFuture = future(phantomUsersDao.find(citem.get.toUser))
+              val tokensFuture = getTokens(Seq(citem.get.toUser))
               for {
                 user : Option[PhantomUser] <- userFuture
                 tokens : List[Option[String]] <- tokensFuture
                 _ <- future {
                   user.map { u : PhantomUser =>
                     log.debug(s"sending an apple push notification for a response from a previous conversation item $u.id")
-                    sendConversationNotifications((u, tokens))
+                    sendConversationNotifications(u, tokens)
                   }
                 }
               } yield (user, tokens)
