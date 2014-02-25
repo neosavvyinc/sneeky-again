@@ -9,8 +9,9 @@ import org.apache.commons.codec.binary.Base64
 import spray.routing.AuthenticationFailedRejection
 import spray.routing.AuthenticationFailedRejection.CredentialsRejected
 import com.phantom.model.{ Stub, Unverified, Verified, UserStatus }
+import com.phantom.ds.framework.Logging
 
-trait Authenticator extends DSConfiguration {
+trait Authenticator extends DSConfiguration with Logging {
 
   val hashP = "hash"
   val dateP = "date"
@@ -31,7 +32,9 @@ trait Authenticator extends DSConfiguration {
     val withSuffix = s"$clear$delim${AuthConfiguration.secret}"
     val digest = MessageDigest.getInstance("SHA-256")
     val bytes = withSuffix.getBytes("UTF-8")
-    Base64.encodeBase64String(digest.digest(bytes))
+    val encoded = Base64.encodeBase64String(digest.digest(bytes))
+    log.debug(s"The encoded base64 request string encoded is $encoded")
+    encoded
   }
 
 }

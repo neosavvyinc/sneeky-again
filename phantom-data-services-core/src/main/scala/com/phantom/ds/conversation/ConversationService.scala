@@ -141,7 +141,7 @@ object ConversationService extends DSConfiguration {
         (newStubUsers, response) <- createStubUsersAndRoots(nonUsers, users ++ stubUsers, fromUserId, imageText, imageUrl)
         _ <- sendInvitations(stubUsers ++ newStubUsers)
         tokens <- getTokens(allUsers.map(_.id.get))
-        _ <- sendConversationNotifications(allUsers.zip(tokens))
+        _ <- sendNewConversationNotifications(allUsers.zip(tokens))
       } yield response
     }
 
@@ -183,14 +183,31 @@ object ConversationService extends DSConfiguration {
       conversations.map(x => ConversationItem(None, x.id.getOrElse(-1), imageUrl, imageText, x.toUser, fromUserId))
     }
 
+    private def sendNewConversationNotifications(notifications : Seq[(PhantomUser, Option[String])]) : Future[Unit] = {
+      notifications.foreach { notification =>
+        val user = notification._1
+        val token = notification._2
+        log.debug(s">>>>>>> sending a push notification for a new conversation $user and $token")
+      }
+
+      sendConversationNotifications(notifications)
+    }
+
     private def sendConversationNotifications(notifications : Seq[(PhantomUser, Option[String])]) : Future[Unit] = {
       future {
+
+        log.debug(s"notifications are $notifications")
+
         notifications.foreach { notification =>
           val (user, tokenOption) = notification
-          if (tokenOption.nonEmpty && user.settingNewPicture)
+
+          log.debug(s"User is $user and token is $tokenOption and nonEmpty is: $tokenOption.nonEmpty")
+          if (tokenOption.nonEmpty && user.settingNewPicture) {
+            log.debug(s"sending an apple notification to the apple actor")
             appleActor ! AppleNotification(user.settingSound, tokenOption)
-          else
+          } else {
             log.error(s"sendConversationNotifications called with empty token")
+          }
         }
       }
     }
@@ -244,6 +261,7 @@ object ConversationService extends DSConfiguration {
                 tokens : List[Option[String]] <- tokensFuture
                 _ <- future {
                   user.map { u : PhantomUser =>
+                    log.debug(s"sending an apple push notification for a response from a previous conversation item $u.id")
                     sendConversationNotifications(Seq((u, tokens.head)))
                   }
                 }

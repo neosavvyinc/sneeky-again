@@ -51,6 +51,7 @@ object RegistrationService {
         future {
           db.withTransaction { implicit session : Session =>
             for {
+              //TODO: this should be conditional on if the phone number is not already in the database
               verified <- phantomUsersDao.verifyUserOperation(uuid, message.from)
               convertedCount <- convertStubUser(verified, message.from)
             } yield convertedCount
