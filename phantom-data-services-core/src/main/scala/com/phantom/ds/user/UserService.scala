@@ -93,6 +93,9 @@ object UserService {
 
     def forgotPassword(email : String) : Future[Boolean] = {
       future {
+        //make sure the user has an account
+        //val user = phantomUsersDao.findByEmail(email)
+        // make sure above line
 
         // generate a new password with MD5
         val newPassword = Passwords.generateNewPassword().substring(0, 8)
