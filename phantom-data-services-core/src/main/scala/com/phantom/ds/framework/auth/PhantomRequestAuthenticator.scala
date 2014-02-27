@@ -31,9 +31,9 @@ trait PhantomRequestAuthenticator extends RequestAuthenticator with DSConfigurat
 
   def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[PhantomUser]] = {
 
-    println("hash: " + ctx.request.uri.query.get(hashP))
-    println("date: " + ctx.request.uri.query.get(dateP))
-    println("sessionId: " + ctx.request.uri.query.get(sessionIdP))
+    log.debug("hash: " + ctx.request.uri.query.get(hashP))
+    log.debug("date: " + ctx.request.uri.query.get(dateP))
+    log.debug("sessionId: " + ctx.request.uri.query.get(sessionIdP))
 
     future {
       val result = for {
@@ -51,7 +51,7 @@ trait PhantomRequestAuthenticator extends RequestAuthenticator with DSConfigurat
 
   private def validateHash(clientHash : String, date : String, sessionId : String) = {
     val calculated = hashWithSecret(s"$date$delim$sessionId")
-    println(s"PhantomRequestAuthenticator.validateHash[calculated: $calculated and provided: $clientHash]")
+    log.debug(s"PhantomRequestAuthenticator.validateHash[calculated: $calculated and provided: $clientHash]")
     if (calculated == clientHash) {
       Some(date)
     } else {
@@ -67,9 +67,9 @@ trait PhantomRequestAuthenticator extends RequestAuthenticator with DSConfigurat
 trait NonHashingRequestAuthenticator extends PhantomRequestAuthenticator {
   override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[PhantomUser]] = {
 
-    println("hash: " + ctx.request.uri.query.get(hashP))
-    println("date: " + ctx.request.uri.query.get(dateP))
-    println("sessionId: " + ctx.request.uri.query.get(sessionIdP))
+    log.debug("hash: " + ctx.request.uri.query.get(hashP))
+    log.debug("date: " + ctx.request.uri.query.get(dateP))
+    log.debug("sessionId: " + ctx.request.uri.query.get(sessionIdP))
 
     future {
       val result = for {
@@ -86,9 +86,9 @@ trait PassThroughRequestAuthenticator extends RequestAuthenticator {
 
   override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[PhantomUser]] = {
 
-    println("hash: " + ctx.request.uri.query.get(hashP))
-    println("date: " + ctx.request.uri.query.get(dateP))
-    println("sessionId: " + ctx.request.uri.query.get(sessionIdP))
+    log.debug("hash: " + ctx.request.uri.query.get(hashP))
+    log.debug("date: " + ctx.request.uri.query.get(dateP))
+    log.debug("sessionId: " + ctx.request.uri.query.get(sessionIdP))
 
     val user = Some(PhantomUser(None, UUID.randomUUID, Some("nsauro@sauron.com"), Some("password"), Some(new LocalDate(2003, 12, 21)), true, Some(""), Verified))
     Future.successful(user.toRight(AuthenticationFailedRejection(CredentialsRejected, Nil)))
