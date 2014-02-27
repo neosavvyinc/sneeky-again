@@ -115,6 +115,10 @@ object ConversationService extends DSConfiguration with BasicCrypto {
         val rawFeed = db.withSession { implicit session : Session =>
           conversationDao.findConversationsAndItemsOperation(userId)
         }
+
+        rawFeed.foreach(c =>
+          log.debug(s"findFeed[conversation]: $c._1, \n\n$c._2")
+        )
         FeedFolder.foldFeed(userId, rawFeed)
       }
     }

@@ -28,13 +28,14 @@ trait Authenticator extends DSConfiguration with Logging {
     parsed.filter(now - _.getMillis <= AuthConfiguration.requestTimeout)
   }
 
+  protected def valueOf(buf : Array[Byte]) : String = buf.map("%02X" format _).mkString
+
   protected def hashWithSecret(clear : String) = {
     val withSuffix = s"$clear$delim${AuthConfiguration.secret}"
     val digest = MessageDigest.getInstance("SHA-256")
     val bytes = withSuffix.getBytes("UTF-8")
-    val encoded = Base64.encodeBase64String(digest.digest(bytes))
-    log.debug(s"The encoded base64 request string encoded is $encoded")
-    encoded
+    val digested = digest.digest(bytes)
+    valueOf(digested)
   }
 
 }

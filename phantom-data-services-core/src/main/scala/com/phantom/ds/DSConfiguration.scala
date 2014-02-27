@@ -35,6 +35,7 @@ trait DSConfiguration {
     def apply(mode : String) = mode.toLowerCase match {
       case "nohash" => NonHashingAuthentication
       case "none"   => NoAuthentication
+      case "full"   => FullAuthentication
       case _        => FullAuthentication
     }
   }
