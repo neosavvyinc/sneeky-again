@@ -48,7 +48,7 @@ package com.phantom.ds.framework.crypto {
 
   import com.phantom.ds.framework.protocol.Writes
 
-  import javax.crypto.spec.SecretKeySpec
+  import javax.crypto.spec.{ IvParameterSpec, SecretKeySpec }
   import javax.crypto.Cipher
 
   trait Encryption {
@@ -62,14 +62,14 @@ package com.phantom.ds.framework.crypto {
 
     def encrypt(bytes : Array[Byte], secret : String) : Array[Byte] = {
       val secretKey = new SecretKeySpec(secret.getBytes("UTF-8"), algorithmName)
-      val encipher = Cipher.getInstance(algorithmName + "/CBC/PKCS5Padding")
+      val encipher = Cipher.getInstance(algorithmName)
       encipher.init(Cipher.ENCRYPT_MODE, secretKey)
       encipher.doFinal(bytes)
     }
 
     def decrypt(bytes : Array[Byte], secret : String) : Array[Byte] = {
       val secretKey = new SecretKeySpec(secret.getBytes("UTF-8"), algorithmName)
-      val encipher = Cipher.getInstance(algorithmName + "/CBC/PKCS5Padding")
+      val encipher = Cipher.getInstance(algorithmName)
       encipher.init(Cipher.DECRYPT_MODE, secretKey)
       encipher.doFinal(bytes)
     }
@@ -77,5 +77,25 @@ package com.phantom.ds.framework.crypto {
 
   object DES extends JavaCryptoEncryption("DES")
   object AES extends JavaCryptoEncryption("AES")
+
+}
+
+package com.phantom.ds.framework.crypto.aes {
+
+  import com.phantom.ds.framework.crypto.AES
+  import org.apache.commons.codec.binary.Base64
+  import com.phantom.ds.framework.crypto._
+  import com.phantom.ds.framework.protocol.defaults._
+
+  trait AESEncryption {
+    private def encodeBase64(bytes : Array[Byte]) = Base64.encodeBase64String(bytes)
+    private def decodeBase64(bytes : Array[Byte]) = Base64.decodeBase64(bytes)
+
+    private def encryptField(fieldValue : String) : String =
+      encodeBase64(AES.encrypt(fieldValue, "secretEncryption"))
+
+    private def decryptField(fieldValue : String) : String =
+      new String(AES.decrypt(decodeBase64(fieldValue.getBytes()), "secretEncryption"))
+  }
 
 }

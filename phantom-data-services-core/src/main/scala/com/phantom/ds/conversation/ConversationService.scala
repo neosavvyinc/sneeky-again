@@ -4,7 +4,7 @@ import scala.concurrent.{ Future, ExecutionContext, future }
 import com.phantom.model._
 import com.phantom.dataAccess.DatabaseSupport
 import java.io.{ File, FileOutputStream }
-import com.phantom.ds.DSConfiguration
+import com.phantom.ds.{ BasicCrypto, DSConfiguration }
 import com.phantom.model.BlockUserByConversationResponse
 import com.phantom.model.ConversationUpdateResponse
 import com.phantom.model.Conversation
@@ -56,20 +56,9 @@ trait ConversationService {
 
 }
 
-object ConversationService extends DSConfiguration {
+object ConversationService extends DSConfiguration with BasicCrypto {
 
   def apply(twilioActor : ActorRef, appleActor : ActorRef)(implicit ec : ExecutionContext) = new ConversationService with DatabaseSupport with Logging {
-
-    //TODO: move this into another class/trait
-    private def encodeBase64(bytes : Array[Byte]) = Base64.encodeBase64String(bytes)
-
-    //TODO: move this into another class/trait
-    private def encryptField(fieldValue : String) : String = {
-      if (SecurityConfiguration.encryptFields)
-        encodeBase64(AES.encrypt(fieldValue, SecurityConfiguration.sharedSecret))
-      else
-        fieldValue
-    }
 
     //TODO: this is going to grow..let's also move this into its own object
     private def sanitizeConversation(conversation : Conversation, loggedInUser : PhantomUser, itemsLength : Int) : FEConversation = {
@@ -198,7 +187,6 @@ object ConversationService extends DSConfiguration {
     private def sendConversationNotifications(user : PhantomUser, tokens : Seq[Option[String]]) : Future[Unit] = {
       future {
         log.debug(s"notifications are $tokens")
-
 
         tokens.foreach { token =>
           log.debug(s"User is $user and token is $token and nonEmpty is: $token.nonEmpty")
