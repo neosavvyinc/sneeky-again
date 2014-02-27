@@ -11,7 +11,7 @@ import org.joda.time.DateTime
 //shamelessly stolen: http://stackoverflow.com/questions/2860943/suggestions-for-library-to-hash-passwords-in-java
 object Passwords {
 
-  val iterations = 10
+  val iterations = 10 //TODO: bring this back up to a respectable number
   val saltLen = 32
   val desiredKeyLen = 256
 
