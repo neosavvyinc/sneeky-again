@@ -64,6 +64,7 @@ class UserEndpointSpec extends Specification
       }
     }
 
+    //TODO: get requirements around multiple logon.
     "logging more than once yields the same session" in withSetupTeardown {
       createVerifiedUser("adamparrish@something.com", "mypassword")
       Post("/users/login", UserLogin("adamparrish@something.com", "mypassword")) ~> userRoute ~> check {

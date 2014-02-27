@@ -18,13 +18,7 @@ object Boot extends App with DSConfiguration with Logging {
   // we need an ActorSystem to host our application in
   implicit val system = ActorSystem("on-spray-can")
 
-  // create and start our service actor
-
   val phantomService = getActor
-  //println(phantomService.path)
-  //println(appleActor.path)
-  //println(twilioActor.path)
-  println(system)
 
   implicit val executor = scala.concurrent.ExecutionContext.Implicits.global //TODO <<<---change this to cachedThreadPool possibly
 

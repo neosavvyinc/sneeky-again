@@ -35,7 +35,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
 
   private def insertNoTransact(user : PhantomUser)(implicit session : Session) : PhantomUser = {
     log.trace(s"inserting user: $user")
-    val id = UserTable.forInsert.insert(user)
+    val id = UserTable.forInsert.insert(user.copy(email = user.email.map(_.toLowerCase)))
     log.trace(s"id $id")
     user.copy(id = Some(id))
   }
@@ -67,22 +67,8 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
       db.withSession { implicit session =>
         log.trace(s"logging in $loginRequest")
         val userOpt = for {
-          user <- byEmailQuery(loginRequest.email.toLowerCase).firstOption
+          user <- findByEmailOperation(loginRequest.email)
           password <- user.password if Passwords.check(loginRequest.password, password)
-        } yield user
-
-        val user = userOpt.getOrElse(throw PhantomException.nonExistentUser)
-        user
-      }
-    }
-  }
-
-  def findUser(email : String) : Future[PhantomUser] = {
-    future {
-      db.withSession { implicit session =>
-        val userOpt = for {
-          user <- byEmailQuery(email.toLowerCase).firstOption
-
         } yield user
 
         val user = userOpt.getOrElse(throw PhantomException.nonExistentUser)
@@ -129,12 +115,8 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
-  private val findUserByEmail = for { email <- Parameters[String]; u <- UserTable if u.email === email } yield u
-
-  def findByEmail(email : String) : Option[PhantomUser] = {
-    db.withSession { implicit session =>
-      findUserByEmail(email).firstOption
-    }
+  def findByEmailOperation(email : String)(implicit session : Session) : Option[PhantomUser] = {
+    byEmailQuery(email.toLowerCase).firstOption
   }
 
   def findByPhoneNumbers(phoneNumbers : Set[String]) : Future[List[PhantomUser]] = {
@@ -223,12 +205,10 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
 
   }
 
-  def updatePasswordForUser(email : String, newPassword : String) : Boolean = {
-    db.withSession { implicit session =>
-      val updateQuery = for { u <- UserTable if u.email === email } yield u.password
-      val numRows = updateQuery.update(newPassword)
-      numRows > 0
-    }
+  def updatePasswordForUserOperation(email : String, newPassword : String)(implicit session : Session) : Boolean = {
+    val updateQuery = for { u <- UserTable if u.email === email.toLowerCase } yield u.password
+    val numRows = updateQuery.update(newPassword)
+    numRows > 0
   }
 
 }
