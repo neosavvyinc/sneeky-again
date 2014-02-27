@@ -32,7 +32,7 @@ import com.phantom.ds.framework.protocol.defaults._
  */
 trait ConversationService {
 
-  def findFeed(userId : Long) : Future[List[FeedEntry]]
+  def findFeed(userId : Long, paging : Paging) : Future[List[FeedEntry]]
 
   def startConversation(fromUserId : Long,
                         contactNumbers : Set[String],
@@ -121,12 +121,12 @@ object ConversationService extends DSConfiguration {
       }
     }
 
-    def findFeed(userId : Long) : Future[List[FeedEntry]] = {
+    def findFeed(userId : Long, paging : Paging) : Future[List[FeedEntry]] = {
       future {
         val rawFeed = db.withSession { implicit session : Session =>
           conversationDao.findConversationsAndItemsOperation(userId)
         }
-        FeedFolder.foldFeed(userId, rawFeed)
+        FeedFolder.foldFeed(userId, rawFeed, paging)
       }
     }
 
@@ -198,7 +198,6 @@ object ConversationService extends DSConfiguration {
     private def sendConversationNotifications(user : PhantomUser, tokens : Seq[Option[String]]) : Future[Unit] = {
       future {
         log.debug(s"notifications are $tokens")
-
 
         tokens.foreach { token =>
           log.debug(s"User is $user and token is $token and nonEmpty is: $token.nonEmpty")

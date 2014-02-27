@@ -5,6 +5,7 @@ import com.phantom.ds.DataHttpService
 
 import com.phantom.ds.framework.auth.RequestAuthenticator
 import akka.actor.ActorRef
+import com.phantom.model.Paging
 
 /**
  * Created by Neosavvy
@@ -28,12 +29,15 @@ trait ConversationEndpoint extends DataHttpService {
     pathPrefix(conversation) {
       authenticate(verified _) { user =>
         get {
-          respondWithMediaType(`application/json`) {
-            complete(
-              conversationService.findFeed(user.id.get) flatMap { resolvedFeed =>
-                conversationService.sanitizeFeed(resolvedFeed, user)
-              }
-            )
+          parameters('page.as[Int] ? -1, 'size.as[Int] ? -1) { (page, size) =>
+            respondWithMediaType(`application/json`) {
+              complete(
+                //TODO: FeedFolder should also sanitize(maybe)
+                conversationService.findFeed(user.id.get, Paging(page, size)) flatMap { resolvedFeed =>
+                  conversationService.sanitizeFeed(resolvedFeed, user)
+                }
+              )
+            }
           }
         }
       }

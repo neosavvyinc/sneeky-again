@@ -85,7 +85,7 @@ object UserService {
 
     def forgotPassword(email : String) : Future[Boolean] = {
       for {
-        status  <- resetPassword(email)
+        status <- resetPassword(email)
         results <- sendResetPasswordEmail(status)
       } yield results
 

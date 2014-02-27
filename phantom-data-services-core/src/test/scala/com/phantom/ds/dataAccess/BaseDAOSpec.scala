@@ -123,12 +123,9 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with TestUtils {
     insertTestConversations()
   }
 
-  def getFeed(id : Long) = db.withSession {
+  def getFullFeed(id : Long) = db.withSession {
     session : Session =>
-      FeedFolder.foldFeed(
-        id,
-        conversationDao.findConversationsAndItemsOperation(id)(session)
-      )
+      FeedFolder.foldFeed(id, conversationDao.findConversationsAndItemsOperation(id)(session), NoPaging)
   }
 
 }
