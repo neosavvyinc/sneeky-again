@@ -30,7 +30,7 @@ class CryptoSpec extends Specification with BasicCrypto {
   "Basic Encryption and Decryption" should {
 
     "test the hashWithSecret function" in {
-      val hashed = hashWithSecret("2014-02-26T23:52:40-05:00")
+      val hashed = hashWithSecret("2014-02-27T20:48:00-05:00")
 
       hashed shouldEqual "71e3ece80e9bf8fa521488fa0a578dcfc19c89199c0f24783b8fe6884cb9cb0a"
     }

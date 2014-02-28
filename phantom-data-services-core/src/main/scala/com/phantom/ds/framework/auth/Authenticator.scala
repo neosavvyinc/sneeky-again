@@ -17,7 +17,7 @@ trait Authenticator extends DSConfiguration with Logging {
   val dateP = "date"
   val sessionIdP = "sessionId"
   val delim = "_"
-  val dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'hh:mm:ss.SSSZZ")
+  val dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
   val rejected = AuthenticationFailedRejection(CredentialsRejected, Nil)
 
   protected def toAuthentication[T](opt : Option[T]) = opt.toRight(rejected)

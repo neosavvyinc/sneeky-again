@@ -15,7 +15,6 @@ trait PhantomEntryPointAuthenticator extends EntryPointAuthenticator with DSConf
 
     log.debug("hash: " + ctx.request.uri.query.get(hashP))
     log.debug("date: " + ctx.request.uri.query.get(dateP))
-    log.debug("sessionId: " + ctx.request.uri.query.get(sessionIdP))
 
     future {
       val result = for {

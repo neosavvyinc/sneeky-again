@@ -87,6 +87,9 @@ object ConversationService extends DSConfiguration with BasicCrypto {
 
       items.map { conversationItem =>
         val isFromUser = loggedInUser.id.get == conversationItem.fromUser
+
+        log.debug(s"sanitizeConversationItem $conversationItem.createdDate")
+
         FEConversationItem(
           conversationItem.id.get,
           conversationItem.conversationId,
@@ -102,6 +105,7 @@ object ConversationService extends DSConfiguration with BasicCrypto {
 
     def sanitizeFeed(feed : List[FeedEntry], loggedInUser : PhantomUser) : Future[List[FeedWrapper]] = {
       future {
+        log.debug(s"sanitizeFeed: $feed")
         feed.map { feedEntry =>
           val conversation = sanitizeConversation(feedEntry.conversation, loggedInUser, feedEntry.items.length)
           val conversationItems = sanitizeConversationItems(feedEntry.items, loggedInUser)
@@ -117,9 +121,13 @@ object ConversationService extends DSConfiguration with BasicCrypto {
         }
 
         rawFeed.foreach(c =>
-          log.debug(s"findFeed[conversation]: $c._1, \n\n$c._2")
+          log.debug(s"findFeed[conversation]: $c._1")
         )
-        FeedFolder.foldFeed(userId, rawFeed)
+        var folded = FeedFolder.foldFeed(userId, rawFeed)
+
+        log.debug(s"folded: $folded")
+
+        folded
       }
     }
 
