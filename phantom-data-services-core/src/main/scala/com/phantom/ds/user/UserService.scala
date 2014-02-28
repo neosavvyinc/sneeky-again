@@ -5,14 +5,9 @@ import com.phantom.model._
 import com.phantom.ds.framework.Logging
 import com.phantom.model.UserLogin
 import com.phantom.model.PhantomUser
-import com.phantom.model.SanitizedUser
 import com.phantom.dataAccess.DatabaseSupport
 import java.util.UUID
 import com.phantom.ds.framework.exception.PhantomException
-import com.microtripit.mandrillapp.lutung.MandrillApi
-import com.microtripit.mandrillapp.lutung.view.{ MandrillMessage, MandrillMessageStatus }
-import java.util
-import com.microtripit.mandrillapp.lutung.view.MandrillMessage.Recipient
 import com.phantom.ds.framework.email.{ MandrillConfiguration, MandrillUtil }
 import com.phantom.ds.BasicCrypto
 
@@ -22,6 +17,7 @@ trait UserService {
   def logout(sessionId : String) : Future[Int]
   def updateContacts(id : Long, contacts : List[String]) : Future[List[SanitizedContact]]
   def clearBlockList(id : Long) : Future[Int]
+  def forgotPassword(email : String) : Future[Boolean]
 }
 
 object UserService extends BasicCrypto {
@@ -37,10 +33,6 @@ object UserService extends BasicCrypto {
 
     def logout(sessionId : String) : Future[Int] = {
       sessions.removeSession(UUID.fromString(sessionId))
-    }
-
-    private def getOrCreateSession(user : PhantomUser, sessionOpt : Option[PhantomSession]) : Future[PhantomSession] = {
-      sessionOpt.map(Future.successful).getOrElse(sessions.createSession(PhantomSession.newSession(user)))
     }
 
     def findById(id : Long) : Future[PhantomUser] = {
@@ -95,39 +87,50 @@ object UserService extends BasicCrypto {
     }
 
     def forgotPassword(email : String) : Future[Boolean] = {
+      for {
+        status <- resetPassword(email)
+        results <- sendResetPasswordEmail(status)
+      } yield results
+
+    }
+
+    private def resetPassword(email : String) : Future[Option[ResetPasswordResults]] = {
       future {
-        //make sure the user has an account
-        //val user = phantomUsersDao.findByEmail(email)
-        // make sure above line
-
-        // generate a new password with MD5
-        val newPassword = Passwords.generateNewPassword().substring(0, 8)
-        log.debug(s"Reseting password for user with email $email as password $newPassword")
-
-        // update the user record with the new password
-        val passwordEncrypted = Some(Passwords.getSaltedHash(newPassword))
-        val passwordUpdated = phantomUsersDao.updatePasswordForUser(email, passwordEncrypted.get)
-
-        // send them an email with the mandrill client
-        MandrillUtil.sendMailViaMandrill(
-          new MandrillConfiguration(
-            MandrillConfiguration.apiKey,
-            MandrillConfiguration.smtpPort,
-            MandrillConfiguration.smtpHost,
-            MandrillConfiguration.username
-          ), email, newPassword)
-
-        // mark all the sessions as INVALIDATED
-        val numSessionsInvalidated = for {
-          activeUser <- phantomUsersDao.findUser(email)
-          numSessionsInvalidated <- sessions.invalidateAllForUser(activeUser.id.get)
-        } yield numSessionsInvalidated
-        log.trace(s"There were $numSessionsInvalidated invalidated for user by email: $email ")
-
-        // if anything fails return the code for each failure scenario
-        passwordUpdated
+        db.withTransaction { implicit session =>
+          val userOpt = phantomUsersDao.findByEmailOperation(email)
+          userOpt.map { user =>
+            val newPassword = Passwords.generateNewPassword().substring(0, 8)
+            val encrypted = Passwords.getSaltedHash(newPassword)
+            phantomUsersDao.updatePasswordForUserOperation(email, encrypted)
+            val invalidatedSessions = sessions.invalidateAllForUser(user.id.get)
+            log.trace(s"There were $invalidatedSessions invalidated for user by email: $email ")
+            ResetPasswordResults(email, newPassword)
+          }
+        }
       }
     }
+
+    //TODO: actor me..why?  well..why not?  this thread does not need to wait or concern itself at all w/ the email sending
+    //it should very much be treated identically to an apple push or a twiio notification
+    private def sendResetPasswordEmail(status : Option[ResetPasswordResults]) : Future[Boolean] = {
+      status match {
+        case None => Future.successful(false)
+        case Some(x) => {
+          future {
+            MandrillUtil.sendMailViaMandrill(
+              new MandrillConfiguration(
+                MandrillConfiguration.apiKey,
+                MandrillConfiguration.smtpPort,
+                MandrillConfiguration.smtpHost,
+                MandrillConfiguration.username
+              ), x.email, x.password)
+            true
+          }
+        }
+      }
+    }
+
+    private[this] case class ResetPasswordResults(email : String, password : String)
   }
 
 }

@@ -8,7 +8,6 @@ import com.phantom.ds.{ BasicCrypto, DataHttpService }
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 import java.util.UUID
 import scala.concurrent.{ Await, Future }
-import spray.http.StatusCodes
 
 trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCrypto {
   this : RequestAuthenticator with EntryPointAuthenticator =>
@@ -72,6 +71,9 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
                 log.trace(s"identify function invoked : $user")
 
                 //TODO: Hack time....need to clean this up
+                //TODO: NS: This is fixed by modifiying the auth procedure to return both user and session
+                //this is now the third time we've needed a handle on the session.
+                //this is a quick fix in the auth code
                 import scala.concurrent.duration._
                 val sessionObject = Await.result(userService.findFromSessionId(session), 1 seconds)
 

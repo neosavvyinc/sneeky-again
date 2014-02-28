@@ -7,6 +7,7 @@ import com.phantom.ds.framework.auth.RequestAuthenticator
 import akka.actor.ActorRef
 import org.apache.commons.codec.binary.Base64
 import com.phantom.ds.framework.crypto.AES
+import com.phantom.model.Paging
 
 /**
  * Created by Neosavvy
@@ -30,12 +31,15 @@ trait ConversationEndpoint extends DataHttpService with BasicCrypto {
     pathPrefix(conversation) {
       authenticate(verified _) { user =>
         get {
-          respondWithMediaType(`application/json`) {
-            complete(
-              conversationService.findFeed(user.id.get) flatMap { resolvedFeed =>
-                conversationService.sanitizeFeed(resolvedFeed, user)
-              }
-            )
+          parameters('page.as[Int] ? -1, 'size.as[Int] ? -1) { (page, size) =>
+            respondWithMediaType(`application/json`) {
+              complete(
+                //TODO: FeedFolder should also sanitize(maybe)
+                conversationService.findFeed(user.id.get, Paging(page, size)) flatMap { resolvedFeed =>
+                  conversationService.sanitizeFeed(resolvedFeed, user)
+                }
+              )
+            }
           }
         }
       }

@@ -3,7 +3,7 @@ package com.phantom.dataAccess
 import scala.slick.session.Database
 import com.phantom.ds.framework.Logging
 import java.util.UUID
-import com.phantom.model.{ Verified, PhantomSession, PhantomUser, MobilePushType, Apple, Android }
+import com.phantom.model.{ PhantomSession, PhantomUser, MobilePushType }
 import scala.concurrent.{ ExecutionContext, Future, future }
 
 class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionContext) extends BaseDAO(dal, db)
@@ -67,6 +67,7 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     }
   }
 
+  //TODO: talk about why invalidation vs deletion is a thing
   def invalidateAllForUser(id : Long) : Future[Int] = {
     future {
       db.withSession { implicit session =>
