@@ -9,6 +9,7 @@ import com.phantom.dataAccess.DatabaseSupport
 import java.util.UUID
 import com.phantom.ds.framework.exception.PhantomException
 import com.phantom.ds.framework.email.{ MandrillConfiguration, MandrillUtil }
+import com.phantom.ds.BasicCrypto
 
 trait UserService {
 
@@ -19,7 +20,7 @@ trait UserService {
   def forgotPassword(email : String) : Future[Boolean]
 }
 
-object UserService {
+object UserService extends BasicCrypto {
 
   def apply()(implicit ec : ExecutionContext) = new UserService with DatabaseSupport with Logging {
 
@@ -45,16 +46,18 @@ object UserService {
     def updateContacts(id : Long, contactList : List[String]) : Future[List[SanitizedContact]] = {
       val session = db.createSession
 
+      val decryptedContacts : List[String] = contactList.map(c => decryptField(c))
+
       future {
         contacts.deleteAll(id)(session)
-        val (users : List[PhantomUser], numbersNotFound : List[String]) = phantomUsersDao.findPhantomUserIdsByPhone(contactList)
+        val (users : List[PhantomUser], numbersNotFound : List[String]) = phantomUsersDao.findPhantomUserIdsByPhone(decryptedContacts)
         contacts.insertAll(users.map(u => Contact(None, id, u.id.get)))
 
         users.map(u => SanitizedContact(
           u.birthday,
           u.status,
-          u.phoneNumber)
-        )
+          encryptOption(u.phoneNumber)
+        ))
       }
     }
 

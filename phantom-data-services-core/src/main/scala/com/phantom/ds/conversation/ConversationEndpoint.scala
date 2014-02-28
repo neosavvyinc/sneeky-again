@@ -1,10 +1,12 @@
 package com.phantom.ds.conversation
 
 import spray.http.MediaTypes._
-import com.phantom.ds.DataHttpService
+import com.phantom.ds.{ BasicCrypto, DataHttpService }
 
 import com.phantom.ds.framework.auth.RequestAuthenticator
 import akka.actor.ActorRef
+import org.apache.commons.codec.binary.Base64
+import com.phantom.ds.framework.crypto.AES
 import com.phantom.model.Paging
 
 /**
@@ -14,7 +16,7 @@ import com.phantom.model.Paging
  * Date: 12/7/13
  * Time: 2:37 PM
  */
-trait ConversationEndpoint extends DataHttpService {
+trait ConversationEndpoint extends DataHttpService with BasicCrypto {
   this : RequestAuthenticator =>
 
   def twilioActor : ActorRef
@@ -51,9 +53,14 @@ trait ConversationEndpoint extends DataHttpService {
             post {
               formFields('image.as[Array[Byte]], 'imageText, 'toUsers.as[String]) { (image, imageText, toUsers) =>
                 complete {
+                  val encryptedToUsers : Seq[String] = toUsers.split(",")
+                  val decryptedToUsers : Seq[String] = encryptedToUsers.map { fieldVal : String =>
+                    decryptField(fieldVal)
+                  }
+
                   conversationService.startConversation(
                     user.id.get,
-                    toUsers.split(",").toSet,
+                    decryptedToUsers.toSet,
                     imageText,
                     //todo: move this into the service, and future bound it
                     conversationService.saveFileForConversationId(image, user.id.get)
