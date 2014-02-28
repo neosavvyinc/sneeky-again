@@ -248,31 +248,33 @@ object ConversationService extends DSConfiguration {
             )
           )
 
-          val conversation = conversationDao.findById(conversationId)
-          conversation onSuccess {
-            case conversation =>
+          citem.map { x =>
+            val conversationF = conversationDao.findById(conversationId)
+            conversationF onSuccess {
+              case conversation =>
 
-              // fire off APNS notifications
-              val userFuture = future(phantomUsersDao.find(citem.get.toUser))
-              val tokensFuture = getTokens(Seq(citem.get.toUser))
-              for {
-                user : Option[PhantomUser] <- userFuture
-                tokens : List[Option[String]] <- tokensFuture
-                _ <- future {
-                  user.map { u : PhantomUser =>
-                    log.debug(s"sending an apple push notification for a response from a previous conversation item $u.id")
-                    sendConversationNotifications(u, tokens)
+                // fire off APNS notifications
+                val userFuture = future(phantomUsersDao.find(x.toUser))
+                val tokensFuture = getTokens(Seq(x.toUser))
+                for {
+                  user : Option[PhantomUser] <- userFuture
+                  tokens : List[Option[String]] <- tokensFuture
+                  _ <- future {
+                    user.map { u : PhantomUser =>
+                      log.debug(s"sending an apple push notification for a response from a previous conversation item $u.id")
+                      sendConversationNotifications(u, tokens)
+                    }
                   }
-                }
-              } yield (user, tokens)
+                } yield (user, tokens)
 
-              conversationDao.updateById(Conversation(
-                conversation.id,
-                conversation.toUser,
-                conversation.fromUser,
-                conversation.receiverPhoneNumber))
-          }
-          citem.map(x => ConversationUpdateResponse(1)).getOrElse(throw PhantomException.nonExistentConversation)
+                conversationDao.updateById(Conversation(
+                  conversation.id,
+                  conversation.toUser,
+                  conversation.fromUser,
+                  conversation.receiverPhoneNumber))
+            }
+            ConversationUpdateResponse(1)
+          }.getOrElse(throw PhantomException.nonExistentConversation)
         }
       }
     }
