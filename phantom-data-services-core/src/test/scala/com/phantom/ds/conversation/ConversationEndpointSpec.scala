@@ -46,7 +46,7 @@ class ConversationEndpointSpec extends Specification
 
   "Conversation Service" should {
 
-    "return a user's feed" in withSetupTeardown {
+    "return a user's feed with default pagination parameters" in withSetupTeardown {
       insertTestConverationsWithItems()
       val toUserConv = conversationDao.insert(Conversation(None, 2L, 1L, "9197419597"))
       val item = ConversationItem(None, toUserConv.id.get, "", "", 2L, 1L)
@@ -65,6 +65,26 @@ class ConversationEndpointSpec extends Specification
           response must have size 2
         }
       }
+    }
+
+    "return a user's feed with pagination parameters" in withSetupTeardown {
+      insertTestConverationsWithItems()
+      //make there be 40 conversations in the database with user 2 (the above insertion creates 1)
+      db.withTransaction { implicit session : Session =>
+        val c = for { i <- 1 to 39 } yield Conversation(None, 1, 2, "9197419597")
+        val conversations = conversationDao.insertAllOperation(c)
+        val ci = conversations.map(x => ConversationItem(None, x.id.get, "", "", 1L, 2L))
+        conversationItemDao.insertAllOperation(ci)
+      }
+
+      authedUser = phantomUsersDao.find(2L)
+      assertPagination(1, 20, 20) //page 1
+      assertPagination(2, 20, 20) //page 2
+      assertPagination(3, 20, 0) // past end of feed
+      assertPagination(-1, -1, 40) //negatives are our "default turn off paging" for now
+      assertPagination(1, 50, 40) //one massive page request should return everything
+      assertPagination(1, 0, 0) //ask for 0, and ye shall receive 0
+      assertPagination(3, 15, 10) //last page when the last page is smaller then the size
     }
 
     "support receiving a multi-part form post to start or update a conversation, if no image it throws error" in withSetupTeardown {
@@ -374,5 +394,13 @@ class ConversationEndpointSpec extends Specification
   private def readImage : Array[Byte] = {
     val in4 = this.getClass.getClassLoader.getResourceAsStream("testFile.png")
     Iterator continually in4.read takeWhile (-1 !=) map (_.toByte) toArray
+  }
+
+  private def assertPagination(page : Int, size : Int, expected : Int) = {
+    Get(s"/conversation?page=${page}&size=$size") ~> conversationRoute ~> check {
+      assertPayload[List[FeedWrapper]] { response =>
+        response must have size expected
+      }
+    }
   }
 }

@@ -1,25 +1,10 @@
-## Phantom Services
+## Sneeky Services
 
-To create a new feature - use a branch:
 
-`git checkout -b feature-block-by-convo`
+Time to start making a list of things we need to deploy Sneeky
 
-Then push it to the remote
+1. Servertime is always saves as UTC which means
+    - MySQL needs to save as UTC:
+    - Unix time needs to return UTC:
 
-`git push origin feature-block-by-convo:feature-block-by-convo`
-
-## Run your tests
-
-`sbt test`
-
-All of them should pass
-
-## Start the server with assembly mode
-
-`sbt clean assembly`
-`./startServer.sh`
-
-## Start the server with Revolver
-
-`sbt`
-`re-start`
+2. Make sure the MySQL version supports timestamp

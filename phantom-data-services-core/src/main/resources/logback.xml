@@ -23,11 +23,13 @@
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>
     </root>
-    <logger name="com.phantom.ds" level="error"/>
-    <logger name="com.phantom.dataAccess" level="error"/>
+    <logger name="com.phantom.ds" level="info"/>
+    <logger name="com.phantom.dataAccess" level="trace"/>
     <logger name="com.phantom.ds.integration.twilio" level="debug"/>
     <logger name="com.phantom.ds.integration.apple" level="trace"/>
+    <logger name="com.phantom.ds.conversation" level="trace"/>
     <logger name="com.phantom.ds.user" level="debug"/>
+    <logger name="com.phantom.ds.framework.auth" level="debug"/>
 
     <logger name="scala.slick.session" level="error"/>
     <!--<logger name="com.phantom.ds.framework" level="trace"/>-->

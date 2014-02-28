@@ -8,7 +8,7 @@ import akka.actor.ActorRefFactory
 import spray.testkit.Specs2RouteTest
 import com.phantom.ds.integration.twilio.SendInviteToStubUsers
 import com.phantom.ds.integration.apple.AppleNotification
-import com.phantom.model.FeedEntry
+import com.phantom.model.{ NoPaging, FeedEntry }
 
 /**
  * Created with IntelliJ IDEA.
@@ -48,7 +48,7 @@ class ConversationServiceSpec extends Specification
       results.createdCount must beEqualTo(2)
 
       val userIds = Seq(user1.id, user2.id).flatten
-      val user1Conversation = await(service.findFeed(starter.id.get))
+      val user1Conversation = await(service.findFeed(starter.id.get, NoPaging))
 
       aProbe.expectMsgAllOf(AppleNotification(true, Some("123456")), AppleNotification(true, Some("234567")))
       tProbe.expectNoMsg()
@@ -78,7 +78,7 @@ class ConversationServiceSpec extends Specification
 
       val userIds = stubUsers.map(_.id.get)
 
-      val startedStubs = await(service.findFeed(starter.id.get))
+      val startedStubs = await(service.findFeed(starter.id.get, NoPaging))
 
       tProbe.expectMsg(SendInviteToStubUsers(stubUsers))
       aProbe.expectNoMsg()
@@ -139,7 +139,7 @@ class ConversationServiceSpec extends Specification
 
       val newUserIds = newUsers.map(_.id).flatten
 
-      val user1Conversation = await(service.findFeed(starter.id.get))
+      val user1Conversation = await(service.findFeed(starter.id.get, NoPaging))
       val userIds = Seq(user1.id, user2.id, stubUser1.id, stubUser2.id).flatten ++ newUserIds
 
       user1Conversation.foreach {

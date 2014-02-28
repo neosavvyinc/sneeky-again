@@ -26,12 +26,12 @@ package object httpx {
 
     implicit object JodaDateTimeFormat extends JsonFormat[DateTime] {
 
-      val formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'hh:mm:ss.SSSZZ")
+      val formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
 
-      def write(obj : DateTime) : JsValue = JsString(formatter.print(obj.toDateTime(DateTimeZone.UTC)))
+      def write(obj : DateTime) : JsValue = JsString(formatter.print(obj))
 
       def read(json : JsValue) : DateTime = json match {
-        case JsString(x) => formatter.parseDateTime(x).toDateTime(DateTimeZone.UTC)
+        case JsString(x) => formatter.parseDateTime(x).toDateTime()
         case _           => deserializationError("Expected String value for DateTime")
       }
     }
@@ -116,7 +116,7 @@ package object httpx {
     implicit val userRegistrationResponseFormat = jsonFormat2(RegistrationResponse)
 
     implicit val userFormat = jsonFormat12(PhantomUser)
-    implicit val sanitizedUserFormat = jsonFormat7(SanitizedUser)
+    implicit val sanitizedUserFormat = jsonFormat8(SanitizedUser)
     implicit val sanitizedContactFormat = jsonFormat3(SanitizedContact)
     implicit val userLoginFormat = jsonFormat2(UserLogin)
     implicit val loginSuccessFormat = jsonFormat1(LoginSuccess)

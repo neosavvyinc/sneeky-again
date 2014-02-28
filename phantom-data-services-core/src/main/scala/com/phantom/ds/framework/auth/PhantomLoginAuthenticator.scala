@@ -12,6 +12,10 @@ trait EntryPointAuthenticator extends Authenticator {
 trait PhantomEntryPointAuthenticator extends EntryPointAuthenticator with DSConfiguration {
 
   def enter(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[Boolean]] = {
+
+    log.debug("hash: " + ctx.request.uri.query.get(hashP))
+    log.debug("date: " + ctx.request.uri.query.get(dateP))
+
     future {
       val result = for {
         h <- ctx.request.uri.query.get(hashP)
@@ -24,6 +28,8 @@ trait PhantomEntryPointAuthenticator extends EntryPointAuthenticator with DSConf
   }
 
   private def validateHash(clientHash : String, date : String) = {
+    val calculated = hashWithSecret(date)
+    log.debug(s"PhantomEntryPointAuthenticator.validateHash[calculated: $calculated and provided: $clientHash]")
     if (hashWithSecret(date) == clientHash) {
       Some(date)
     } else {

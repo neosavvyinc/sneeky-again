@@ -1,13 +1,17 @@
 package com.phantom.ds.conversation
 
-import com.phantom.model.{ FeedEntry, Conversation, ConversationItem }
+import com.phantom.model._
 import org.joda.time.DateTime
+import com.phantom.model.Conversation
+import com.phantom.model.ConversationItem
+import com.phantom.model.FeedEntry
+import scala.Some
 
 object FeedFolder {
 
   implicit def dateTimeOrdering : Ordering[DateTime] = Ordering.fromLessThan(_ isAfter _)
 
-  def foldFeed(userId : Long, raw : List[(Conversation, ConversationItem)]) : List[FeedEntry] = {
+  def foldFeed(userId : Long, raw : List[(Conversation, ConversationItem)], paging : Paging) : List[FeedEntry] = {
     val grouped = raw.groupBy(_._1)
 
     grouped.foldRight(List[FeedEntry]()) { (item, feed) =>
@@ -15,7 +19,7 @@ object FeedFolder {
         case None    => feed
         case Some(x) => x :: feed
       }
-    }.sortBy(_.conversation.lastUpdated)
+    }.sortBy(_.conversation.lastUpdated).paginate(paging)
   }
 
   private def toFeedEntry(userId : Long, conversation : Conversation, conversationItems : List[(Conversation, ConversationItem)]) : Option[FeedEntry] = {
@@ -42,4 +46,18 @@ object FeedFolder {
 
   }
 
+  //just showing off a bit here :)
+  private[this] implicit class ListPaginator[T](x : List[T]) {
+    def paginate(paging : Paging) : List[T] = {
+
+      paging match {
+        case NoPaging => x
+        case PageRequest(page, size) => {
+          val offset = (page - 1) * size
+          val end = offset + size
+          x.slice(offset, end)
+        }
+      }
+    }
+  }
 }

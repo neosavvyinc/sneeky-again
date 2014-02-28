@@ -1,14 +1,13 @@
 package com.phantom.ds.user
 
 import com.phantom.model._
-import com.phantom.ds.framework.httpx._
 
 import org.specs2._
 import mutable.Specification
 import spray.testkit.Specs2RouteTest
 import com.phantom.ds.PhantomEndpointSpec
 import org.joda.time.LocalDate
-import com.phantom.ds.framework.auth.{ SuppliedUserRequestAuthenticator, PassThroughEntryPointAuthenticator, PassThroughRequestAuthenticator }
+import com.phantom.ds.framework.auth.{ SuppliedUserRequestAuthenticator, PassThroughEntryPointAuthenticator }
 import com.phantom.ds.dataAccess.BaseDAOSpec
 import spray.http.StatusCodes
 import scala.concurrent.duration
@@ -64,6 +63,7 @@ class UserEndpointSpec extends Specification
       }
     }
 
+    //TODO: get requirements around multiple logon.
     "logging more than once yields the same session" in withSetupTeardown {
       createVerifiedUser("adamparrish@something.com", "mypassword")
       Post("/users/login", UserLogin("adamparrish@something.com", "mypassword")) ~> userRoute ~> check {
@@ -82,7 +82,9 @@ class UserEndpointSpec extends Specification
     "identify service should yield a sanitized object of the user" in withSetupTeardown {
       val u = createVerifiedUser("adamparrish@something.com", "mypassword")
       authedUser = Some(u)
-      Get("/users/active") ~> userRoute ~> check {
+      val session = await(sessions.createSession(PhantomSession.newSession(u)))(ec)
+
+      Get(s"/users/active?sessionId=${session.sessionId.toString}") ~> userRoute ~> check {
         assertPayload[SanitizedUser] { response =>
           response.uuid must be equalTo u.uuid
           response.birthday must be equalTo u.birthday

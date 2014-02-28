@@ -117,10 +117,10 @@ class RegistrationEndpointSpec extends Specification
         updatedUser.phoneNumber must be equalTo Some("987654321")
         val stubUsers = phantomUsersDao.find(stubUser.id.get)
         stubUsers must beNone
-        val stubConversations = getFeed(stubUser.id.get)
+        val stubConversations = getFullFeed(stubUser.id.get)
         stubConversations must beEmpty
 
-        val conversations = getFeed(user.id.get)
+        val conversations = getFullFeed(user.id.get)
         conversations.foreach {
           case FeedEntry(c, items) =>
             items must have size 1

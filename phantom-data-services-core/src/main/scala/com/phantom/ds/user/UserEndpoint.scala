@@ -4,13 +4,12 @@ import spray.http.MediaTypes._
 import com.phantom.model._
 import com.phantom.ds.framework.httpx._
 import spray.json._
-import com.phantom.ds.DataHttpService
+import com.phantom.ds.{ BasicCrypto, DataHttpService }
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 import java.util.UUID
-import scala.concurrent.Future
-import spray.http.StatusCodes
+import scala.concurrent.{ Await, Future }
 
-trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
+trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCrypto {
   this : RequestAuthenticator with EntryPointAuthenticator =>
 
   val userService = UserService()
@@ -66,18 +65,34 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol {
       } ~
       pathPrefix("users" / "active") {
         authenticate(unverified _) { user =>
-          get {
-            respondWithMediaType(`application/json`) {
-              log.trace(s"identify function invoked : $user")
-              complete(Future.successful(SanitizedUser(
-                user.uuid,
-                user.birthday,
-                user.status,
-                user.phoneNumber,
-                user.settingSound,
-                user.settingNewPicture,
-                user.mutualContactSetting
-              )))
+          parameter('sessionId) { session =>
+            get {
+              respondWithMediaType(`application/json`) {
+                log.trace(s"identify function invoked : $user")
+
+                //TODO: Hack time....need to clean this up
+                //TODO: NS: This is fixed by modifiying the auth procedure to return both user and session
+                //this is now the third time we've needed a handle on the session.
+                //this is a quick fix in the auth code
+                import scala.concurrent.duration._
+                val sessionObject = Await.result(userService.findFromSessionId(session), 1 seconds)
+
+                complete(
+                  Future.successful(
+                    SanitizedUser(
+                      user.uuid,
+                      user.birthday,
+                      user.status,
+                      encryptOption(user.phoneNumber),
+                      user.settingSound,
+                      user.settingNewPicture,
+                      user.mutualContactSetting,
+                      sessionObject.sessionInvalid
+                    )
+                  )
+                )
+
+              }
             }
           }
         }

@@ -1,7 +1,7 @@
 package com.phantom.ds.framework.auth
 
 import com.phantom.ds.DSConfiguration
-import org.joda.time.format.ISODateTimeFormat
+import org.joda.time.format.{ DateTimeFormat, ISODateTimeFormat }
 import org.joda.time.{ DateTimeZone, DateTime }
 import scala.util.Try
 import java.security.MessageDigest
@@ -9,29 +9,40 @@ import org.apache.commons.codec.binary.Base64
 import spray.routing.AuthenticationFailedRejection
 import spray.routing.AuthenticationFailedRejection.CredentialsRejected
 import com.phantom.model.{ Stub, Unverified, Verified, UserStatus }
+import com.phantom.ds.framework.Logging
 
-trait Authenticator extends DSConfiguration {
+trait Authenticator extends DSConfiguration with Logging {
 
   val hashP = "hash"
   val dateP = "date"
   val sessionIdP = "sessionId"
   val delim = "_"
-  val dateFormat = ISODateTimeFormat.basicDateTime
+  val dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
   val rejected = AuthenticationFailedRejection(CredentialsRejected, Nil)
 
   protected def toAuthentication[T](opt : Option[T]) = opt.toRight(rejected)
 
   protected def validateTime(date : String) : Option[DateTime] = {
     val parsed = Try(dateFormat.parseDateTime(date)).toOption
-    val now = DateTime.now(DateTimeZone.UTC).getMillis
-    parsed.filter(now - _.getMillis <= AuthConfiguration.requestTimeout)
+    log.debug("date parsed from client: " + parsed)
+
+    val now = DateTime.now()
+
+    log.debug("now is: " + now)
+    log.debug("now - provided: " + (now.getMillis - parsed.get.getMillis))
+    log.debug("configured requestTimeout is: " + AuthConfiguration.requestTimeout)
+
+    parsed.filter(now.getMillis - _.getMillis <= AuthConfiguration.requestTimeout)
   }
+
+  protected def valueOf(buf : Array[Byte]) : String = buf.map("%02X" format _).mkString
 
   protected def hashWithSecret(clear : String) = {
     val withSuffix = s"$clear$delim${AuthConfiguration.secret}"
     val digest = MessageDigest.getInstance("SHA-256")
     val bytes = withSuffix.getBytes("UTF-8")
-    Base64.encodeBase64String(digest.digest(bytes))
+    val digested = digest.digest(bytes)
+    valueOf(digested)
   }
 
 }
