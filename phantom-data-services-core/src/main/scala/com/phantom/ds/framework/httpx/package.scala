@@ -15,8 +15,7 @@ import java.util.UUID
 
 import com.phantom.model.UserRegistration
 
-import org.joda.time.{ LocalDate, DateTimeZone, DateTime }
-import org.joda.time.format.{ DateTimeFormat, ISODateTimeFormat }
+import org.joda.time.{ LocalDate, DateTime }
 
 package object httpx {
 
@@ -26,24 +25,20 @@ package object httpx {
 
     implicit object JodaDateTimeFormat extends JsonFormat[DateTime] {
 
-      val formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
-
-      def write(obj : DateTime) : JsValue = JsString(formatter.print(obj))
+      def write(obj : DateTime) : JsValue = JsString(Dates.write(obj))
 
       def read(json : JsValue) : DateTime = json match {
-        case JsString(x) => formatter.parseDateTime(x).toDateTime()
+        case JsString(x) => Dates.readDateTime(x)
         case _           => deserializationError("Expected String value for DateTime")
       }
     }
 
     implicit object JodaLocalDateFormat extends JsonFormat[LocalDate] {
 
-      val formatter = ISODateTimeFormat.basicDate()
-
-      def write(obj : LocalDate) : JsValue = JsString(formatter.print(obj))
+      def write(obj : LocalDate) : JsValue = JsString(Dates.write(obj))
 
       def read(json : JsValue) : LocalDate = json match {
-        case JsString(x) => formatter.parseLocalDate(x)
+        case JsString(x) => Dates.readLocalDate(x)
         case _           => deserializationError("Expected String value for LocalDate")
       }
     }

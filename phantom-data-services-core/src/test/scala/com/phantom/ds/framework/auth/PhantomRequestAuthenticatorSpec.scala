@@ -8,7 +8,7 @@ import com.phantom.ds.dataAccess.BaseDAOSpec
 import java.util.UUID
 import com.phantom.model._
 import com.phantom.model.PhantomUser
-import scala.Some
+import com.phantom.ds.framework.Dates
 
 class PhantomRequestAuthenticatorSpec extends Specification
     with PhantomRequestAuthenticator
@@ -61,7 +61,7 @@ class PhantomRequestAuthenticatorSpec extends Specification
     }
 
     "fail if request timed out" in {
-      val d = dateFormat.print(DateTime.parse("2010-10-10"))
+      val d = Dates.write(DateTime.parse("2010-10-10"))
       val s = "timedOutRequest"
       val h = hashValues(d, s)
       val url = s"/test/protected?$hashP=$h&$dateP=$d&$sessionIdP=$s"
@@ -69,7 +69,7 @@ class PhantomRequestAuthenticatorSpec extends Specification
     }
 
     "fail if hashed with wrong secret" in {
-      val d = dateFormat.print(DateTime.parse("2010-10-10"))
+      val d = Dates.write(DateTime.parse("2010-10-10"))
       val s = "timedOutRequest"
       val h = hashValues(d, s, "wrongsecret")
       val url = s"/test/protected?$hashP=$h&$dateP=$d&$sessionIdP=$s"
@@ -113,10 +113,10 @@ class PhantomRequestAuthenticatorSpec extends Specification
 
   private def assertAuthorizationSuccess(userStatus : UserStatus, urlPart : String) = {
     val d = now
-    val sessionCreated = DateTime.now(DateTimeZone.UTC)
+    val sessionCreated = Dates.nowDT
     val uuid = UUID.randomUUID()
     val s = uuid.toString
-    val u = phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some("email"), Some(""), Some(LocalDate.now), true, Some(""), userStatus))
+    val u = phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some("email"), Some(""), Some(Dates.nowLD), true, Some(""), userStatus))
     await(sessions.createSession(PhantomSession(uuid, u.id.get, sessionCreated, sessionCreated, None)))
     val h = hashValues(d, s)
     val url = s"/test/$urlPart?$hashP=$h&$dateP=$d&$sessionIdP=$s"
@@ -127,10 +127,10 @@ class PhantomRequestAuthenticatorSpec extends Specification
 
   private def assertAuthorizationFailure(userStatus : UserStatus, urlPart : String) = {
     val d = now
-    val sessionCreated = DateTime.now(DateTimeZone.UTC)
+    val sessionCreated = Dates.nowDT
     val uuid = UUID.randomUUID()
     val s = uuid.toString
-    val u = phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some("email"), Some(""), Some(LocalDate.now), true, Some(""), userStatus))
+    val u = phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some("email"), Some(""), Some(Dates.nowLD), true, Some(""), userStatus))
     await(sessions.createSession(PhantomSession(uuid, u.id.get, sessionCreated, sessionCreated, None)))
     val h = hashValues(d, s)
     val url = s"/test/$urlPart?$hashP=$h&$dateP=$d&$sessionIdP=$s"

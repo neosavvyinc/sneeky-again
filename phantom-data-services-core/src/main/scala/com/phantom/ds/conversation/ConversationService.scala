@@ -10,7 +10,7 @@ import com.phantom.model.ConversationUpdateResponse
 import com.phantom.model.Conversation
 import com.phantom.model.ConversationItem
 import com.phantom.model.ConversationInsertResponse
-import com.phantom.ds.framework.Logging
+import com.phantom.ds.framework.{ Dates, Logging }
 import akka.actor.ActorRef
 import com.phantom.ds.integration.twilio.SendInviteToStubUsers
 import com.phantom.ds.integration.apple.AppleNotification
@@ -22,8 +22,6 @@ import java.security.MessageDigest
 import org.joda.time.DateTime
 import com.phantom.ds.framework.crypto._
 import com.phantom.ds.framework.protocol.defaults._
-import fly.play.s3._
-import fly.play.aws.auth.AwsCredentials
 
 import org.jets3t.service.impl.rest.httpclient.RestS3Service
 import org.jets3t.service.security.AWSCredentials
