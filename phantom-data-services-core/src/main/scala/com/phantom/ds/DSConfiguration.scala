@@ -46,6 +46,14 @@ trait DSConfiguration {
 
   case object NoAuthentication extends AuthenticationMode
 
+  object AWS {
+    val accessKeyId = awsConfig.getString("accessKeyId")
+    val secretKey = awsConfig.getString("secretKey")
+    val bucket = awsConfig.getString("sneekyimages")
+
+    private def awsConfig = cfg.getConfig("com.phantom.aws")
+  }
+
   object FileStoreConfiguration {
 
     val baseDirectory = fileStoreConfiguration.getString("baseDirectory")

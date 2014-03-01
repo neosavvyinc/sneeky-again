@@ -279,38 +279,23 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       }
     }
 
-    //    def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String = {
-    //      val randomImageName : String = MessageDigest.getInstance("MD5").digest(DateTime.now().toString().getBytes).map("%02X".format(_)).mkString
-    //      val imageUrl = conversationId + "/" + randomImageName
-    //
-    //      val bucket = S3("sneekyImages")(AwsCredentials("AKIAJQEMCJMOSYLFGMXQ", "nFqH2O9OX85bG+uH30v5dozzbh0dKS601yOJep39"))
-    //      val result = bucket + BucketFile(imageUrl, "image/jpg", image, Some(PUBLIC_READ))
-    //
-    //      result
-    //        .map { unit =>
-    //          log.info("Saved the file")
-    //        }
-    //        .recover {
-    //          case S3Exception(status, code, message, originalXml) => log.error("Error: " + message)
-    //        }
-    //
-    //      conversationId + "/" + randomImageName
-    //
-    //    }
-
     def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String = {
       val randomImageName : String = MessageDigest.getInstance("MD5").digest(DateTime.now().toString().getBytes).map("%02X".format(_)).mkString
       val imageUrl = conversationId + "/" + randomImageName
 
-      val awsAccessKey = "AKIAJQEMCJMOSYLFGMXQ"
-      val awsSecretKey = "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"
+      val awsAccessKey = AWS.accessKeyId
+      val awsSecretKey = AWS.secretKey
       val awsCredentials = new AWSCredentials(awsAccessKey, awsSecretKey)
       val s3Service = new RestS3Service(awsCredentials)
-      val bucketName = "sneekyImages"
-      val bucket = s3Service.getOrCreateBucket(bucketName)
+      val bucketName = AWS.bucket
+      val bucket = s3Service.getBucket(bucketName)
       val fileObject = s3Service.putObject(bucket, {
+        val acl = s3Service.getBucketAcl(bucket)
+        acl.grantPermission(GroupGrantee.ALL_USERS, Permission.PERMISSION_READ)
+
         val tempObj = new S3Object(imageUrl)
         tempObj.setDataInputStream(new ByteArrayInputStream(image))
+        tempObj.setAcl(acl)
         tempObj.setContentType("image/jpg")
         tempObj
       })
