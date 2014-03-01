@@ -5,6 +5,7 @@ import spray.testkit.Specs2RouteTest
 import org.joda.time.DateTime
 import spray.routing._
 import spray.http.StatusCodes._
+import com.phantom.ds.framework.Dates
 
 class PhantomEntryPointAuthenticatorSpec extends Specification
     with AuthTestPoint
@@ -45,14 +46,14 @@ class PhantomEntryPointAuthenticatorSpec extends Specification
     }
 
     "fail if request timed out" in {
-      val d = dateFormat.print(DateTime.parse("2010-10-10"))
+      val d = Dates.write(DateTime.parse("2010-10-10"))
       val h = hashEntryValues(d)
       val url = s"/test/entry?$hashP=$h&$dateP=$d"
       assertPostAuthFailure(url)
     }
 
     "fail if hashed with wrong secret" in {
-      val d = dateFormat.print(DateTime.parse("2010-10-10"))
+      val d = Dates.write(DateTime.parse("2010-10-10"))
       val h = hashEntryValues(d, "wrongsecret")
       val url = s"/test/entry?$hashP=$h&$dateP=$d"
       assertPostAuthFailure(url)
