@@ -3,7 +3,7 @@ package com.phantom.ds.conversation
 import scala.concurrent.{ Future, ExecutionContext, future }
 import com.phantom.model._
 import com.phantom.dataAccess.DatabaseSupport
-import java.io.{ File, FileOutputStream }
+import java.io.{ ByteArrayInputStream, File, FileOutputStream }
 import com.phantom.ds.{ BasicCrypto, DSConfiguration }
 import com.phantom.model.BlockUserByConversationResponse
 import com.phantom.model.ConversationUpdateResponse
@@ -22,6 +22,13 @@ import java.security.MessageDigest
 import org.joda.time.DateTime
 import com.phantom.ds.framework.crypto._
 import com.phantom.ds.framework.protocol.defaults._
+import fly.play.s3._
+import fly.play.aws.auth.AwsCredentials
+
+import org.jets3t.service.impl.rest.httpclient.RestS3Service
+import org.jets3t.service.security.AWSCredentials
+import org.jets3t.service.model.S3Object
+import org.jets3t.service.acl.{ AccessControlList, GroupGrantee, Permission }
 
 /**
  * Created by Neosavvy
@@ -272,27 +279,45 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       }
     }
 
+    //    def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String = {
+    //      val randomImageName : String = MessageDigest.getInstance("MD5").digest(DateTime.now().toString().getBytes).map("%02X".format(_)).mkString
+    //      val imageUrl = conversationId + "/" + randomImageName
+    //
+    //      val bucket = S3("sneekyImages")(AwsCredentials("AKIAJQEMCJMOSYLFGMXQ", "nFqH2O9OX85bG+uH30v5dozzbh0dKS601yOJep39"))
+    //      val result = bucket + BucketFile(imageUrl, "image/jpg", image, Some(PUBLIC_READ))
+    //
+    //      result
+    //        .map { unit =>
+    //          log.info("Saved the file")
+    //        }
+    //        .recover {
+    //          case S3Exception(status, code, message, originalXml) => log.error("Error: " + message)
+    //        }
+    //
+    //      conversationId + "/" + randomImageName
+    //
+    //    }
+
     def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String = {
-
       val randomImageName : String = MessageDigest.getInstance("MD5").digest(DateTime.now().toString().getBytes).map("%02X".format(_)).mkString
-      val imageDir = FileStoreConfiguration.baseDirectory + "/" + conversationId
-      val imageUrl = imageDir + "/" + randomImageName
-      val dir : File = new File(imageDir)
-      if (!dir.exists())
-        dir.mkdirs()
+      val imageUrl = conversationId + "/" + randomImageName
 
-      println("Writing out the image to: " + imageUrl)
+      val awsAccessKey = "AKIAJQEMCJMOSYLFGMXQ"
+      val awsSecretKey = "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"
+      val awsCredentials = new AWSCredentials(awsAccessKey, awsSecretKey)
+      val s3Service = new RestS3Service(awsCredentials)
+      val bucketName = "sneekyImages"
+      val bucket = s3Service.getOrCreateBucket(bucketName)
+      val fileObject = s3Service.putObject(bucket, {
+        val tempObj = new S3Object(imageUrl)
+        tempObj.setDataInputStream(new ByteArrayInputStream(image))
+        tempObj.setContentType("image/jpg")
+        tempObj
+      })
 
-      val fos : FileOutputStream = new FileOutputStream(imageUrl)
-
-      try {
-        fos.write(image)
-      } finally {
-        fos.close()
-      }
-
-      conversationId + "/" + randomImageName
-
+      s3Service.createUnsignedObjectUrl(bucketName,
+        fileObject.getKey,
+        false, false, false)
     }
 
     def blockByConversationId(userId : Long, conversationId : Long) : Future[BlockUserByConversationResponse] = {
