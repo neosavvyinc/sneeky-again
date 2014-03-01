@@ -10,7 +10,7 @@ import com.phantom.model.ConversationUpdateResponse
 import com.phantom.model.Conversation
 import com.phantom.model.ConversationItem
 import com.phantom.model.ConversationInsertResponse
-import com.phantom.ds.framework.Logging
+import com.phantom.ds.framework.{ Dates, Logging }
 import akka.actor.ActorRef
 import com.phantom.ds.integration.twilio.SendInviteToStubUsers
 import com.phantom.ds.integration.apple.AppleNotification
@@ -274,7 +274,7 @@ object ConversationService extends DSConfiguration with BasicCrypto {
 
     def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String = {
 
-      val randomImageName : String = MessageDigest.getInstance("MD5").digest(DateTime.now().toString().getBytes).map("%02X".format(_)).mkString
+      val randomImageName : String = MessageDigest.getInstance("MD5").digest(Dates.nowDTStr.getBytes).map("%02X".format(_)).mkString
       val imageDir = FileStoreConfiguration.baseDirectory + "/" + conversationId
       val imageUrl = imageDir + "/" + randomImageName
       val dir : File = new File(imageDir)
