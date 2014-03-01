@@ -2,7 +2,7 @@ package com.phantom.ds.conversation
 
 import spray.http.MediaTypes._
 import com.phantom.ds.{ BasicCrypto, DataHttpService }
-
+import com.phantom.model.{ ConversationStartRequest }
 import com.phantom.ds.framework.auth.RequestAuthenticator
 import akka.actor.ActorRef
 import org.apache.commons.codec.binary.Base64
@@ -65,6 +65,33 @@ trait ConversationEndpoint extends DataHttpService with BasicCrypto {
                     //todo: move this into the service, and future bound it
                     conversationService.saveFileForConversationId(image, user.id.get)
                   )
+                }
+              }
+            }
+          }
+        }
+      }
+    } ~ {
+      pathPrefix(conversation) {
+        path("start" / "stock") {
+          authenticate(verified _) { user =>
+            post {
+              respondWithMediaType(`application/json`) {
+                entity(as[ConversationStartRequest]) { req =>
+
+                  complete {
+                    val decryptedToUsers : Seq[String] = req.toUsers.map(decryptField(_))
+                    conversationService.findPhotoUrlById(req.imageId).map { photoUrl : Option[String] =>
+                      photoUrl.map { url : String =>
+                        conversationService.startConversation(
+                          user.id.get,
+                          decryptedToUsers.toSet,
+                          req.imageText,
+                          url
+                        )
+                      }
+                    }
+                  }
                 }
               }
             }
