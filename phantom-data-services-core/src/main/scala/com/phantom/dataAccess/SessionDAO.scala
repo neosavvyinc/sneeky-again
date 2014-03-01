@@ -3,7 +3,7 @@ package com.phantom.dataAccess
 import scala.slick.session.Database
 import com.phantom.ds.framework.Logging
 import java.util.UUID
-import com.phantom.model.{ Verified, PhantomSession, PhantomUser, MobilePushType, Apple, Android }
+import com.phantom.model.{ PhantomSession, PhantomUser, MobilePushType }
 import scala.concurrent.{ ExecutionContext, Future, future }
 
 class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionContext) extends BaseDAO(dal, db)
@@ -22,6 +22,11 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     (s, u) <- SessionTable innerJoin UserTable on ((sess, user) => sess.userId === user.id && sess.userId === id)
   } yield s
 
+  private val bySessionId = for {
+    uuid <- Parameters[UUID]
+    s <- SessionTable if s.sessionId === uuid
+  } yield s
+
   //TODO future me
   def findFromSession(session : UUID) : Option[PhantomUser] = {
     db.withSession { implicit s =>
@@ -31,8 +36,18 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
 
   def findTokensByUserId(userIds : Seq[Long]) : List[Option[String]] = {
     db.withSession { implicit s =>
+      userIds.foreach { userId =>
+        log.debug(s"finding tokens for user id $userId")
+      }
+
       val q = for { s <- SessionTable if (s.userId inSet userIds) } yield s.pushNotifierToken.?
-      q.list
+      val tokens = q.list
+
+      tokens.foreach { token =>
+        log.debug(s"tokens for $token")
+      }
+
+      tokens
     }
   }
 
@@ -40,6 +55,24 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     future {
       db.withSession { implicit session =>
         byUserId(userId).firstOption
+      }
+    }
+  }
+
+  def sessionByUUID(uuid : UUID) : Future[PhantomSession] = {
+    future {
+      db.withSession { implicit session =>
+        bySessionId(uuid).first
+      }
+    }
+  }
+
+  //TODO: talk about why invalidation vs deletion is a thing
+  def invalidateAllForUser(id : Long) : Future[Int] = {
+    future {
+      db.withSession { implicit session =>
+        val updateQuery = for { s <- SessionTable if s.userId === id } yield s.sessionInvalidated
+        updateQuery.update(true)
       }
     }
   }

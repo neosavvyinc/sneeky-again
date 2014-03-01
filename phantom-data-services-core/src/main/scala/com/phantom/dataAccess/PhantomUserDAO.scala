@@ -35,7 +35,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
 
   private def insertNoTransact(user : PhantomUser)(implicit session : Session) : PhantomUser = {
     log.trace(s"inserting user: $user")
-    val id = UserTable.forInsert.insert(user)
+    val id = UserTable.forInsert.insert(user.copy(email = user.email.map(_.toLowerCase)))
     log.trace(s"id $id")
     user.copy(id = Some(id))
   }
@@ -67,7 +67,7 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
       db.withSession { implicit session =>
         log.trace(s"logging in $loginRequest")
         val userOpt = for {
-          user <- byEmailQuery(loginRequest.email.toLowerCase).firstOption
+          user <- findByEmailOperation(loginRequest.email)
           password <- user.password if Passwords.check(loginRequest.password, password)
         } yield user
 
@@ -113,6 +113,10 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     db.withSession { implicit session =>
       findUserByUUID(uuid).firstOption
     }
+  }
+
+  def findByEmailOperation(email : String)(implicit session : Session) : Option[PhantomUser] = {
+    byEmailQuery(email.toLowerCase).firstOption
   }
 
   def findByPhoneNumbers(phoneNumbers : Set[String]) : Future[List[PhantomUser]] = {
@@ -199,6 +203,12 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
       case _ => false
     }
 
+  }
+
+  def updatePasswordForUserOperation(email : String, newPassword : String)(implicit session : Session) : Boolean = {
+    val updateQuery = for { u <- UserTable if u.email === email.toLowerCase } yield u.password
+    val numRows = updateQuery.update(newPassword)
+    numRows > 0
   }
 
 }

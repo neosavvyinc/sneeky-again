@@ -52,7 +52,6 @@ class RegistrationEndpointSpec extends Specification
       Post("/users/register", newUser) ~> registrationRoute ~> check {
         assertPayload[RegistrationResponse] { response =>
           val email = getUser(response.verificationUUID).email
-          println(">>>" + email.get)
           email.get must be matching "allcaps@allcapsdomain.cx"
         }
       }
@@ -118,10 +117,10 @@ class RegistrationEndpointSpec extends Specification
         updatedUser.phoneNumber must be equalTo Some("987654321")
         val stubUsers = phantomUsersDao.find(stubUser.id.get)
         stubUsers must beNone
-        val stubConversations = getFeed(stubUser.id.get)
+        val stubConversations = getFullFeed(stubUser.id.get)
         stubConversations must beEmpty
 
-        val conversations = getFeed(user.id.get)
+        val conversations = getFullFeed(user.id.get)
         conversations.foreach {
           case FeedEntry(c, items) =>
             items must have size 1

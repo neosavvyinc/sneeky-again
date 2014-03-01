@@ -35,6 +35,7 @@ trait DSConfiguration {
     def apply(mode : String) = mode.toLowerCase match {
       case "nohash" => NonHashingAuthentication
       case "none"   => NoAuthentication
+      case "full"   => FullAuthentication
       case _        => FullAuthentication
     }
   }
@@ -87,6 +88,15 @@ trait DSConfiguration {
     val encryptFields = securityConfig.getBoolean("encryptFields")
 
     private def securityConfig = cfg.getConfig("security")
+  }
+
+  object MandrillConfiguration {
+    val apiKey = mandrillConfig.getString("apiKey")
+    val smtpHost = mandrillConfig.getString("smtpHost")
+    val smtpPort = mandrillConfig.getString("smtpPort")
+    val username = mandrillConfig.getString("username")
+
+    private def mandrillConfig = cfg.getConfig("mandrill")
   }
 
 }

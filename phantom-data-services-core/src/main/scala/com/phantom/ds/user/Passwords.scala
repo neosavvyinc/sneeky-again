@@ -6,13 +6,21 @@ import javax.crypto.spec.PBEKeySpec
 import org.apache.commons.codec.binary.Base64
 import com.phantom.ds.framework.exception.PhantomException
 import scala.concurrent.Future
+import org.joda.time.DateTime
 
 //shamelessly stolen: http://stackoverflow.com/questions/2860943/suggestions-for-library-to-hash-passwords-in-java
 object Passwords {
 
-  val iterations = 10
+  val iterations = 10 //TODO: bring this back up to a respectable number
   val saltLen = 32
   val desiredKeyLen = 256
+
+  import java.security.MessageDigest
+
+  def generateNewPassword() : String = {
+    val moment = DateTime.now().toString()
+    Base64.encodeBase64String(MessageDigest.getInstance("MD5").digest(moment.getBytes))
+  }
 
   def validate(password : String) = {
     if (password.length < 6) {

@@ -64,15 +64,20 @@ class AppleActor extends Actor with DSConfiguration with Logging {
       payloadBuilder.setBadgeNumber(1)
       payloadBuilder.setAlertBody(ApplePushConfiguration.messageBody)
 
-      if (shouldPlaySound)
+      if (shouldPlaySound) {
+        log.trace(s"Turning ON sound since user user with $token prefers TO hear sound")
         payloadBuilder.setSoundFileName("default")
+      }
 
       val payload = payloadBuilder.buildWithDefaultMaximumLength()
 
       AppleService.pushManager match {
-        case Failure(ex) => throw PhantomException.apnsError(ex.toString())
+        case Failure(ex) => {
+          log.trace(s"Error pushing message for $token caused by: $ex")
+          throw PhantomException.apnsError(ex.toString())
+        }
         case Success(pm) => {
-
+          log.trace(s"Successful push for $token")
           token match {
             case Some(t) => pm.enqueuePushNotification(new SimpleApnsPushNotification(TokenUtil.tokenStringToByteArray(t), payload))
             case None    => log.error(s"tried to send push notification via APNS but received an empty token.")

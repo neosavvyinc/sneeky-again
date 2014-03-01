@@ -4,7 +4,7 @@ import scala.concurrent.{ Future, ExecutionContext, future }
 import com.phantom.model._
 import com.phantom.dataAccess.DatabaseSupport
 import java.io.{ File, FileOutputStream }
-import com.phantom.ds.DSConfiguration
+import com.phantom.ds.{ BasicCrypto, DSConfiguration }
 import com.phantom.model.BlockUserByConversationResponse
 import com.phantom.model.ConversationUpdateResponse
 import com.phantom.model.Conversation
@@ -32,7 +32,7 @@ import com.phantom.ds.framework.protocol.defaults._
  */
 trait ConversationService {
 
-  def findFeed(userId : Long) : Future[List[FeedEntry]]
+  def findFeed(userId : Long, paging : Paging) : Future[List[FeedEntry]]
 
   def startConversation(fromUserId : Long,
                         contactNumbers : Set[String],
@@ -56,20 +56,9 @@ trait ConversationService {
 
 }
 
-object ConversationService extends DSConfiguration {
+object ConversationService extends DSConfiguration with BasicCrypto {
 
   def apply(twilioActor : ActorRef, appleActor : ActorRef)(implicit ec : ExecutionContext) = new ConversationService with DatabaseSupport with Logging {
-
-    //TODO: move this into another class/trait
-    private def encodeBase64(bytes : Array[Byte]) = Base64.encodeBase64String(bytes)
-
-    //TODO: move this into another class/trait
-    private def encryptField(fieldValue : String) : String = {
-      if (SecurityConfiguration.encryptFields)
-        encodeBase64(AES.encrypt(fieldValue, SecurityConfiguration.sharedSecret))
-      else
-        fieldValue
-    }
 
     //TODO: this is going to grow..let's also move this into its own object
     private def sanitizeConversation(conversation : Conversation, loggedInUser : PhantomUser, itemsLength : Int) : FEConversation = {
@@ -98,6 +87,9 @@ object ConversationService extends DSConfiguration {
 
       items.map { conversationItem =>
         val isFromUser = loggedInUser.id.get == conversationItem.fromUser
+
+        log.debug(s"sanitizeConversationItem $conversationItem.createdDate")
+
         FEConversationItem(
           conversationItem.id.get,
           conversationItem.conversationId,
@@ -113,6 +105,7 @@ object ConversationService extends DSConfiguration {
 
     def sanitizeFeed(feed : List[FeedEntry], loggedInUser : PhantomUser) : Future[List[FeedWrapper]] = {
       future {
+        log.debug(s"sanitizeFeed: $feed")
         feed.map { feedEntry =>
           val conversation = sanitizeConversation(feedEntry.conversation, loggedInUser, feedEntry.items.length)
           val conversationItems = sanitizeConversationItems(feedEntry.items, loggedInUser)
@@ -121,12 +114,12 @@ object ConversationService extends DSConfiguration {
       }
     }
 
-    def findFeed(userId : Long) : Future[List[FeedEntry]] = {
+    def findFeed(userId : Long, paging : Paging) : Future[List[FeedEntry]] = {
       future {
         val rawFeed = db.withSession { implicit session : Session =>
           conversationDao.findConversationsAndItemsOperation(userId)
         }
-        FeedFolder.foldFeed(userId, rawFeed)
+        FeedFolder.foldFeed(userId, rawFeed, paging)
       }
     }
 
@@ -141,7 +134,7 @@ object ConversationService extends DSConfiguration {
         (newStubUsers, response) <- createStubUsersAndRoots(nonUsers, users ++ stubUsers, fromUserId, imageText, imageUrl)
         _ <- sendInvitations(stubUsers ++ newStubUsers)
         tokens <- getTokens(allUsers.map(_.id.get))
-        _ <- sendConversationNotifications(allUsers.map(_.settingSound).zip(tokens))
+        _ <- sendNewConversationNotifications(allUsers, tokens)
       } yield response
     }
 
@@ -183,14 +176,30 @@ object ConversationService extends DSConfiguration {
       conversations.map(x => ConversationItem(None, x.id.getOrElse(-1), imageUrl, imageText, x.toUser, fromUserId))
     }
 
-    private def sendConversationNotifications(notifications : Seq[(Boolean, Option[String])]) : Future[Unit] = {
+    private def sendNewConversationNotifications(users : Seq[PhantomUser], tokens : Seq[Option[String]]) : Future[Unit] = {
+      tokens.foreach { token =>
+        log.debug(s">>>>>>> sending a push notification for a new conversation $users and $token")
+      }
+
       future {
-        notifications.foreach { notification =>
-          val (shouldPlaySound, token) = notification
-          if (token.nonEmpty)
-            appleActor ! AppleNotification(shouldPlaySound, token)
-          else
+        users.foreach { user =>
+          sendConversationNotifications(user, tokens)
+        }
+      }
+    }
+
+    private def sendConversationNotifications(user : PhantomUser, tokens : Seq[Option[String]]) : Future[Unit] = {
+      future {
+        log.debug(s"notifications are $tokens")
+
+        tokens.foreach { token =>
+          log.debug(s"User is $user and token is $token and nonEmpty is: $token.nonEmpty")
+          if (token.nonEmpty && user.settingNewPicture) {
+            log.debug(s"sending an apple notification to the apple actor")
+            appleActor ! AppleNotification(user.settingSound, token)
+          } else {
             log.error(s"sendConversationNotifications called with empty token")
+          }
         }
       }
     }
@@ -232,26 +241,33 @@ object ConversationService extends DSConfiguration {
             )
           )
 
-          val conversation = conversationDao.findById(conversationId)
-          conversation onSuccess {
-            case conversation =>
+          citem.map { x =>
+            val conversationF = conversationDao.findById(conversationId)
+            conversationF onSuccess {
+              case conversation =>
 
-              // fire off APNS notifications
-              val userFuture = future(phantomUsersDao.find(conversation.toUser))
-              val tokensFuture = getTokens(Seq(conversation.toUser))
-              for {
-                user <- userFuture
-                tokens <- tokensFuture
-                _ <- sendConversationNotifications(Seq((user.map(_.settingSound).getOrElse(false), tokens.head)))
-              } yield (user, tokens)
+                // fire off APNS notifications
+                val userFuture = future(phantomUsersDao.find(x.toUser))
+                val tokensFuture = getTokens(Seq(x.toUser))
+                for {
+                  user : Option[PhantomUser] <- userFuture
+                  tokens : List[Option[String]] <- tokensFuture
+                  _ <- future {
+                    user.map { u : PhantomUser =>
+                      log.debug(s"sending an apple push notification for a response from a previous conversation item $u.id")
+                      sendConversationNotifications(u, tokens)
+                    }
+                  }
+                } yield (user, tokens)
 
-              conversationDao.updateById(Conversation(
-                conversation.id,
-                conversation.toUser,
-                conversation.fromUser,
-                conversation.receiverPhoneNumber))
-          }
-          citem.map(x => ConversationUpdateResponse(1)).getOrElse(throw PhantomException.nonExistentConversation)
+                conversationDao.updateById(Conversation(
+                  conversation.id,
+                  conversation.toUser,
+                  conversation.fromUser,
+                  conversation.receiverPhoneNumber))
+            }
+            ConversationUpdateResponse(1)
+          }.getOrElse(throw PhantomException.nonExistentConversation)
         }
       }
     }
