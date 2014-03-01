@@ -39,6 +39,8 @@ case class Conversation(id : Option[Long],
                         receiverPhoneNumber : String,
                         lastUpdated : DateTime = DateTime.now())
 
+case class ConversationStartRequest(toUsers : Seq[String], imageText : String, imageId : Long)
+
 case class ConversationInsertResponse(createdCount : Long)
 
 case class ConversationUpdateResponse(id : Long)
