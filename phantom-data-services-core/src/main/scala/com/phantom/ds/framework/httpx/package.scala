@@ -137,6 +137,10 @@ package object httpx {
     implicit val conversationUpdateResponse = jsonFormat1(ConversationUpdateResponse)
     implicit val blockUserByConversationResponse = jsonFormat2(BlockUserByConversationResponse)
 
+    implicit val photoResponse = jsonFormat4(Photo)
+    implicit val photoListResponse = jsonFormat2(PhotoList)
+    implicit val photoCategoryResponse = jsonFormat2(PhotoCategory)
+
   }
 
   trait PhantomResponseMarshaller extends PhantomJsonProtocol {
