@@ -54,6 +54,7 @@ trait ConversationService {
 
   def deleteConversationItem(userId : Long, conversationItemId : Long) : Future[Int]
 
+  def findPhotoUrlById(photoId : Long) : Future[Option[String]]
 }
 
 object ConversationService extends DSConfiguration with BasicCrypto {
@@ -346,6 +347,14 @@ object ConversationService extends DSConfiguration with BasicCrypto {
             }
           }.getOrElse(0)
         }
+      }
+    }
+
+    def findPhotoUrlById(photoId : Long) : Future[Option[String]] = {
+      future {
+        val res = photoDao.findById(photoId).map(_.url)
+        if (res.isEmpty) log.error(s"requested a non-existent stock photo with id $photoId")
+        res
       }
     }
 

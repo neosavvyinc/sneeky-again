@@ -19,6 +19,12 @@ class PhotoDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCont
     //      q.list
     //    }
 
-    List(PhotoList("someCategory", List(Photo(None, 1, true, "test"))))
+    List(PhotoList("someCategory", List(Photo(Some(2), 1, true, "test"))))
+  }
+
+  def findById(id : Long) : Option[Photo] = {
+    db.withSession { implicit session =>
+      Query(PhotoTable).filter(_.id === id).firstOption
+    }
   }
 }
