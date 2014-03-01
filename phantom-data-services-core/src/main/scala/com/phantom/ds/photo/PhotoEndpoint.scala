@@ -11,14 +11,14 @@ import scala.concurrent.Future
 trait PhotoEndpoint extends DataHttpService with PhantomJsonProtocol {
   this : RequestAuthenticator with EntryPointAuthenticator =>
 
-  //val photoService = PhotoService()
+  val photoService = PhotoService()
 
   val photoRoute =
     pathPrefix("photos") {
       authenticate(verified _) { user =>
         get {
           respondWithMediaType(`application/json`) {
-            complete("OK")
+            complete(photoService.findAll)
           }
         }
       }
