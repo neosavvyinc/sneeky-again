@@ -84,7 +84,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
                   Future.successful(
                     SanitizedUser(
                       user.uuid,
-                      user.birthday,
+                      encryptLocalDate(user.birthday),
                       user.status,
                       encryptOption(user.phoneNumber),
                       user.settingSound,

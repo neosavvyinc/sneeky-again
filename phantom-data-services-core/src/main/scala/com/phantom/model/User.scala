@@ -125,7 +125,7 @@ case class PhantomUser(id : Option[Long],
                        mutualContactSetting : Boolean = false)
 
 case class SanitizedUser(uuid : UUID,
-                         birthday : Option[LocalDate],
+                         birthday : Option[String],
                          status : UserStatus,
                          phoneNumber : Option[String],
                          settingSound : Boolean,
