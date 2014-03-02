@@ -6,6 +6,10 @@ import scala.slick.lifted.ColumnOption.DBType
 import java.util.UUID
 import com.phantom.ds.framework.Dates
 
+case class UserRegistrationRequest(email : String,
+                                   birthday : String,
+                                   password : String)
+
 case class UserRegistration(email : String,
                             birthday : LocalDate,
                             password : String)
@@ -121,7 +125,7 @@ case class PhantomUser(id : Option[Long],
                        mutualContactSetting : Boolean = false)
 
 case class SanitizedUser(uuid : UUID,
-                         birthday : Option[LocalDate],
+                         birthday : Option[String],
                          status : UserStatus,
                          phoneNumber : Option[String],
                          settingSound : Boolean,
@@ -129,7 +133,7 @@ case class SanitizedUser(uuid : UUID,
                          mutualContactSetting : Boolean,
                          sessionInvalid : Boolean = false)
 
-case class SanitizedContact(birthday : Option[LocalDate],
+case class SanitizedContact(birthday : Option[String],
                             status : UserStatus,
                             phoneNumber : Option[String])
 

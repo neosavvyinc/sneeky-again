@@ -1,13 +1,13 @@
 package com.phantom.ds.registration
 
-import com.phantom.ds.DataHttpService
+import com.phantom.ds.{ BasicCrypto, DataHttpService }
 import com.phantom.ds.framework.httpx.PhantomJsonProtocol
 import com.phantom.ds.framework.auth.EntryPointAuthenticator
 import spray.http.MediaTypes._
-import com.phantom.model.{ RegistrationVerification, UserRegistration }
+import com.phantom.model.{ UserRegistrationRequest, RegistrationVerification, UserRegistration }
 
 trait RegistrationEndpoint extends DataHttpService
-    with PhantomJsonProtocol { this : EntryPointAuthenticator =>
+    with PhantomJsonProtocol with BasicCrypto { this : EntryPointAuthenticator =>
 
   val registrationService = RegistrationService()
 
@@ -17,13 +17,13 @@ trait RegistrationEndpoint extends DataHttpService
         bool =>
           post {
             respondWithMediaType(`application/json`)
-            entity(as[UserRegistration]) {
+            entity(as[UserRegistrationRequest]) {
               reg =>
                 log.trace(s"registering $reg")
                 complete(registrationService.register(UserRegistration(
-                  reg.email.toLowerCase,
-                  reg.birthday,
-                  reg.password
+                  decryptField(reg.email).toLowerCase,
+                  decryptLocalDate(reg.birthday),
+                  decryptField(reg.password)
                 )))
             }
           }

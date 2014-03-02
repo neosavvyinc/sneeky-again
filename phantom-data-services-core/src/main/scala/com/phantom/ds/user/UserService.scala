@@ -54,7 +54,7 @@ object UserService extends BasicCrypto {
         contacts.insertAll(users.map(u => Contact(None, id, u.id.get)))
 
         users.map(u => SanitizedContact(
-          u.birthday,
+          encryptLocalDate(u.birthday),
           u.status,
           encryptOption(u.phoneNumber)
         ))

@@ -22,7 +22,10 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
             respondWithMediaType(`application/json`)
             entity(as[UserLogin]) {
               reg =>
-                complete(userService.login(reg))
+                complete(userService.login(UserLogin(
+                  decryptField(reg.email),
+                  decryptField(reg.password)
+                )))
             }
           }
       }
@@ -81,7 +84,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
                   Future.successful(
                     SanitizedUser(
                       user.uuid,
-                      user.birthday,
+                      encryptLocalDate(user.birthday),
                       user.status,
                       encryptOption(user.phoneNumber),
                       user.settingSound,
