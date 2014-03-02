@@ -22,8 +22,20 @@ public class MandrillUtil {
         MandrillApi mandrillApi  = new MandrillApi(configuration.getApiKey());
 
         MandrillMessage message = new MandrillMessage();
-        message.setSubject("Dude or Dudette, you must have forgotten your Sneeky Password!");
-        message.setHtml("<h1>Here is your new temporary one!</h2><br/>Use this one to login for now: " + newPassword);
+        message.setSubject("Sneeky Password Assistance");
+        message.setHtml("Subject: \n" +
+                "Sneeky Password Assistance\n" +
+                "\n" +
+                "Body: \n" +
+                "Hi,\n" +
+                "\n" +
+                "We received a notice that you forgot your password. Please use the password below as your new one:\n" +
+                "\n" +
+                newPassword + "\n" +
+                "\n" +
+                "Please email hello@sneekyapp.com if you have any further questions.\n" +
+                "\n" +
+                "- Sneeky Team\n");
         message.setAutoText(true);
         message.setFromEmail(configuration.getUsername());
         message.setFromName("Team Sneeky");

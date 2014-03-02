@@ -98,7 +98,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
         }
       } ~
       pathPrefix("users" / "pushNotifier") {
-        authenticate(verified _) { user =>
+        authenticate(unverified _) { user =>
           post {
             entity(as[UpdatePushTokenRequest]) { pushTokenRequest =>
               parameter('sessionId) { session =>
@@ -115,7 +115,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
         }
       } ~
       pathPrefix("users" / "settings") {
-        authenticate(verified _) { user =>
+        authenticate(unverified _) { user =>
           post {
             entity(as[SettingsRequest]) { pushRequest =>
               parameter('sessionId) { session =>

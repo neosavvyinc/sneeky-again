@@ -3,7 +3,7 @@ package com.phantom.ds.conversation
 import scala.concurrent.{ Future, ExecutionContext, future }
 import com.phantom.model._
 import com.phantom.dataAccess.DatabaseSupport
-import java.io.{ File, FileOutputStream }
+import java.io.{ ByteArrayInputStream, File, FileOutputStream }
 import com.phantom.ds.{ BasicCrypto, DSConfiguration }
 import com.phantom.model.BlockUserByConversationResponse
 import com.phantom.model.ConversationUpdateResponse
@@ -22,6 +22,11 @@ import java.security.MessageDigest
 import org.joda.time.DateTime
 import com.phantom.ds.framework.crypto._
 import com.phantom.ds.framework.protocol.defaults._
+
+import org.jets3t.service.impl.rest.httpclient.RestS3Service
+import org.jets3t.service.security.AWSCredentials
+import org.jets3t.service.model.S3Object
+import org.jets3t.service.acl.{ AccessControlList, GroupGrantee, Permission }
 
 /**
  * Created by Neosavvy
@@ -81,8 +86,6 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       }
     }
 
-    private def getUrl(imageName : String) : String = FileStoreConfiguration.baseImageUrl + imageName
-
     private def sanitizeConversationItems(items : List[ConversationItem], loggedInUser : PhantomUser) : List[FEConversationItem] = {
 
       items.map { conversationItem =>
@@ -93,7 +96,7 @@ object ConversationService extends DSConfiguration with BasicCrypto {
         FEConversationItem(
           conversationItem.id.get,
           conversationItem.conversationId,
-          encryptField(getUrl(conversationItem.imageUrl)),
+          encryptField(conversationItem.imageUrl),
           encryptField(conversationItem.imageText),
           conversationItem.isViewed,
           conversationItem.createdDate,
@@ -273,26 +276,29 @@ object ConversationService extends DSConfiguration with BasicCrypto {
     }
 
     def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String = {
+      val randomImageName : String = MessageDigest.getInstance("MD5").digest(DateTime.now().toString().getBytes).map("%02X".format(_)).mkString
+      val imageUrl = conversationId + "/" + randomImageName
 
-      val randomImageName : String = MessageDigest.getInstance("MD5").digest(Dates.nowDTStr.getBytes).map("%02X".format(_)).mkString
-      val imageDir = FileStoreConfiguration.baseDirectory + "/" + conversationId
-      val imageUrl = imageDir + "/" + randomImageName
-      val dir : File = new File(imageDir)
-      if (!dir.exists())
-        dir.mkdirs()
+      val awsAccessKey = AWS.accessKeyId
+      val awsSecretKey = AWS.secretKey
+      val awsCredentials = new AWSCredentials(awsAccessKey, awsSecretKey)
+      val s3Service = new RestS3Service(awsCredentials)
+      val bucketName = AWS.bucket
+      val bucket = s3Service.getBucket(bucketName)
+      val fileObject = s3Service.putObject(bucket, {
+        val acl = s3Service.getBucketAcl(bucket)
+        acl.grantPermission(GroupGrantee.ALL_USERS, Permission.PERMISSION_READ)
 
-      println("Writing out the image to: " + imageUrl)
+        val tempObj = new S3Object(imageUrl)
+        tempObj.setDataInputStream(new ByteArrayInputStream(image))
+        tempObj.setAcl(acl)
+        tempObj.setContentType("image/jpg")
+        tempObj
+      })
 
-      val fos : FileOutputStream = new FileOutputStream(imageUrl)
-
-      try {
-        fos.write(image)
-      } finally {
-        fos.close()
-      }
-
-      conversationId + "/" + randomImageName
-
+      s3Service.createUnsignedObjectUrl(bucketName,
+        fileObject.getKey,
+        false, false, false)
     }
 
     def blockByConversationId(userId : Long, conversationId : Long) : Future[BlockUserByConversationResponse] = {

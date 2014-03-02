@@ -51,6 +51,7 @@ object Build extends sbt.Build {
           Revolver.enableDebugging(port = 5050, suspend = false) ++
           Seq(
             resolvers += "spray" at "http://repo.spray.io/",
+            resolvers += "jets3t" at "http://www.jets3t.org/maven2",
             compile <<= (compile in Compile) dependsOn (compile in Test, compile in IntegrationTest),
             libraryDependencies ++= Shared.testDeps
           )).settings(Defaults.itSettings: _ *).settings(atmosSettings: _*).configs(IntegrationTest).configs(Atmos)
@@ -101,7 +102,8 @@ object Shared {
     "com.twilio.sdk" % "twilio-java-sdk" % "3.3.9",
     "com.relayrides" % "pushy"           % "0.2",
     "commons-codec"  % "commons-codec"   % "1.6",
-    "com.mandrillapp.wrapper.lutung" % "lutung" % "0.0.4"
+    "com.mandrillapp.wrapper.lutung" % "lutung" % "0.0.4",
+    "net.java.dev.jets3t" % "jets3t" % "0.9.0"
   )
 
   val Slick = Seq(
