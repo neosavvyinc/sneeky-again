@@ -53,9 +53,9 @@ trait BasicCrypto extends DSConfiguration {
     }
   }
 
-  def decryptLocalDate(fieldValue : String ) : LocalDate = {
+  def decryptLocalDate(fieldValue : String) : LocalDate = {
     if (SecurityConfiguration.encryptFields) {
-      Dates.readLocalDate( decryptField(fieldValue) )
+      Dates.readLocalDate(decryptField(fieldValue))
     } else {
       Dates.readLocalDate(fieldValue)
     }

@@ -1,10 +1,10 @@
 package com.phantom.ds.registration
 
-import com.phantom.ds.{BasicCrypto, DataHttpService}
+import com.phantom.ds.{ BasicCrypto, DataHttpService }
 import com.phantom.ds.framework.httpx.PhantomJsonProtocol
 import com.phantom.ds.framework.auth.EntryPointAuthenticator
 import spray.http.MediaTypes._
-import com.phantom.model.{UserRegistrationRequest, RegistrationVerification, UserRegistration}
+import com.phantom.model.{ UserRegistrationRequest, RegistrationVerification, UserRegistration }
 
 trait RegistrationEndpoint extends DataHttpService
     with PhantomJsonProtocol with BasicCrypto { this : EntryPointAuthenticator =>
@@ -21,7 +21,7 @@ trait RegistrationEndpoint extends DataHttpService
               reg =>
                 log.trace(s"registering $reg")
                 complete(registrationService.register(UserRegistration(
-                  decryptField(reg.email.toLowerCase),
+                  decryptField(reg.email).toLowerCase,
                   decryptLocalDate(reg.birthday),
                   decryptField(reg.password)
                 )))

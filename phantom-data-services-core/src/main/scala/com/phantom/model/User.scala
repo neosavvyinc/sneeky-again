@@ -7,8 +7,8 @@ import java.util.UUID
 import com.phantom.ds.framework.Dates
 
 case class UserRegistrationRequest(email : String,
-                            birthday : String,
-                            password : String)
+                                   birthday : String,
+                                   password : String)
 
 case class UserRegistration(email : String,
                             birthday : LocalDate,
