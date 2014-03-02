@@ -34,6 +34,14 @@ object RegistrationService {
           db.withTransaction { implicit s =>
             val user = phantomUsersDao.registerOperation(registrationRequest)
             val session = sessions.createSessionOperation(PhantomSession.newSession(user))
+            val tutorial = conversationDao.insertOperation(Conversation(
+              None, user.id.get, 1, ""
+            ))
+            val tutorialItem = conversationItemDao.insertOperation(new ConversationItem(
+              None, tutorial.id.get, "https://s3.amazonaws.com/sneekyimages/stockImages/caligirl.jpeg",
+              "Welcome to Sneeky! Start by replying to us or send a Sneek to your friends.",
+              tutorial.toUser, tutorial.fromUser
+            ))
             RegistrationResponse(user.uuid, session.sessionId)
           }
         }

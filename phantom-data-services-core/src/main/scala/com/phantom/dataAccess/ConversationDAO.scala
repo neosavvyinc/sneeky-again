@@ -30,6 +30,13 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
+  def insertOperation(conversation : Conversation)(implicit session : Session) : Conversation = {
+
+    val id = ConversationTable.forInsert.insert(conversation)
+    conversation.copy(id = Some(id))
+
+  }
+
   def insertAllOperation(conversations : Seq[Conversation])(implicit session : Session) : Seq[Conversation] = {
     log.trace(s"inserting $conversations")
     val b = ConversationTable.forInsert.insertAll(conversations : _*)

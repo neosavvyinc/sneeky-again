@@ -15,3 +15,4 @@ alter table CONVERSATION_ITEMS add constraint CONVERSATION_FK foreign key(CONVER
 alter table CONTACTS add constraint CONTACT_FK foreign key(CONTACT_ID) references USERS(ID) on update NO ACTION on delete NO ACTION;
 alter table CONTACTS add constraint OWNER_FK foreign key(OWNER_ID) references USERS(ID) on update NO ACTION on delete NO ACTION;
 alter table SESSIONS add constraint USER_FK foreign key(USERID) references USERS(ID) on update NO ACTION on delete NO ACTION;
+INSERT INTO USERS (UUID, EMAIL, PASSWORD, BIRTHDAY, ACTIVE, PHONE_NUMBER, STATUS, INVITATION_COUNT, SOUND_NOTIF, NEW_PICTURE_NOTIF, MUTUAL_CONTACT_ONLY) VALUES('43653787-88d7-491c-8bd7-2e27f10a2c3e', 'admin@sneekyapp.com', 'lOkIreLdxA2/ZuNvCxIruEK1fLEpoFNc6lD8WhYu58g=$TBdMMqXTrHKiCbQvAaurQDTH5d53E0hVgbi417eUrVk=', '1996-03-02', 1, '+13474921313', 'verified', 1, 1, 1, 0);
