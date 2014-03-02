@@ -49,9 +49,9 @@ trait DSConfiguration {
   object AWS {
     val accessKeyId = awsConfig.getString("accessKeyId")
     val secretKey = awsConfig.getString("secretKey")
-    val bucket = awsConfig.getString("sneekyimages")
+    val bucket = awsConfig.getString("bucket")
 
-    private def awsConfig = cfg.getConfig("com.phantom.aws")
+    private def awsConfig = cfg.getConfig("aws")
   }
 
   object FileStoreConfiguration {

@@ -86,8 +86,6 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       }
     }
 
-    private def getUrl(imageName : String) : String = FileStoreConfiguration.baseImageUrl + imageName
-
     private def sanitizeConversationItems(items : List[ConversationItem], loggedInUser : PhantomUser) : List[FEConversationItem] = {
 
       items.map { conversationItem =>
@@ -98,7 +96,7 @@ object ConversationService extends DSConfiguration with BasicCrypto {
         FEConversationItem(
           conversationItem.id.get,
           conversationItem.conversationId,
-          encryptField(getUrl(conversationItem.imageUrl)),
+          encryptField(conversationItem.imageUrl),
           encryptField(conversationItem.imageText),
           conversationItem.isViewed,
           conversationItem.createdDate,
