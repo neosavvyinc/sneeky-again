@@ -22,7 +22,10 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
             respondWithMediaType(`application/json`)
             entity(as[UserLogin]) {
               reg =>
-                complete(userService.login(reg))
+                complete(userService.login(UserLogin(
+                  decryptField(reg.email),
+                  decryptField(reg.password)
+                )))
             }
           }
       }

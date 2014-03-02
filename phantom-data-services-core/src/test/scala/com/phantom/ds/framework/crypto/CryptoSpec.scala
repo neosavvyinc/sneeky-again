@@ -6,6 +6,7 @@ import com.phantom.ds.framework.crypto._
 import com.phantom.ds.framework.protocol.defaults._
 import com.phantom.ds.BasicCrypto
 import java.security.MessageDigest
+import com.phantom.ds.framework.Dates
 
 /**
  * Created by aparrish on 2/26/14.
@@ -28,6 +29,15 @@ class CryptoSpec extends Specification with BasicCrypto {
   sequential
 
   "Basic Encryption and Decryption" should {
+
+    "test a basic local date crypto" in {
+      val date = Dates.nowLD
+      val encrypted = encryptLocalDate(date)
+      val decrypted = decryptField(encrypted)
+
+      Dates.write(date) shouldEqual decrypted
+
+    }
 
     "test the hashWithSecret function" in {
       val hashed = hashWithSecret("2014-02-27T20:48:00-05:00")
