@@ -21,7 +21,7 @@ object TwiioMessageSender {
     val from = "From"
     val body = "Body"
 
-    val bodyText = "yo..DL this app!"
+    val bodyText = "Someone in your contacts sent you a photo anonymously on Sneeky. http://bit.ly/1k4bMFt"
 
     val client = new TwilioRestClient(accountSid, authToken)
     val account = client.getAccount

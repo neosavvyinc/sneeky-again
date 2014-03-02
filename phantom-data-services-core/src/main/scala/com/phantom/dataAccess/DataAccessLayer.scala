@@ -26,21 +26,21 @@ class DataAccessLayer(override val profile : ExtendedProfile) extends Profile wi
       ContactTable.ddl ++
       SessionTable.ddl
 
-  val writer = new PrintWriter(new File("schema.ddl"))
-  writer.write("drop database phantom;\n")
-  writer.write("create database phantom;\n")
-  writer.write("use phantom;\n")
-  ddl.createStatements.foreach(x => {
-    val clean = x.replaceAll("`", "")
-    writer.write(clean + ";\n")
-  })
-  writer.close()
+  //  val writer = new PrintWriter(new File("schema.ddl"))
+  //  writer.write("drop database phantom;\n")
+  //  writer.write("create database phantom;\n")
+  //  writer.write("use phantom;\n")
+  //  ddl.createStatements.foreach(x => {
+  //    val clean = x.replaceAll("`", "")
+  //    writer.write(clean + ";\n")
+  //  })
+  //  writer.close()
 
-  val dropWriter = new PrintWriter(new File("drop.ddl"))
-  ddl.dropStatements.foreach(x => {
-    dropWriter.write(x + "\n")
-  })
-  dropWriter.close();
+  //  val dropWriter = new PrintWriter(new File("drop.ddl"))
+  //  ddl.dropStatements.foreach(x => {
+  //    dropWriter.write(x + "\n")
+  //  })
+  //  dropWriter.close();
 
   def create(db : Database) : Unit = {
     db.withTransaction { implicit session : Session =>
