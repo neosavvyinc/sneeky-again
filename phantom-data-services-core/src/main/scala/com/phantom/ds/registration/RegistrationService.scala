@@ -58,11 +58,13 @@ object RegistrationService {
       private def updateUserStatus(uuid : UUID, message : RegistrationVerification) : Future[Unit] = {
         future {
           db.withTransaction { implicit session : Session =>
-            for {
-              //TODO: this should be conditional on if the phone number is not already in the database
-              verified <- phantomUsersDao.verifyUserOperation(uuid, message.from)
-              convertedCount <- convertStubUser(verified, message.from)
-            } yield convertedCount
+            val existingUser = phantomUsersDao.findNonStubUserByPhoneNumberOperation(message.from)
+            if (existingUser.isEmpty) {
+              for {
+                verified <- phantomUsersDao.verifyUserOperation(uuid, message.from)
+                convertedCount <- convertStubUser(verified, message.from)
+              } yield convertedCount
+            }
           }
         }
       }

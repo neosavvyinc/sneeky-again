@@ -23,7 +23,7 @@
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>
     </root>
-    <logger name="com.phantom.ds" level="error"/>
+    <logger name="com.phantom.ds" level="trace"/>
     <logger name="com.phantom.ds.conversation" level="trace"/>
     <logger name="com.phantom.dataAccess" level="error"/>
     <logger name="scala.slick.session" level="error"/>
