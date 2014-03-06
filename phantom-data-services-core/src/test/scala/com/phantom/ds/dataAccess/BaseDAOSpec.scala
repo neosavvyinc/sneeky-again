@@ -73,6 +73,22 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with TestUtils {
     createVerifiedUser("pablo.alonso@gmail.com", "password", "666666")
   }
 
+  def insertTestPhotoCategories() {
+    val c1 = PhotoCategory(None, "backgrounds")
+    val c2 = PhotoCategory(None, "meems")
+    photoDao.insertCategory(c1)
+    photoDao.insertCategory(c2)
+  }
+
+  def insertTestPhotos() {
+    val p1 = Photo(None, 1, true, "/somewhere/1")
+    val p2 = Photo(None, 2, true, "/somewhere/2")
+    val p3 = Photo(None, 2, true, "/somewhere/3")
+    photoDao.insertPhoto(p1)
+    photoDao.insertPhoto(p2)
+    photoDao.insertPhoto(p3)
+  }
+
   def insertUsersWithPhoneNumbersAndContacts() = {
     insertTestUsers()
     insertTestContacts()

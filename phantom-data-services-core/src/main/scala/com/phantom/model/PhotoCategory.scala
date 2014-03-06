@@ -10,7 +10,7 @@ trait PhotoCategoryComponent { this : Profile =>
   import profile.simple._
 
   object PhotoCategoryTable extends Table[PhotoCategory]("PHOTO_CATEGORIES") {
-    def id = column[Long]("OWNER_ID")
+    def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
     def name = column[String]("NAME")
 
     def * = id.? ~ name <> (PhotoCategory, PhotoCategory.unapply _)

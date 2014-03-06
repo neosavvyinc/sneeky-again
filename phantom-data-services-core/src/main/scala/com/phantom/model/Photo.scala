@@ -14,7 +14,7 @@ trait PhotoComponent { this : Profile with PhotoCategoryComponent =>
   import profile.simple._
 
   object PhotoTable extends Table[Photo]("PHOTOS") {
-    def id = column[Long]("OWNER_ID")
+    def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
     def categoryId = column[Long]("CATEGORY_ID")
     def isActive = column[Boolean]("IS_ACTIVE")
     def url = column[String]("URL")
