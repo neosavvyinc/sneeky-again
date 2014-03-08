@@ -3,30 +3,21 @@ package com.phantom.ds.conversation
 import scala.concurrent.{ Future, ExecutionContext, future }
 import com.phantom.model._
 import com.phantom.dataAccess.DatabaseSupport
-import java.io.{ ByteArrayInputStream, File, FileOutputStream }
 import com.phantom.ds.{ BasicCrypto, DSConfiguration }
 import com.phantom.model.BlockUserByConversationResponse
 import com.phantom.model.ConversationUpdateResponse
 import com.phantom.model.Conversation
 import com.phantom.model.ConversationItem
 import com.phantom.model.ConversationInsertResponse
-import com.phantom.ds.framework.{ Dates, Logging }
+import com.phantom.ds.framework.Logging
 import akka.actor.ActorRef
 import com.phantom.ds.integration.twilio.SendInviteToStubUsers
 import com.phantom.ds.integration.apple.AppleNotification
 import com.phantom.ds.framework.exception.PhantomException
 import scala.slick.session.Session
 import java.util.UUID
-import org.apache.commons.codec.binary.Base64
-import java.security.MessageDigest
-import org.joda.time.DateTime
-import com.phantom.ds.framework.crypto._
-import com.phantom.ds.framework.protocol.defaults._
 
-import org.jets3t.service.impl.rest.httpclient.RestS3Service
-import org.jets3t.service.security.AWSCredentials
-import org.jets3t.service.model.S3Object
-import org.jets3t.service.acl.{ AccessControlList, GroupGrantee, Permission }
+import com.phantom.ds.integration.amazon.S3Service
 
 /**
  * Created by Neosavvy
@@ -63,7 +54,7 @@ trait ConversationService {
 
 object ConversationService extends DSConfiguration with BasicCrypto {
 
-  def apply(twilioActor : ActorRef, appleActor : ActorRef)(implicit ec : ExecutionContext) = new ConversationService with DatabaseSupport with Logging {
+  def apply(twilioActor : ActorRef, appleActor : ActorRef, s3Service : S3Service)(implicit ec : ExecutionContext) = new ConversationService with DatabaseSupport with Logging {
 
     //TODO: this is going to grow..let's also move this into its own object
     private def sanitizeConversation(conversation : Conversation, loggedInUser : PhantomUser, itemsLength : Int) : FEConversation = {
@@ -134,10 +125,11 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       for {
         (nonUsers, allUsers) <- partitionUsers(contactNumbers)
         (stubUsers, users) <- partitionStubUsers(allUsers)
-        (newStubUsers, response) <- createStubUsersAndRoots(nonUsers, users ++ stubUsers, fromUserId, imageText, imageUrl)
+        (unconnectedUsers, connectedUsers) <- partitionMutuallyConnectedUsers(users, fromUserId)
+        (newStubUsers, response) <- createStubUsersAndRoots(nonUsers, connectedUsers ++ stubUsers, unconnectedUsers, fromUserId, imageText, imageUrl)
         _ <- sendInvitations(stubUsers ++ newStubUsers)
-        tokens <- getTokens(allUsers.map(_.id.get))
-        _ <- sendNewConversationNotifications(allUsers, tokens)
+        tokens <- getTokens(connectedUsers.map(_.id.get)) //TODO: These two lines need not be here..they are a single function
+        _ <- sendNewConversationNotifications(connectedUsers, tokens)
       } yield response
     }
 
@@ -155,6 +147,29 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       Future.successful(users.partition(_.status == Stub))
     }
 
+    /*
+      How this works:
+       first split users into 2 groups, users who enabled mutualContactsOnly and those who did not
+       For the mutualcontactsOnly group, check their contacts to see if the fromuser is in their contacts
+       Split the mutualContactsOnly group into users that are connected to the fromUser and those who are not
+       disconnected users are returned as one set, and promiscuosUsers an connected users are merged and returned as
+       anotehr group, since those are treated teh same(ie, all the to users get a conversation, awhereas the disconnected don't receive any notifications
+     */
+    private def partitionMutuallyConnectedUsers(users : Seq[PhantomUser], fromUserId : Long) = {
+      future {
+        db.withSession { implicit session : Session =>
+          val (mutualContactsOnly, promiscuousUsers) = users.partition(_.mutualContactSetting)
+
+          val userIds = mutualContactsOnly.map(_.id).flatten
+          val mutuallyConnectedUsers = contacts.filterConnectedToContactOperation(userIds.toSet, fromUserId)
+
+          val (connected, notConnected) = mutualContactsOnly.partition(_.id.exists(mutuallyConnectedUsers.contains(_)))
+          (notConnected, connected ++ promiscuousUsers)
+
+        }
+      }
+    }
+
     private def partition(phantomsF : Future[List[PhantomUser]], contactNumbers : Set[String]) : Future[(Set[String], Seq[PhantomUser])] = {
       phantomsF.map { users =>
         val existingNumbers = users.map(_.phoneNumber).flatten.toSet
@@ -163,20 +178,25 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       }
     }
 
-    private def createStubUsersAndRoots(numbers : Set[String], users : Seq[PhantomUser], fromUserId : Long, imageText : String, imageUrl : String) : Future[(Seq[PhantomUser], ConversationInsertResponse)] = {
+    private def createStubUsersAndRoots(numbers : Set[String], users : Seq[PhantomUser], unconnectedUsers : Seq[PhantomUser], fromUserId : Long, imageText : String, imageUrl : String) : Future[(Seq[PhantomUser], ConversationInsertResponse)] = {
       future {
         db.withTransaction { implicit session : Session =>
           val newUsers = phantomUsersDao.insertAllOperation(numbers.map(x => PhantomUser(None, UUID.randomUUID, None, None, None, false, Some(x), Stub, 0)).toSeq)
-          val conversations = (users ++ newUsers).map(x => Conversation(None, x.id.getOrElse(-1), fromUserId, x.phoneNumber.get))
-          val createdConversations = conversationDao.insertAllOperation(conversations)
-          conversationItemDao.insertAllOperation(createConversationItemRoots(createdConversations, fromUserId, imageText, imageUrl))
-          (newUsers, ConversationInsertResponse(createdConversations.size))
+          val connectedCount = createConversations(users ++ newUsers, fromUserId, imageText, imageUrl, false)
+          val unconnectedCount = createConversations(unconnectedUsers, fromUserId, imageText, imageUrl, true)
+          (newUsers, ConversationInsertResponse(connectedCount + unconnectedCount))
         }
       }
     }
 
-    private def createConversationItemRoots(conversations : Seq[Conversation], fromUserId : Long, imageText : String, imageUrl : String) : Seq[ConversationItem] = {
-      conversations.map(x => ConversationItem(None, x.id.getOrElse(-1), imageUrl, imageText, x.toUser, fromUserId))
+    private def createConversations(users : Seq[PhantomUser], fromUserId : Long, imageText : String, imageUrl : String, invisibleToReceiver : Boolean)(implicit session : Session) = {
+      val conversations = users.map(x => Conversation(None, x.id.getOrElse(-1), fromUserId, x.phoneNumber.get))
+      val createdConversations = conversationDao.insertAllOperation(conversations)
+      conversationItemDao.insertAllOperation(createConversationItemRoots(createdConversations, fromUserId, imageText, imageUrl, invisibleToReceiver)).size
+    }
+
+    private def createConversationItemRoots(conversations : Seq[Conversation], fromUserId : Long, imageText : String, imageUrl : String, deletedByToUser : Boolean) : Seq[ConversationItem] = {
+      conversations.map(x => ConversationItem(None, x.id.getOrElse(-1), imageUrl, imageText, x.toUser, fromUserId, toUserDeleted = deletedByToUser))
     }
 
     private def sendNewConversationNotifications(users : Seq[PhantomUser], tokens : Seq[Option[String]]) : Future[Unit] = {
@@ -276,29 +296,7 @@ object ConversationService extends DSConfiguration with BasicCrypto {
     }
 
     def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String = {
-      val randomImageName : String = MessageDigest.getInstance("MD5").digest(DateTime.now().toString().getBytes).map("%02X".format(_)).mkString
-      val imageUrl = conversationId + "/" + randomImageName
-
-      val awsAccessKey = AWS.accessKeyId
-      val awsSecretKey = AWS.secretKey
-      val awsCredentials = new AWSCredentials(awsAccessKey, awsSecretKey)
-      val s3Service = new RestS3Service(awsCredentials)
-      val bucketName = AWS.bucket
-      val bucket = s3Service.getBucket(bucketName)
-      val fileObject = s3Service.putObject(bucket, {
-        val acl = s3Service.getBucketAcl(bucket)
-        acl.grantPermission(GroupGrantee.ALL_USERS, Permission.PERMISSION_READ)
-
-        val tempObj = new S3Object(imageUrl)
-        tempObj.setDataInputStream(new ByteArrayInputStream(image))
-        tempObj.setAcl(acl)
-        tempObj.setContentType("image/jpg")
-        tempObj
-      })
-
-      s3Service.createUnsignedObjectUrl(bucketName,
-        fileObject.getKey,
-        false, false, false)
+      s3Service.saveImage(image, conversationId)
     }
 
     def blockByConversationId(userId : Long, conversationId : Long) : Future[BlockUserByConversationResponse] = {

@@ -5,9 +5,8 @@ import com.phantom.ds.{ BasicCrypto, DataHttpService }
 
 import com.phantom.ds.framework.auth.RequestAuthenticator
 import akka.actor.ActorRef
-import org.apache.commons.codec.binary.Base64
-import com.phantom.ds.framework.crypto.AES
 import com.phantom.model.Paging
+import com.phantom.ds.integration.amazon.S3Service
 
 /**
  * Created by Neosavvy
@@ -23,7 +22,9 @@ trait ConversationEndpoint extends DataHttpService with BasicCrypto {
 
   def appleActor : ActorRef
 
-  val conversationService = ConversationService(twilioActor, appleActor) //need a better way of injecting services..trait!
+  def s3Service : S3Service
+
+  val conversationService = ConversationService(twilioActor, appleActor, s3Service) //need a better way of injecting services..trait!
   val conversation = "conversation"
 
   val conversationRoute =

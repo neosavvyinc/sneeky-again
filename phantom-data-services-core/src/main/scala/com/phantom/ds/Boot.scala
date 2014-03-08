@@ -9,6 +9,7 @@ import com.phantom.ds.integration.apple.{ AppleActor, AppleService }
 import com.phantom.ds.framework.Logging
 import java.util.TimeZone
 import org.joda.time.DateTimeZone
+import com.phantom.ds.integration.amazon.S3Service
 
 object Boot extends App with DSConfiguration with Logging {
 
@@ -29,9 +30,9 @@ object Boot extends App with DSConfiguration with Logging {
     val mode = AuthConfiguration.mode
     log.info(s"---->>>STARTING APPLICATION WITH AUTHENTICATION: $mode <<<------")
     mode match {
-      case FullAuthentication       => system.actorOf(Props(new PhantomRouteActor(twilioActor, appleActor) with PhantomRequestAuthenticator with PhantomEntryPointAuthenticator), "service")
-      case NonHashingAuthentication => system.actorOf(Props(new PhantomRouteActor(twilioActor, appleActor) with NonHashingRequestAuthenticator with PassThroughEntryPointAuthenticator), "service")
-      case NoAuthentication         => system.actorOf(Props(new PhantomRouteActor(twilioActor, appleActor) with PassThroughRequestAuthenticator with PassThroughEntryPointAuthenticator), "service")
+      case FullAuthentication       => system.actorOf(Props(new PhantomRouteActor(twilioActor, appleActor, S3Service()) with PhantomRequestAuthenticator with PhantomEntryPointAuthenticator), "service")
+      case NonHashingAuthentication => system.actorOf(Props(new PhantomRouteActor(twilioActor, appleActor, S3Service()) with NonHashingRequestAuthenticator with PassThroughEntryPointAuthenticator), "service")
+      case NoAuthentication         => system.actorOf(Props(new PhantomRouteActor(twilioActor, appleActor, S3Service()) with PassThroughRequestAuthenticator with PassThroughEntryPointAuthenticator), "service")
     }
   }
 
