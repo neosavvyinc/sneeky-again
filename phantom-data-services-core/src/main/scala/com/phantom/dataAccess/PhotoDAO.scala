@@ -14,7 +14,7 @@ class PhotoDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCont
   def findAll : List[PhotoList] = {
     db.withSession { implicit session =>
       val q = (for {
-        p <- PhotoTable
+        p <- PhotoTable if p.isActive
         pc <- PhotoCategoryTable if p.categoryId === pc.id
       } yield (pc.name, p))
 
