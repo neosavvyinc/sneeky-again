@@ -18,9 +18,10 @@ class PhotoDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCont
         pc <- PhotoCategoryTable if p.categoryId === pc.id
       } yield (pc.name, p))
 
-      val res = q.list
-      println(res) //.map(p => PhotoList(p._1.name, p._2))
-      List(PhotoList("someCategory", List(Photo(Some(2), 1, true, "test"))))
+      val photoLists = q.list.groupBy(_._1).map {
+        case (k, v) => PhotoList(k, v.map(_._2))
+      }
+      photoLists.toList
     }
   }
 

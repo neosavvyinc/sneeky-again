@@ -11,7 +11,9 @@ class PhotoDAOSpec extends BaseDAOSpec {
       insertTestPhotoCategories()
       insertTestPhotos()
       val photosAndCategories = photoDao.findAll
-      1 must equalTo(1)
+      photosAndCategories.length must equalTo(2)
+      photosAndCategories.head.images.length must equalTo(1)
+      photosAndCategories.tail.head.images.length must equalTo(2)
     }
 
   }
