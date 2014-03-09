@@ -42,6 +42,8 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
 
   private val byEmailQuery = for (email <- Parameters[String]; u <- UserTable if u.email.toLowerCase is email.toLowerCase) yield u
 
+  private val byIdQuery = for { id <- Parameters[Long]; u <- UserTable if u.id === id } yield u
+
   private val existsQuery = for (email <- Parameters[String]; u <- UserTable if u.email.toLowerCase is email.toLowerCase) yield u.exists
 
   private val nonStubUserByPhoneNumberQuery = for (phoneNumber <- Parameters[String]; u <- UserTable if u.phoneNumber === phoneNumber && u.status =!= (Stub : UserStatus)) yield u
@@ -101,11 +103,10 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     stubUserByPhoneNumber(number).firstOption
   }
 
-  private val findById = for { id <- Parameters[Long]; u <- UserTable if u.id === id } yield u
-
+  //TODO : ONLY USED BY TESTS
   def find(id : Long) : Option[PhantomUser] = {
     db.withSession { implicit session =>
-      findById(id).firstOption
+      byIdQuery(id).firstOption
     }
   }
 
@@ -115,6 +116,10 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     db.withSession { implicit session =>
       findUserByUUID(uuid).firstOption
     }
+  }
+
+  def findByIdOperation(id : Long)(implicit session : Session) : Option[PhantomUser] = {
+    byIdQuery(id).firstOption
   }
 
   def findByEmailOperation(email : String)(implicit session : Session) : Option[PhantomUser] = {

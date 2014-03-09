@@ -8,7 +8,7 @@ import akka.actor.ActorRefFactory
 import spray.testkit.Specs2RouteTest
 import com.phantom.ds.integration.twilio.SendInviteToStubUsers
 import com.phantom.ds.integration.apple.AppleNotification
-import com.phantom.model.{ Contact, NoPaging, FeedEntry }
+import com.phantom.model.{ MutualContactMessaging, Contact, NoPaging, FeedEntry }
 import com.phantom.ds.integration.mock.TestS3Service
 
 /**
@@ -30,6 +30,7 @@ class ConversationServiceSpec extends Specification
   val s3Service = new TestS3Service()
 
   "The Conversation Service" should {
+
     "start conversations with only phantom users" in withSetupTeardown {
 
       val tProbe = TestProbe()
@@ -243,6 +244,72 @@ class ConversationServiceSpec extends Specification
         feedEntry.items.head.toUserDeleted must beEqualTo(deleted.get)
       }
       feed.size must beEqualTo(2)
+    }
+
+    "responding to a conversation after recipient sets mutualOnly should not block any new conversation items if the users are connected" in withSetupTeardown {
+      val tProbe = TestProbe()
+      val aProbe = TestProbe()
+      val service = ConversationService(tProbe.ref, aProbe.ref, s3Service)
+
+      val userA = createVerifiedUser("a@a.com", "123", "123")
+      val userB = createVerifiedUser("b@b.com", "456", "456", true)
+      val aToB = Contact(None, userA.id.get, userB.id.get)
+      val bToA = Contact(None, userB.id.get, userA.id.get)
+      contacts.insertAll(Seq(aToB, bToA))
+      await(service.startConversation(userA.id.get, Set("456"), "text", "url"))
+      val conversations = conversationDao.findByFromUserId(userA.id.get)
+      phantomUsersDao.updateSetting(userB.id.get, MutualContactMessaging, true)
+      await(service.respondToConversation(userA.id.get, conversations.head.id.get, "text", null))
+
+      val aFeed = await(service.findFeed(userA.id.get, NoPaging))
+      aFeed.foreach { feedEntry =>
+        feedEntry.items must have size 2
+        feedEntry.items.head.toUserDeleted must beEqualTo(false)
+      }
+
+      aFeed must have size 1
+
+      val bFeed = await(service.findFeed(userB.id.get, NoPaging))
+      bFeed.foreach { feedEntry =>
+        feedEntry.items must have size 2
+        feedEntry.items.head.toUserDeleted must beEqualTo(false)
+      }
+
+      bFeed must have size 1
+
+    }
+
+    "responding to a conversation after recipient sets mutualOnly should block any new conversation items to the recipient if the users are not connected" in withSetupTeardown {
+      val tProbe = TestProbe()
+      val aProbe = TestProbe()
+      val service = ConversationService(tProbe.ref, aProbe.ref, s3Service)
+
+      val userA = createVerifiedUser("a@a.com", "123", "123")
+      val userB = createVerifiedUser("b@b.com", "456", "456", true)
+      val aToB = Contact(None, userA.id.get, userB.id.get)
+      contacts.insertAll(Seq(aToB))
+      await(service.startConversation(userA.id.get, Set("456"), "text", "url"))
+      val conversations = conversationDao.findByFromUserId(userA.id.get)
+      phantomUsersDao.updateSetting(userB.id.get, MutualContactMessaging, true)
+      await(service.respondToConversation(userA.id.get, conversations.head.id.get, "text", null))
+
+      val aFeed = await(service.findFeed(userA.id.get, NoPaging))
+      aFeed.foreach { feedEntry =>
+        feedEntry.items must have size 2
+        val expectedDeleteFlags = Seq(true, false)
+        val deletedFlags = feedEntry.items.map(_.toUserDeleted)
+        deletedFlags must beEqualTo(expectedDeleteFlags)
+      }
+
+      aFeed must have size 1
+
+      val bFeed = await(service.findFeed(userB.id.get, NoPaging))
+      bFeed.foreach { feedEntry =>
+        feedEntry.items must have size 1
+        feedEntry.items.head.toUserDeleted must beEqualTo(false)
+      }
+
+      bFeed must have size 1
     }
 
   }

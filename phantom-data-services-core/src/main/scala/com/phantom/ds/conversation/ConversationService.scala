@@ -94,7 +94,6 @@ object ConversationService extends DSConfiguration with BasicCrypto {
           isFromUser
         )
       }
-
     }
 
     def sanitizeFeed(feed : List[FeedEntry], loggedInUser : PhantomUser) : Future[List[FeedWrapper]] = {
@@ -246,52 +245,45 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       }
     }
 
-    override def respondToConversation(loggedInUser : Long, conversationId : Long, imageText : String, image : Array[Byte]) : Future[ConversationUpdateResponse] = {
-      future {
-        db.withTransaction { implicit session =>
-          val citem = for {
-            conversation <- conversationDao.findByIdAndUserOperation(conversationId, loggedInUser)
-          } yield conversationItemDao.insertOperation(
-            ConversationItem(
-              None,
-              conversationId,
-              saveFileForConversationId(
-                image,
-                conversationId),
-              imageText,
-              findToUser(loggedInUser, conversation),
-              loggedInUser
-            )
-          )
+    def respondToConversation(loggedInUser : Long, conversationId : Long, imageText : String, image : Array[Byte]) : Future[ConversationUpdateResponse] = {
 
-          citem.map { x =>
-            val conversationF = conversationDao.findById(conversationId)
-            conversationF onSuccess {
-              case conversation =>
-
-                // fire off APNS notifications
-                val userFuture = future(phantomUsersDao.find(x.toUser))
-                val tokensFuture = getTokens(Seq(x.toUser))
-                for {
-                  user : Option[PhantomUser] <- userFuture
-                  tokens : List[Option[String]] <- tokensFuture
-                  _ <- future {
-                    user.map { u : PhantomUser =>
-                      log.debug(s"sending an apple push notification for a response from a previous conversation item $u.id")
-                      sendConversationNotifications(u, tokens)
-                    }
-                  }
-                } yield (user, tokens)
-
-                conversationDao.updateById(Conversation(
-                  conversation.id,
-                  conversation.toUser,
-                  conversation.fromUser,
-                  conversation.receiverPhoneNumber))
+      val recipientOF =
+        future {
+          db.withTransaction { implicit session : Session =>
+            for {
+              conversation <- conversationDao.findByIdAndUserOperation(conversationId, loggedInUser)
+              receivingUser <- phantomUsersDao.findByIdOperation(getOtherUserId(conversation, loggedInUser))
+            } yield {
+              val imageUrl = saveFileForConversationId(image, conversationId)
+              val visibleToRecipient = checkUsersConnected(receivingUser, loggedInUser)
+              conversationItemDao.insertOperation(ConversationItem(None, conversationId, imageUrl, imageText, receivingUser.id.get, loggedInUser, visibleToRecipient))
+              conversationDao.updateLastUpdatedOperation(conversationId)
+              receivingUser
             }
-            ConversationUpdateResponse(1)
-          }.getOrElse(throw PhantomException.nonExistentConversation)
+          }
         }
+
+      recipientOF.flatMap {
+        case None    => throw PhantomException.nonExistentConversation
+        case Some(x) => sendConversationNotificationsToRecipient(x)
+      }
+    }
+
+    private def checkUsersConnected(recipient : PhantomUser, sendingUser : Long)(implicit session : Session) = {
+      if (recipient.mutualContactSetting) {
+        val connectedUsers = contacts.filterConnectedToContactOperation(Set(recipient.id.get), sendingUser)
+        connectedUsers.nonEmpty
+      } else {
+        true
+      }
+    }
+
+    private def sendConversationNotificationsToRecipient(recipient : PhantomUser) = {
+      for {
+        tokens <- getTokens(Seq(recipient.id.get))
+      } yield {
+        sendConversationNotifications(recipient, tokens)
+        ConversationUpdateResponse(1)
       }
     }
 

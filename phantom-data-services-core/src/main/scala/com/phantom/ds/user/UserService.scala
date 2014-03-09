@@ -37,8 +37,10 @@ object UserService extends BasicCrypto {
 
     def findById(id : Long) : Future[PhantomUser] = {
       future {
-        val opt = phantomUsersDao.find(id)
-        opt.getOrElse(throw PhantomException.nonExistentUser)
+        db.withSession { implicit session =>
+          val opt = phantomUsersDao.findByIdOperation(id)
+          opt.getOrElse(throw PhantomException.nonExistentUser)
+        }
       }
     }
 
