@@ -113,7 +113,32 @@ trait ConversationEndpoint extends DataHttpService with BasicCrypto {
                     convId,
                     imageText,
                     image)
+                }
+              }
+            }
+          }
+        }
+      }
+    } ~ {
+      pathPrefix(conversation) {
+        path("respond" / "stock") {
+          authenticate(verified _) { user =>
+            post {
+              respondWithMediaType(`application/json`) {
 
+                // TO DO change this to ConversationContinueRequest (or something)
+                entity(as[ConversationStartRequest]) { req =>
+                  complete {
+                    conversationService.findPhotoUrlById(req.imageId).map { photoUrl : Option[String] =>
+                      photoUrl.map { url : String =>
+                        conversationService.respondToConversation(
+                          user.id.get,
+                          req.convId,
+                          req.imageText,
+                          url) // need image as Array[Byte]?
+                      }
+                    }
+                  }
                 }
               }
             }
