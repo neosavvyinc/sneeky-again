@@ -141,7 +141,7 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       } yield response
     }
 
-    private def getTokens(userIds : Seq[Long]) : Future[List[Option[String]]] = {
+    private def getTokens(userIds : Seq[Long]) : Future[Map[Long, Set[String]]] = {
       future {
         sessions.findTokensByUserId(userIds)
       }
@@ -179,29 +179,27 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       conversations.map(x => ConversationItem(None, x.id.getOrElse(-1), imageUrl, imageText, x.toUser, fromUserId))
     }
 
-    private def sendNewConversationNotifications(users : Seq[PhantomUser], tokens : Seq[Option[String]]) : Future[Unit] = {
+    private def sendNewConversationNotifications(users : Seq[PhantomUser], tokens : Map[Long, Set[String]]) : Future[Unit] = {
       tokens.foreach { token =>
         log.debug(s">>>>>>> sending a push notification for a new conversation $users and $token")
       }
 
       future {
         users.foreach { user =>
-          sendConversationNotifications(user, tokens)
+          sendConversationNotifications(user, tokens.getOrElse(user.id.get, Set.empty))
         }
       }
     }
 
-    private def sendConversationNotifications(user : PhantomUser, tokens : Seq[Option[String]]) : Future[Unit] = {
+    private def sendConversationNotifications(user : PhantomUser, tokens : Set[String]) : Future[Unit] = {
       future {
         log.debug(s"notifications are $tokens")
-
-        tokens.foreach { token =>
-          log.debug(s"User is $user and token is $token and nonEmpty is: $token.nonEmpty")
-          if (token.nonEmpty && user.settingNewPicture) {
-            log.debug(s"sending an apple notification to the apple actor")
-            appleActor ! AppleNotification(user.settingSound, token)
-          } else {
-            log.error(s"sendConversationNotifications called with empty token")
+        if (user.settingNewPicture) {
+          tokens.foreach {
+            token =>
+              val note = AppleNotification(user.settingSound, Some(token))
+              log.debug(s"sending an apple notification to the apple actor $note for user ${user.email}")
+              appleActor ! note
           }
         }
       }
@@ -254,11 +252,11 @@ object ConversationService extends DSConfiguration with BasicCrypto {
                 val tokensFuture = getTokens(Seq(x.toUser))
                 for {
                   user : Option[PhantomUser] <- userFuture
-                  tokens : List[Option[String]] <- tokensFuture
+                  tokens <- tokensFuture
                   _ <- future {
                     user.map { u : PhantomUser =>
                       log.debug(s"sending an apple push notification for a response from a previous conversation item $u.id")
-                      sendConversationNotifications(u, tokens)
+                      sendConversationNotifications(u, tokens.getOrElse(u.id.get, Set.empty))
                     }
                   }
                 } yield (user, tokens)
