@@ -28,4 +28,6 @@
     <logger name="com.phantom.dataAccess" level="error"/>
     <logger name="scala.slick.session" level="error"/>
     <logger name="com.phantom.ds.framework" level="error"/>
+    <logger name="com.phantom.ds.integration.apple" level="trace"/>
+    <logger name="com.relayrides" level="trace"/>
 </configuration>
