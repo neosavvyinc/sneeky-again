@@ -1,6 +1,5 @@
 package com.phantom.ds.dataAccess
 
-import java.util.UUID
 import com.phantom.model._
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.phantom.model.PhantomUser
@@ -42,7 +41,7 @@ class SessionDAOSpec extends BaseDAOSpec {
 
       val result = sessions.findTokensByUserId(List(user1, user2).map(_.id.get))
 
-      result.sorted should be equalTo List(Some("123456"), Some("234567"))
+      result should be equalTo Map(user1.id.get -> Set("123456"), user2.id.get -> Set("234567"))
     }
 
     "should return null tokens as None type" in withSetupTeardown {
@@ -56,7 +55,7 @@ class SessionDAOSpec extends BaseDAOSpec {
 
       val result = sessions.findTokensByUserId(List(user1, user2).map(_.id.get))
 
-      result.sorted should be equalTo List(None, Some("123456"))
+      result should be equalTo Map(user1.id.get -> Set("123456"), user2.id.get -> Set.empty)
     }
 
   }

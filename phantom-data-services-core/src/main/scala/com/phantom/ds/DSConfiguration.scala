@@ -78,6 +78,7 @@ trait DSConfiguration {
     val productionCert = applePushCfg.getString("productionCertPath")
     val messageBody = applePushCfg.getString("messageBody")
     val environment = applePushCfg.getString("environment")
+    val connectionCount = applePushCfg.getInt("connectionCount")
 
     private def applePushCfg = cfg.getConfig("apple")
   }
