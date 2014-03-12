@@ -34,20 +34,17 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     }
   }
 
-  def findTokensByUserId(userIds : Seq[Long]) : List[Option[String]] = {
+  def findTokensByUserId(userIds : Seq[Long]) : Map[Long, Set[String]] = {
     db.withSession { implicit s =>
       userIds.foreach { userId =>
         log.debug(s"finding tokens for user id $userId")
       }
 
-      val q = for { s <- SessionTable if (s.userId inSet userIds) } yield s.pushNotifierToken.?
+      val q = for { s <- SessionTable if (s.userId inSet userIds) } yield s.userId ~ s.pushNotifierToken.?
       val tokens = q.list
-
-      tokens.foreach { token =>
-        log.debug(s"tokens for $token")
-      }
-
-      tokens
+      val grouped = tokens.groupBy(_._1).mapValues(x => x.map(_._2).flatten.toSet)
+      grouped.foreach { case (k, v) => log.debug(s"tokens for $k are $v") }
+      grouped
     }
   }
 
