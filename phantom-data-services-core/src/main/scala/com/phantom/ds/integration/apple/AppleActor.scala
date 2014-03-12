@@ -4,13 +4,10 @@ import akka.actor.Actor
 import scala.util.{ Success, Failure }
 import com.phantom.ds.DSConfiguration
 import com.phantom.ds.framework.Logging
-import com.phantom.model.PhantomUser
 import com.phantom.ds.framework.exception.PhantomException
 import scala.util.Try
 import com.relayrides.pushy.apns._
 import util._
-import java.io.BufferedInputStream
-import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
 
 class AppleAPNSRejectListener extends RejectedNotificationListener[SimpleApnsPushNotification] with Logging {
   def handleRejectedNotification(notification : SimpleApnsPushNotification, reason : RejectedNotificationReason) = {
@@ -27,8 +24,8 @@ object AppleService extends DSConfiguration {
   }
 
   private val environment : ApnsEnvironment = ApplePushConfiguration.environment match {
-    case "production" => ApnsEnvironment.getProductionEnvironment()
-    case _            => ApnsEnvironment.getSandboxEnvironment()
+    case "production" => ApnsEnvironment.getProductionEnvironment
+    case _            => ApnsEnvironment.getSandboxEnvironment
   }
 
   private val certificate : String = ApplePushConfiguration.environment match {
@@ -40,12 +37,13 @@ object AppleService extends DSConfiguration {
 
   val pushManager = for {
     keyStore <- Try(java.security.KeyStore.getInstance("PKCS12"))
-    _ <- Try(keyStore.load(keystoreInputStream, ApplePushConfiguration.keyStorePassword.toCharArray()))
+    _ <- Try(keyStore.load(keystoreInputStream, ApplePushConfiguration.keyStorePassword.toCharArray))
     pm <- Try(
       new PushManager[SimpleApnsPushNotification](
         environment,
         keyStore,
-        ApplePushConfiguration.keyStorePassword.toCharArray()
+        ApplePushConfiguration.keyStorePassword.toCharArray,
+        ApplePushConfiguration.connectionCount
       )
     )
     _ <- Try(pm.registerRejectedNotificationListener(new AppleAPNSRejectListener()))
