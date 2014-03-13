@@ -8,27 +8,15 @@ import com.phantom.ds.framework.Logging
 object UUIDExtractor extends Logging {
 
   /**
-   * This regex will need to change. Currently the following message:
-   *  "This is a message ##UUID## end of message" generates a positive result
-   * However, this one:
-   *  "This is a message ##UUID##" generates a negative result.
-   *
-   * Aside from that, the message format will be like this in Sneaky:
-   *
-   * "This is a message to the user [UUID]"
+   * This class will try to extractd a UUID from a text blob
    */
-  private val regex = """[\[\]]"""
+
+  private val ucharset = "[a-hA-H0-9]"
+  private val regex = s"($ucharset{8}" + "\\-" + s"$ucharset{4}" + "\\-" + s"$ucharset{4}" + "\\-" + s"$ucharset{4}" + "\\-" + s"$ucharset{12})"
+  private val UUIDM = regex.r
 
   def extractUUID(regVer : RegistrationVerification) : Option[UUID] = {
-
-    val split : List[String] = regVer.body.split(regex).toList
-
-    log.debug(split.toString())
-
-    split match {
-      case x :: y :: z :: Nil => validateUUID(y)
-      case _                  => None
-    }
+    UUIDM.findFirstIn(regVer.body).flatMap(validateUUID)
   }
 
   private def validateUUID(uuid : String) : Option[UUID] = {
