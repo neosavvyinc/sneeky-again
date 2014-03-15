@@ -47,7 +47,7 @@ trait ConversationService {
   def respondToConversation(userId : Long,
                             conversationId : Long,
                             imageText : String,
-                            image : Array[Byte]) : Future[ConversationUpdateResponse]
+                            imageUrl : String) : Future[ConversationUpdateResponse]
 
   def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String
 
@@ -225,7 +225,7 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       }
     }
 
-    override def respondToConversation(loggedInUser : Long, conversationId : Long, imageText : String, image : Array[Byte]) : Future[ConversationUpdateResponse] = {
+    override def respondToConversation(loggedInUser : Long, conversationId : Long, imageText : String, imageUrl : String) : Future[ConversationUpdateResponse] = {
       future {
         db.withTransaction { implicit session =>
           val citem = for {
@@ -234,9 +234,7 @@ object ConversationService extends DSConfiguration with BasicCrypto {
             ConversationItem(
               None,
               conversationId,
-              saveFileForConversationId(
-                image,
-                conversationId),
+              imageUrl,
               imageText,
               findToUser(loggedInUser, conversation),
               loggedInUser

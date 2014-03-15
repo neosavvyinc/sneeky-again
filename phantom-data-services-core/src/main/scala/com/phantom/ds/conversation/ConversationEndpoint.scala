@@ -2,7 +2,7 @@ package com.phantom.ds.conversation
 
 import spray.http.MediaTypes._
 import com.phantom.ds.{ BasicCrypto, DataHttpService }
-import com.phantom.model.{ ConversationStartRequest }
+import com.phantom.model.{ ConversationStartRequest, ConversationRespondRequest }
 import com.phantom.ds.framework.auth.RequestAuthenticator
 import akka.actor.ActorRef
 import org.apache.commons.codec.binary.Base64
@@ -112,7 +112,8 @@ trait ConversationEndpoint extends DataHttpService with BasicCrypto {
                     user.id.get,
                     convId,
                     imageText,
-                    image)
+                    conversationService.saveFileForConversationId(image, convId)
+                  )
                 }
               }
             }
@@ -127,7 +128,7 @@ trait ConversationEndpoint extends DataHttpService with BasicCrypto {
               respondWithMediaType(`application/json`) {
 
                 // TO DO change this to ConversationContinueRequest (or something)
-                entity(as[ConversationStartRequest]) { req =>
+                entity(as[ConversationRespondRequest]) { req =>
                   complete {
                     conversationService.findPhotoUrlById(req.imageId).map { photoUrl : Option[String] =>
                       photoUrl.map { url : String =>
@@ -135,7 +136,7 @@ trait ConversationEndpoint extends DataHttpService with BasicCrypto {
                           user.id.get,
                           req.convId,
                           req.imageText,
-                          url) // need image as Array[Byte]?
+                          url)
                       }
                     }
                   }

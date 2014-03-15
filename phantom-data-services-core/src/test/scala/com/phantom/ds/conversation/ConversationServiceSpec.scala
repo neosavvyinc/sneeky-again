@@ -184,7 +184,7 @@ class ConversationServiceSpec extends Specification
 
       val convo = createConversation(starter.id.get, receiver.id.get)
 
-      val results = await(service.respondToConversation(starter.id.get, convo.id.get, "text", new Array[Byte](1)))
+      val results = await(service.respondToConversation(starter.id.get, convo.id.get, "text", "my.imageurl.com"))
       aProbe.expectMsgAllOf(AppleNotification(true, Some("123456")))
       tProbe.expectNoMsg()
 

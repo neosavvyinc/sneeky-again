@@ -132,6 +132,7 @@ package object httpx {
     implicit val conversationInsertResponse = jsonFormat1(ConversationInsertResponse)
     implicit val conversationUpdateResponse = jsonFormat1(ConversationUpdateResponse)
     implicit val conversationStartRequest = jsonFormat3(ConversationStartRequest)
+    implicit val conversationRespondRequest = jsonFormat3(ConversationRespondRequest)
     implicit val blockUserByConversationResponse = jsonFormat2(BlockUserByConversationResponse)
 
     implicit val photoResponse = jsonFormat4(Photo)

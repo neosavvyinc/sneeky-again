@@ -42,6 +42,8 @@ case class Conversation(id : Option[Long],
 
 case class ConversationStartRequest(toUsers : Seq[String], imageText : String, imageId : Long)
 
+case class ConversationRespondRequest(convId : Long, imageText : String, imageId : Long)
+
 case class ConversationInsertResponse(createdCount : Long)
 
 case class ConversationUpdateResponse(id : Long)
