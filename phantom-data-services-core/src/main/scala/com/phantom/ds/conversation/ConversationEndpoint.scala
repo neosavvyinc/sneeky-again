@@ -58,13 +58,14 @@ trait ConversationEndpoint extends DataHttpService with BasicCrypto {
                     decryptField(fieldVal)
                   }
 
-                  conversationService.startConversation(
-                    user.id.get,
-                    decryptedToUsers.toSet,
-                    imageText,
-                    //todo: move this into the service, and future bound it
-                    conversationService.saveFileForConversationId(image, user.id.get)
-                  )
+                  conversationService.saveFileForConversationId(image, user.id.get).map { url =>
+                    conversationService.startConversation(
+                      user.id.get,
+                      decryptedToUsers.toSet,
+                      imageText,
+                      url
+                    )
+                  }
                 }
               }
             }
@@ -108,12 +109,14 @@ trait ConversationEndpoint extends DataHttpService with BasicCrypto {
             post {
               formFields('image.as[Array[Byte]], 'imageText, 'convId.as[Long]) { (image, imageText, convId) =>
                 complete {
-                  conversationService.respondToConversation(
-                    user.id.get,
-                    convId,
-                    imageText,
-                    conversationService.saveFileForConversationId(image, convId)
-                  )
+                  conversationService.saveFileForConversationId(image, convId).map { url =>
+                    conversationService.respondToConversation(
+                      user.id.get,
+                      convId,
+                      imageText,
+                      url
+                    )
+                  }
                 }
               }
             }
