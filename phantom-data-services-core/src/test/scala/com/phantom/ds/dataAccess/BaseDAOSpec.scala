@@ -4,13 +4,13 @@ import org.specs2.mutable.Specification
 import com.phantom.dataAccess.DatabaseSupport
 import org.specs2.specification.BeforeAfter
 import com.phantom.model._
-import org.joda.time.{ DateTimeZone, LocalDate }
 import java.util.UUID
 import com.phantom.ds.user.Passwords
 import com.phantom.ds.TestUtils
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.slick.session.Session
 import com.phantom.ds.conversation.FeedFolder
+import com.phantom.ds.framework.Dates
 
 /**
  * Created with IntelliJ IDEA.
@@ -48,16 +48,16 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with TestUtils {
   }
 
   def createVerifiedUser(email : String, password : String, phoneNumber : String = "") : PhantomUser = {
-    val user = PhantomUser(None, UUID.randomUUID, Some(email), Some(Passwords.getSaltedHash(password)), Some(LocalDate.now(DateTimeZone.UTC)), true, Some(phoneNumber), Verified)
+    val user = PhantomUser(None, UUID.randomUUID, Some(email), Some(Passwords.getSaltedHash(password)), Some(Dates.nowLD), true, Some(phoneNumber), Verified)
     phantomUsersDao.insert(user)
   }
 
   def createUnverifiedUser(email : String, password : String, phoneNumber : Option[String] = None) = {
-    phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some(email), Some(Passwords.getSaltedHash(password)), Some(LocalDate.now(DateTimeZone.UTC)), true, phoneNumber, Unverified))
+    phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some(email), Some(Passwords.getSaltedHash(password)), Some(Dates.nowLD), true, phoneNumber, Unverified))
   }
 
   def createStubUser(phone : String, count : Int = 1) = {
-    phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, None, None, Some(LocalDate.now(DateTimeZone.UTC)), true, Some(phone), Stub, count))
+    phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, None, None, Some(Dates.nowLD), true, Some(phone), Stub, count))
   }
 
   def createConversation(fromId : Long, toId : Long) : Conversation = {

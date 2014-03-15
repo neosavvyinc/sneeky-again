@@ -44,6 +44,8 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
 
   private val existsQuery = for (email <- Parameters[String]; u <- UserTable if u.email.toLowerCase is email.toLowerCase) yield u.exists
 
+  private val nonStubUserByPhoneNumberQuery = for (phoneNumber <- Parameters[String]; u <- UserTable if u.phoneNumber === phoneNumber && u.status =!= (Stub : UserStatus)) yield u
+
   def registerOperation(registrationRequest : UserRegistration)(implicit session : Session) : PhantomUser = {
     log.trace(s"registering $registrationRequest")
     val ex = existsQuery(registrationRequest.email.toLowerCase).firstOption
@@ -117,6 +119,10 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
 
   def findByEmailOperation(email : String)(implicit session : Session) : Option[PhantomUser] = {
     byEmailQuery(email.toLowerCase).firstOption
+  }
+
+  def findNonStubUserByPhoneNumberOperation(phone : String)(implicit session : Session) : Option[PhantomUser] = {
+    nonStubUserByPhoneNumberQuery(phone).firstOption
   }
 
   def findByPhoneNumbers(phoneNumbers : Set[String]) : Future[List[PhantomUser]] = {

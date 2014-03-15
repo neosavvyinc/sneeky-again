@@ -4,6 +4,7 @@ import com.phantom.dataAccess.Profile
 import scala.slick.lifted.ColumnOption.DBType
 import java.util.UUID
 import org.joda.time.DateTime
+import com.phantom.ds.framework.Dates
 
 case class FeedEntry(conversation : Conversation, items : List[ConversationItem])
 
@@ -24,7 +25,7 @@ case class ConversationItem(id : Option[Long],
                             toUser : Long,
                             fromUser : Long,
                             isViewed : Boolean = false,
-                            createdDate : DateTime = DateTime.now(),
+                            createdDate : DateTime = Dates.nowDT,
                             toUserDeleted : Boolean = false,
                             fromUserDeleted : Boolean = false)
 
@@ -37,7 +38,7 @@ case class Conversation(id : Option[Long],
                         toUser : Long,
                         fromUser : Long,
                         receiverPhoneNumber : String,
-                        lastUpdated : DateTime = DateTime.now())
+                        lastUpdated : DateTime = Dates.nowDT)
 
 case class ConversationStartRequest(toUsers : Seq[String], imageText : String, imageId : Long)
 
@@ -82,7 +83,7 @@ trait ConversationItemComponent { this : Profile with ConversationComponent with
     def toUser = column[Long]("TO_USER")
     def fromUser = column[Long]("FROM_USER")
     def isViewed = column[Boolean]("IS_VIEWED", O.Default(false))
-    def createdDate = column[DateTime]("CREATED_DATE", DBType("TIMESTAMP(3)"))
+    def createdDate = column[DateTime]("CREATED_DATE", DBType("DATETIME"))
     def toUserDeleted = column[Boolean]("TO_USER_DELETE", O.Default(false))
     def fromUserDeleted = column[Boolean]("FROM_USER_DELETE", O.Default(false))
 

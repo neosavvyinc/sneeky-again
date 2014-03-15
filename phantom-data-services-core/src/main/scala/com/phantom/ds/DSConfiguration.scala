@@ -46,6 +46,14 @@ trait DSConfiguration {
 
   case object NoAuthentication extends AuthenticationMode
 
+  object AWS {
+    val accessKeyId = awsConfig.getString("accessKeyId")
+    val secretKey = awsConfig.getString("secretKey")
+    val bucket = awsConfig.getString("bucket")
+
+    private def awsConfig = cfg.getConfig("aws")
+  }
+
   object FileStoreConfiguration {
 
     val baseDirectory = fileStoreConfiguration.getString("baseDirectory")
@@ -70,6 +78,7 @@ trait DSConfiguration {
     val productionCert = applePushCfg.getString("productionCertPath")
     val messageBody = applePushCfg.getString("messageBody")
     val environment = applePushCfg.getString("environment")
+    val connectionCount = applePushCfg.getInt("connectionCount")
 
     private def applePushCfg = cfg.getConfig("apple")
   }

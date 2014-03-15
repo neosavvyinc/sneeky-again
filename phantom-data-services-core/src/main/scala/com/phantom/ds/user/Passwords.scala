@@ -6,7 +6,7 @@ import javax.crypto.spec.PBEKeySpec
 import org.apache.commons.codec.binary.Base64
 import com.phantom.ds.framework.exception.PhantomException
 import scala.concurrent.Future
-import org.joda.time.DateTime
+import com.phantom.ds.framework.Dates
 
 //shamelessly stolen: http://stackoverflow.com/questions/2860943/suggestions-for-library-to-hash-passwords-in-java
 object Passwords {
@@ -18,7 +18,7 @@ object Passwords {
   import java.security.MessageDigest
 
   def generateNewPassword() : String = {
-    val moment = DateTime.now().toString()
+    val moment = Dates.nowDTStr
     Base64.encodeBase64String(MessageDigest.getInstance("MD5").digest(moment.getBytes))
   }
 

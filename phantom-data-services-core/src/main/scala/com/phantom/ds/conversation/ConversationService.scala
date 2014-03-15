@@ -3,14 +3,14 @@ package com.phantom.ds.conversation
 import scala.concurrent.{ Future, ExecutionContext, future }
 import com.phantom.model._
 import com.phantom.dataAccess.DatabaseSupport
-import java.io.{ File, FileOutputStream }
+import java.io.{ ByteArrayInputStream, File, FileOutputStream }
 import com.phantom.ds.{ BasicCrypto, DSConfiguration }
 import com.phantom.model.BlockUserByConversationResponse
 import com.phantom.model.ConversationUpdateResponse
 import com.phantom.model.Conversation
 import com.phantom.model.ConversationItem
 import com.phantom.model.ConversationInsertResponse
-import com.phantom.ds.framework.Logging
+import com.phantom.ds.framework.{ Dates, Logging }
 import akka.actor.ActorRef
 import com.phantom.ds.integration.twilio.SendInviteToStubUsers
 import com.phantom.ds.integration.apple.AppleNotification
@@ -22,6 +22,11 @@ import java.security.MessageDigest
 import org.joda.time.DateTime
 import com.phantom.ds.framework.crypto._
 import com.phantom.ds.framework.protocol.defaults._
+
+import org.jets3t.service.impl.rest.httpclient.RestS3Service
+import org.jets3t.service.security.AWSCredentials
+import org.jets3t.service.model.S3Object
+import org.jets3t.service.acl.{ AccessControlList, GroupGrantee, Permission }
 
 /**
  * Created by Neosavvy
@@ -82,8 +87,6 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       }
     }
 
-    private def getUrl(imageName : String) : String = FileStoreConfiguration.baseImageUrl + imageName
-
     private def sanitizeConversationItems(items : List[ConversationItem], loggedInUser : PhantomUser) : List[FEConversationItem] = {
 
       items.map { conversationItem =>
@@ -94,7 +97,7 @@ object ConversationService extends DSConfiguration with BasicCrypto {
         FEConversationItem(
           conversationItem.id.get,
           conversationItem.conversationId,
-          encryptField(getUrl(conversationItem.imageUrl)),
+          encryptField(conversationItem.imageUrl),
           encryptField(conversationItem.imageText),
           conversationItem.isViewed,
           conversationItem.createdDate,
@@ -139,7 +142,7 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       } yield response
     }
 
-    private def getTokens(userIds : Seq[Long]) : Future[List[Option[String]]] = {
+    private def getTokens(userIds : Seq[Long]) : Future[Map[Long, Set[String]]] = {
       future {
         sessions.findTokensByUserId(userIds)
       }
@@ -177,29 +180,27 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       conversations.map(x => ConversationItem(None, x.id.getOrElse(-1), imageUrl, imageText, x.toUser, fromUserId))
     }
 
-    private def sendNewConversationNotifications(users : Seq[PhantomUser], tokens : Seq[Option[String]]) : Future[Unit] = {
+    private def sendNewConversationNotifications(users : Seq[PhantomUser], tokens : Map[Long, Set[String]]) : Future[Unit] = {
       tokens.foreach { token =>
         log.debug(s">>>>>>> sending a push notification for a new conversation $users and $token")
       }
 
       future {
         users.foreach { user =>
-          sendConversationNotifications(user, tokens)
+          sendConversationNotifications(user, tokens.getOrElse(user.id.get, Set.empty))
         }
       }
     }
 
-    private def sendConversationNotifications(user : PhantomUser, tokens : Seq[Option[String]]) : Future[Unit] = {
+    private def sendConversationNotifications(user : PhantomUser, tokens : Set[String]) : Future[Unit] = {
       future {
         log.debug(s"notifications are $tokens")
-
-        tokens.foreach { token =>
-          log.debug(s"User is $user and token is $token and nonEmpty is: $token.nonEmpty")
-          if (token.nonEmpty && user.settingNewPicture) {
-            log.debug(s"sending an apple notification to the apple actor")
-            appleActor ! AppleNotification(user.settingSound, token)
-          } else {
-            log.error(s"sendConversationNotifications called with empty token")
+        if (user.settingNewPicture) {
+          tokens.foreach {
+            token =>
+              val note = AppleNotification(user.settingSound, Some(token))
+              log.debug(s"sending an apple notification to the apple actor $note for user ${user.email}")
+              appleActor ! note
           }
         }
       }
@@ -252,11 +253,11 @@ object ConversationService extends DSConfiguration with BasicCrypto {
                 val tokensFuture = getTokens(Seq(x.toUser))
                 for {
                   user : Option[PhantomUser] <- userFuture
-                  tokens : List[Option[String]] <- tokensFuture
+                  tokens <- tokensFuture
                   _ <- future {
                     user.map { u : PhantomUser =>
                       log.debug(s"sending an apple push notification for a response from a previous conversation item $u.id")
-                      sendConversationNotifications(u, tokens)
+                      sendConversationNotifications(u, tokens.getOrElse(u.id.get, Set.empty))
                     }
                   }
                 } yield (user, tokens)
@@ -274,26 +275,29 @@ object ConversationService extends DSConfiguration with BasicCrypto {
     }
 
     def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String = {
-
       val randomImageName : String = MessageDigest.getInstance("MD5").digest(DateTime.now().toString().getBytes).map("%02X".format(_)).mkString
-      val imageDir = FileStoreConfiguration.baseDirectory + "/" + conversationId
-      val imageUrl = imageDir + "/" + randomImageName
-      val dir : File = new File(imageDir)
-      if (!dir.exists())
-        dir.mkdirs()
+      val imageUrl = conversationId + "/" + randomImageName
 
-      println("Writing out the image to: " + imageUrl)
+      val awsAccessKey = AWS.accessKeyId
+      val awsSecretKey = AWS.secretKey
+      val awsCredentials = new AWSCredentials(awsAccessKey, awsSecretKey)
+      val s3Service = new RestS3Service(awsCredentials)
+      val bucketName = AWS.bucket
+      val bucket = s3Service.getBucket(bucketName)
+      val fileObject = s3Service.putObject(bucket, {
+        val acl = s3Service.getBucketAcl(bucket)
+        acl.grantPermission(GroupGrantee.ALL_USERS, Permission.PERMISSION_READ)
 
-      val fos : FileOutputStream = new FileOutputStream(imageUrl)
+        val tempObj = new S3Object(imageUrl)
+        tempObj.setDataInputStream(new ByteArrayInputStream(image))
+        tempObj.setAcl(acl)
+        tempObj.setContentType("image/jpg")
+        tempObj
+      })
 
-      try {
-        fos.write(image)
-      } finally {
-        fos.close()
-      }
-
-      conversationId + "/" + randomImageName
-
+      s3Service.createUnsignedObjectUrl(bucketName,
+        fileObject.getKey,
+        false, false, false)
     }
 
     def blockByConversationId(userId : Long, conversationId : Long) : Future[BlockUserByConversationResponse] = {

@@ -4,6 +4,11 @@ import com.phantom.dataAccess.Profile
 import org.joda.time.{ DateTimeZone, DateTime, LocalDate }
 import scala.slick.lifted.ColumnOption.DBType
 import java.util.UUID
+import com.phantom.ds.framework.Dates
+
+case class UserRegistrationRequest(email : String,
+                                   birthday : String,
+                                   password : String)
 
 case class UserRegistration(email : String,
                             birthday : LocalDate,
@@ -120,7 +125,7 @@ case class PhantomUser(id : Option[Long],
                        mutualContactSetting : Boolean = false)
 
 case class SanitizedUser(uuid : UUID,
-                         birthday : Option[LocalDate],
+                         birthday : Option[String],
                          status : UserStatus,
                          phoneNumber : Option[String],
                          settingSound : Boolean,
@@ -128,7 +133,7 @@ case class SanitizedUser(uuid : UUID,
                          mutualContactSetting : Boolean,
                          sessionInvalid : Boolean = false)
 
-case class SanitizedContact(birthday : Option[LocalDate],
+case class SanitizedContact(birthday : Option[String],
                             status : UserStatus,
                             phoneNumber : Option[String])
 
@@ -137,7 +142,7 @@ case class ForgotPasswordRequest(email : String)
 object PhantomSession {
 
   def newSession(user : PhantomUser, token : Option[String] = None) : PhantomSession = {
-    val now = DateTime.now(DateTimeZone.UTC)
+    val now = Dates.nowDT
     PhantomSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now, token, None)
   }
 }

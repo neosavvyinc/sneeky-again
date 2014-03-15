@@ -12,6 +12,7 @@ import com.phantom.model.{ PhantomSession, Verified, PhantomUser }
 import scala.concurrent.Await
 import spray.http.StatusCodes._
 import spray.routing.AuthenticationFailedRejection
+import com.phantom.ds.framework.Dates
 
 class UserLogoutSpec extends Specification
     with PhantomEndpointSpec
@@ -31,10 +32,10 @@ class UserLogoutSpec extends Specification
     "work" in withSetupTeardown {
       val waitPeriod = Duration(1000, MILLISECONDS)
       val d = now
-      val sessionCreated = DateTime.now(DateTimeZone.UTC)
+      val sessionCreated = Dates.nowDT
       val uuid = UUID.randomUUID()
       val s = uuid.toString
-      val u = phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some("email"), Some(""), Some(LocalDate.now), true, Some(""), Verified))
+      val u = phantomUsersDao.insert(PhantomUser(None, UUID.randomUUID, Some("email"), Some(""), Some(Dates.nowLD), true, Some(""), Verified))
       Await.result(sessions.createSession(PhantomSession(uuid, u.id.get, sessionCreated, sessionCreated, None)), waitPeriod)
       val h = hashValues(d, s)
       val url = s"/users/logout?$hashP=$h&$dateP=$d&$sessionIdP=$s"

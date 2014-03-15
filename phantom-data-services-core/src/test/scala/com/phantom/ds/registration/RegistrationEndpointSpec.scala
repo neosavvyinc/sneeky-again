@@ -77,7 +77,6 @@ class RegistrationEndpointSpec extends Specification
     "be able to verify a registration" in withSetupTeardown {
 
       val user = createUnverifiedUser("email@email.com", "password")
-      user.id must not beNone
       val regResponse = reg("pre", user.uuid.toString, "post")
 
       val formData = FormData(Map("AccountSid" -> regResponse.accountSid,
@@ -130,6 +129,41 @@ class RegistrationEndpointSpec extends Specification
             c.toUser must be equalTo user.id.get
         }
         conversations must have size 1
+      }
+    }
+
+    "not allow for a phone number to be registered more than once" in withSetupTeardown {
+      val user = createUnverifiedUser("email@email.com", "password")
+      val user2 = createUnverifiedUser("email2@email.com", "password")
+      val regResponse = reg("pre", user.uuid.toString, "post")
+      val regResponse2 = reg("pre", user2.uuid.toString, "post")
+
+      val formData = FormData(Map("AccountSid" -> regResponse.accountSid,
+        "MessageSid" -> regResponse.messageSid,
+        "From" -> "987654321",
+        "To" -> regResponse.to,
+        "Body" -> regResponse.body,
+        "NumMedia" -> regResponse.numMedia.toString))
+
+      val formData2 = FormData(Map("AccountSid" -> regResponse2.accountSid,
+        "MessageSid" -> regResponse2.messageSid,
+        "From" -> "987654321",
+        "To" -> regResponse2.to,
+        "Body" -> regResponse2.body,
+        "NumMedia" -> regResponse2.numMedia.toString))
+
+      Post("/users/verification", formData) ~> registrationRoute ~> check {
+        status == OK
+        val updatedUser = phantomUsersDao.find(user.id.get).get
+        updatedUser.status must be equalTo Verified
+        updatedUser.phoneNumber must be equalTo Some("987654321")
+      }
+
+      Post("/users/verification", formData2) ~> registrationRoute ~> check {
+        status == OK
+        val updatedUser = phantomUsersDao.find(user2.id.get).get
+        updatedUser.status must be equalTo Unverified
+        updatedUser.phoneNumber must be equalTo None
       }
     }
   }
