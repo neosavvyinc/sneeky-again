@@ -131,7 +131,28 @@ class ConversationEndpointSpec extends Specification
         }
         conversations should have size 3
       }
+    }
 
+    "support starting a conversation with a stock photo" in withSetupTeardown {
+      insertTestUsers()
+      insertTestPhotoCategories()
+      insertTestPhotos()
+      authedUser = phantomUsersDao.find(2L)
+
+      val req = ConversationStartRequest(Seq("111111", "222222", "333333"), "check this ooooout", 1)
+
+      Post("/conversation/start/stock", req) ~> conversationRoute ~> check {
+        status === OK
+        val conversations = conversationDao.findByFromUserId(2)
+        conversations.foreach { conversation =>
+          val items = db.withSession { implicit session : Session =>
+            conversationItemDao.findByConversationIdAndUserOperation(conversation.id.get, authedUser.get.id.get)
+          }
+          items should have size 1
+          items.head.imageUrl must beEqualTo("/somewhere/1")
+        }
+        conversations should have size 3
+      }
     }
 
     "support receiving a multi-part form post to update a conversation with image" in withSetupTeardown {
