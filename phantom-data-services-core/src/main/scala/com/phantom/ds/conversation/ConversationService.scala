@@ -49,7 +49,7 @@ trait ConversationService {
                             imageText : String,
                             imageUrl : String) : Future[ConversationUpdateResponse]
 
-  def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String
+  def saveFileForConversationId(image : Array[Byte], conversationId : Long) : Future[String]
 
   def blockByConversationId(userId : Long, conversationId : Long) : Future[BlockUserByConversationResponse]
 
@@ -272,30 +272,32 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       }
     }
 
-    def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String = {
-      val randomImageName : String = MessageDigest.getInstance("MD5").digest(DateTime.now().toString().getBytes).map("%02X".format(_)).mkString
-      val imageUrl = conversationId + "/" + randomImageName
+    def saveFileForConversationId(image : Array[Byte], conversationId : Long) : Future[String] = {
+      future {
+        val randomImageName : String = MessageDigest.getInstance("MD5").digest(DateTime.now().toString().getBytes).map("%02X".format(_)).mkString
+        val imageUrl = conversationId + "/" + randomImageName
 
-      val awsAccessKey = AWS.accessKeyId
-      val awsSecretKey = AWS.secretKey
-      val awsCredentials = new AWSCredentials(awsAccessKey, awsSecretKey)
-      val s3Service = new RestS3Service(awsCredentials)
-      val bucketName = AWS.bucket
-      val bucket = s3Service.getBucket(bucketName)
-      val fileObject = s3Service.putObject(bucket, {
-        val acl = s3Service.getBucketAcl(bucket)
-        acl.grantPermission(GroupGrantee.ALL_USERS, Permission.PERMISSION_READ)
+        val awsAccessKey = AWS.accessKeyId
+        val awsSecretKey = AWS.secretKey
+        val awsCredentials = new AWSCredentials(awsAccessKey, awsSecretKey)
+        val s3Service = new RestS3Service(awsCredentials)
+        val bucketName = AWS.bucket
+        val bucket = s3Service.getBucket(bucketName)
+        val fileObject = s3Service.putObject(bucket, {
+          val acl = s3Service.getBucketAcl(bucket)
+          acl.grantPermission(GroupGrantee.ALL_USERS, Permission.PERMISSION_READ)
 
-        val tempObj = new S3Object(imageUrl)
-        tempObj.setDataInputStream(new ByteArrayInputStream(image))
-        tempObj.setAcl(acl)
-        tempObj.setContentType("image/jpg")
-        tempObj
-      })
+          val tempObj = new S3Object(imageUrl)
+          tempObj.setDataInputStream(new ByteArrayInputStream(image))
+          tempObj.setAcl(acl)
+          tempObj.setContentType("image/jpg")
+          tempObj
+        })
 
-      s3Service.createUnsignedObjectUrl(bucketName,
-        fileObject.getKey,
-        false, false, false)
+        s3Service.createUnsignedObjectUrl(bucketName,
+          fileObject.getKey,
+          false, false, false)
+      }
     }
 
     def blockByConversationId(userId : Long, conversationId : Long) : Future[BlockUserByConversationResponse] = {
