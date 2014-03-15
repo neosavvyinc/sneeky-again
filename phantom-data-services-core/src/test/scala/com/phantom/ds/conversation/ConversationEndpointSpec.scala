@@ -13,6 +13,7 @@ import akka.testkit.TestProbe
 import akka.actor.ActorRef
 import com.phantom.model._
 import com.phantom.ds.dataAccess.BaseDAOSpec
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.phantom.model.ConversationItem
 import com.phantom.model.Conversation
@@ -45,6 +46,8 @@ class ConversationEndpointSpec extends Specification
   val appleActor : ActorRef = appleProbe.ref
 
   "Conversation Service" should {
+
+    implicit val routeTestTimeout = RouteTestTimeout(15 seconds span)
 
     "return a user's feed with default pagination parameters" in withSetupTeardown {
       insertTestConverationsWithItems()
