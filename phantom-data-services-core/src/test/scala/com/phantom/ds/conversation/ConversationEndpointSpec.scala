@@ -149,6 +149,7 @@ class ConversationEndpointSpec extends Specification
             conversationItemDao.findByConversationIdAndUserOperation(conversation.id.get, authedUser.get.id.get)
           }
           items should have size 1
+          items.head.imageText must beEqualTo("check this ooooout")
           items.head.imageUrl must beEqualTo("/somewhere/1")
         }
         conversations should have size 3
@@ -168,6 +169,24 @@ class ConversationEndpointSpec extends Specification
 
       Post("/conversation/respond", multipartFormWithData) ~> conversationRoute ~> check {
         status === OK
+      }
+    }
+
+    "support responding to a conversation with a stock photo" in withSetupTeardown {
+      insertTestPhotoCategories()
+      insertTestPhotos()
+      insertTestConverationsWithItems()
+      authedUser = phantomUsersDao.find(2L)
+      val req = ConversationRespondRequest(1, "check dat text", 1)
+
+      Post("/conversation/respond/stock", req) ~> conversationRoute ~> check {
+        status === OK
+        val mostRecentConvo = conversationDao.findByFromUserId(2).last
+        val items = db.withSession { implicit session : Session =>
+          conversationItemDao.findByConversationIdAndUserOperation(mostRecentConvo.id.get, authedUser.get.id.get)
+        }
+        items.last.imageText must beEqualTo("check dat text")
+        items.last.imageUrl must beEqualTo("/somewhere/1")
       }
     }
 
