@@ -27,7 +27,7 @@ class PhotoEndpointSpec extends Specification
 
   "User Service" should {
 
-    "identify service should yield a sanitized object of the user" in withSetupTeardown {
+    "should yield an object containing photos and categories" in withSetupTeardown {
       val u = createVerifiedUser("ccaplinger@dickpics.com", "mypassword")
       val session = await(sessions.createSession(PhantomSession.newSession(u)))(ec)
 
