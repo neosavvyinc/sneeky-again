@@ -5,6 +5,8 @@ import com.phantom.dataAccess.Profile
 case class PhotoCategory(id : Option[Long],
                          name : String)
 
+case class PhotoCategoryList(photoList : List[PhotoList], name : String = "categories")
+
 trait PhotoCategoryComponent { this : Profile =>
 
   import profile.simple._

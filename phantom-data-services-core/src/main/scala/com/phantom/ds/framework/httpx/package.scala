@@ -137,6 +137,7 @@ package object httpx {
     implicit val photoResponse = jsonFormat4(Photo)
     implicit val photoListResponse = jsonFormat2(PhotoList)
     implicit val photoCategoryResponse = jsonFormat2(PhotoCategory)
+    implicit val photoCategoryListResponse = jsonFormat2(PhotoCategoryList)
 
   }
 
