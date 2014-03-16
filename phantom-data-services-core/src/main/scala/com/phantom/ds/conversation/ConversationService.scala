@@ -38,9 +38,9 @@ trait ConversationService {
   def respondToConversation(userId : Long,
                             conversationId : Long,
                             imageText : String,
-                            image : Array[Byte]) : Future[ConversationUpdateResponse]
+                            imageUrl : String) : Future[ConversationUpdateResponse]
 
-  def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String
+  def saveFileForConversationId(image : Array[Byte], conversationId : Long) : Future[String]
 
   def blockByConversationId(userId : Long, conversationId : Long) : Future[BlockUserByConversationResponse]
 
@@ -50,6 +50,7 @@ trait ConversationService {
 
   def deleteConversationItem(userId : Long, conversationItemId : Long) : Future[Int]
 
+  def findPhotoUrlById(photoId : Long) : Future[Option[String]]
 }
 
 object ConversationService extends DSConfiguration with BasicCrypto {
@@ -242,7 +243,7 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       }
     }
 
-    def respondToConversation(loggedInUser : Long, conversationId : Long, imageText : String, image : Array[Byte]) : Future[ConversationUpdateResponse] = {
+    def respondToConversation(loggedInUser : Long, conversationId : Long, imageText : String, imageUrl : String) : Future[ConversationUpdateResponse] = {
 
       val recipientOF =
         future {
@@ -251,7 +252,6 @@ object ConversationService extends DSConfiguration with BasicCrypto {
               conversation <- conversationDao.findByIdAndUserOperation(conversationId, loggedInUser)
               receivingUser <- phantomUsersDao.findByIdOperation(getOtherUserId(conversation, loggedInUser))
             } yield {
-              val imageUrl = saveFileForConversationId(image, conversationId)
               val visibleToRecipient = checkUsersConnected(receivingUser, loggedInUser)
               conversationItemDao.insertOperation(ConversationItem(None, conversationId, imageUrl, imageText, receivingUser.id.get, loggedInUser, visibleToRecipient))
               conversationDao.updateLastUpdatedOperation(conversationId)
@@ -284,7 +284,7 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       }
     }
 
-    def saveFileForConversationId(image : Array[Byte], conversationId : Long) : String = {
+    def saveFileForConversationId(image : Array[Byte], conversationId : Long) : Future[String] = {
       s3Service.saveImage(image, conversationId)
     }
 
@@ -339,6 +339,14 @@ object ConversationService extends DSConfiguration with BasicCrypto {
             }
           }.getOrElse(0)
         }
+      }
+    }
+
+    def findPhotoUrlById(photoId : Long) : Future[Option[String]] = {
+      future {
+        val res = photoDao.findById(photoId).map(_.url)
+        if (res.isEmpty) log.error(s"requested a non-existent stock photo with id $photoId")
+        res
       }
     }
 

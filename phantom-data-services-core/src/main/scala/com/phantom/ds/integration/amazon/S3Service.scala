@@ -8,16 +8,17 @@ import org.jets3t.service.model.S3Object
 import java.io.ByteArrayInputStream
 import java.security.MessageDigest
 import org.joda.time.DateTime
+import scala.concurrent.{ ExecutionContext, Future, future }
 
 trait S3Service {
 
-  def saveImage(image : Array[Byte], conversationId : Long) : String
+  def saveImage(image : Array[Byte], conversationId : Long) : Future[String]
 
 }
 
 object S3Service extends DSConfiguration {
 
-  def apply() = new S3Service {
+  def apply()(implicit ex : ExecutionContext) = new S3Service {
 
     private lazy val s3 = {
       val awsAccessKey = AWS.accessKeyId
@@ -30,26 +31,26 @@ object S3Service extends DSConfiguration {
 
     private lazy val bucket = s3.getBucket(bucketName)
 
-    override def saveImage(image : Array[Byte], conversationId : Long) : String = {
+    override def saveImage(image : Array[Byte], conversationId : Long) : Future[String] = {
+      future {
+        val randomImageName : String = MessageDigest.getInstance("MD5").digest(DateTime.now().toString().getBytes).map("%02X".format(_)).mkString
+        val imageUrl = conversationId + "/" + randomImageName
 
-      val randomImageName : String = MessageDigest.getInstance("MD5").digest(DateTime.now().toString().getBytes).map("%02X".format(_)).mkString
-      val imageUrl = conversationId + "/" + randomImageName
+        val fileObject = s3.putObject(bucket, {
+          val acl = s3.getBucketAcl(bucket)
+          acl.grantPermission(GroupGrantee.ALL_USERS, Permission.PERMISSION_READ)
 
-      val fileObject = s3.putObject(bucket, {
-        val acl = s3.getBucketAcl(bucket)
-        acl.grantPermission(GroupGrantee.ALL_USERS, Permission.PERMISSION_READ)
+          val tempObj = new S3Object(imageUrl)
+          tempObj.setDataInputStream(new ByteArrayInputStream(image))
+          tempObj.setAcl(acl)
+          tempObj.setContentType("image/jpg")
+          tempObj
+        })
 
-        val tempObj = new S3Object(imageUrl)
-        tempObj.setDataInputStream(new ByteArrayInputStream(image))
-        tempObj.setAcl(acl)
-        tempObj.setContentType("image/jpg")
-        tempObj
-      })
-
-      s3.createUnsignedObjectUrl(bucketName,
-        fileObject.getKey,
-        false, false, false)
-
+        s3.createUnsignedObjectUrl(bucketName,
+          fileObject.getKey,
+          false, false, false)
+      }
     }
 
   }

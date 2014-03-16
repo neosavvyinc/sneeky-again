@@ -188,7 +188,7 @@ class ConversationServiceSpec extends Specification
 
       val convo = createConversation(starter.id.get, receiver.id.get)
 
-      val results = await(service.respondToConversation(starter.id.get, convo.id.get, "text", new Array[Byte](1)))
+      val results = await(service.respondToConversation(starter.id.get, convo.id.get, "text", "my.imageurl.com"))
       aProbe.expectMsgAllOf(AppleNotification(true, Some("123456")))
       tProbe.expectNoMsg()
 
@@ -219,6 +219,13 @@ class ConversationServiceSpec extends Specification
       }
       feed.size must beEqualTo(2)
 
+      val bFeed = await(service.findFeed(userB.id.get, NoPaging))
+      bFeed.foreach { feedEntry =>
+        feedEntry.items must have size 1
+        feedEntry.items.head.toUserDeleted must beEqualTo(false)
+      }
+      feed.size must beEqualTo(2)
+
     }
     "start a conversation which appears deleted to the to user if the receiver has mutualOnly and they are not connected" in withSetupTeardown {
       val tProbe = TestProbe()
@@ -244,6 +251,10 @@ class ConversationServiceSpec extends Specification
         feedEntry.items.head.toUserDeleted must beEqualTo(deleted.get)
       }
       feed.size must beEqualTo(2)
+
+      val bFeed = await(service.findFeed(userB.id.get, NoPaging))
+      bFeed should be empty
+
     }
 
     "responding to a conversation after recipient sets mutualOnly should not block any new conversation items if the users are connected" in withSetupTeardown {
@@ -259,7 +270,7 @@ class ConversationServiceSpec extends Specification
       await(service.startConversation(userA.id.get, Set("456"), "text", "url"))
       val conversations = conversationDao.findByFromUserId(userA.id.get)
       phantomUsersDao.updateSetting(userB.id.get, MutualContactMessaging, true)
-      await(service.respondToConversation(userA.id.get, conversations.head.id.get, "text", null))
+      await(service.respondToConversation(userA.id.get, conversations.head.id.get, "text", ".com"))
 
       val aFeed = await(service.findFeed(userA.id.get, NoPaging))
       aFeed.foreach { feedEntry =>
@@ -291,7 +302,7 @@ class ConversationServiceSpec extends Specification
       await(service.startConversation(userA.id.get, Set("456"), "text", "url"))
       val conversations = conversationDao.findByFromUserId(userA.id.get)
       phantomUsersDao.updateSetting(userB.id.get, MutualContactMessaging, true)
-      await(service.respondToConversation(userA.id.get, conversations.head.id.get, "text", null))
+      await(service.respondToConversation(userA.id.get, conversations.head.id.get, "text", ".com"))
 
       val aFeed = await(service.findFeed(userA.id.get, NoPaging))
       aFeed.foreach { feedEntry =>

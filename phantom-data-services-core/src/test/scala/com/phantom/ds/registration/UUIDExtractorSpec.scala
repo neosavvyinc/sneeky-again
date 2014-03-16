@@ -3,6 +3,7 @@ package com.phantom.ds.registration
 import org.specs2.mutable.Specification
 import java.util.UUID
 import com.phantom.ds.TestUtils
+import com.phantom.model.RegistrationVerification
 
 class UUIDExtractorSpec extends Specification with TestUtils {
 
@@ -16,6 +17,10 @@ class UUIDExtractorSpec extends Specification with TestUtils {
 
     "pass if the UUID contained is valid" in {
       UUIDExtractor.extractUUID(reg("pre", valid.toString, "post")) must beSome(valid)
+    }
+
+    "pass if the message does not contain the delimiters" in {
+      UUIDExtractor.extractUUID(regNoBracket("pre", valid.toString, "post")) must beSome(valid)
     }
   }
 

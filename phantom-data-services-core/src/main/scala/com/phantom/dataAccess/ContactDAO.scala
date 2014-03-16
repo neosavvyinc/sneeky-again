@@ -93,6 +93,4 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
       q.list()
     }
   }
-
 }
-

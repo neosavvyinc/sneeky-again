@@ -1,3 +1,4 @@
+/*
 package com.phantom.ds.integration.apple
 
 import org.specs2.mutable.Specification
@@ -5,7 +6,7 @@ import com.phantom.ds.dataAccess.BaseDAOSpec
 import com.phantom.ds.TestUtils
 import com.relayrides.pushy.apns._
 import util._
-import scala.util.{ Success, Failure }
+import scala.util.Failure
 
 class AppleServiceSpec extends Specification
     with BaseDAOSpec
@@ -58,3 +59,4 @@ class AppleServiceSpec extends Specification
     }
   }
 }
+*/
