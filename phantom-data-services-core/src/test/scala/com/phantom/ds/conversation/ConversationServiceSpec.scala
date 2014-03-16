@@ -8,7 +8,8 @@ import akka.actor.ActorRefFactory
 import spray.testkit.Specs2RouteTest
 import com.phantom.ds.integration.twilio.SendInviteToStubUsers
 import com.phantom.ds.integration.apple.AppleNotification
-import com.phantom.model.{ NoPaging, FeedEntry }
+import com.phantom.model.{ MutualContactMessaging, Contact, NoPaging, FeedEntry }
+import com.phantom.ds.integration.mock.TestS3Service
 
 /**
  * Created with IntelliJ IDEA.
@@ -26,13 +27,16 @@ class ConversationServiceSpec extends Specification
 
   sequential
 
+  val s3Service = new TestS3Service()
+
   "The Conversation Service" should {
 
     "start conversations with only phantom users" in withSetupTeardown {
 
       val tProbe = TestProbe()
       val aProbe = TestProbe()
-      val service = ConversationService(tProbe.ref, aProbe.ref)
+
+      val service = ConversationService(tProbe.ref, aProbe.ref, s3Service)
 
       val starter = createVerifiedUser("starter@starter.com", "password")
       val user1 = createVerifiedUser("email@email.com", "password", "12345")
@@ -66,7 +70,7 @@ class ConversationServiceSpec extends Specification
     "start conversations with only stub users" in withSetupTeardown {
       val tProbe = TestProbe()
       val aProbe = TestProbe()
-      val service = ConversationService(tProbe.ref, aProbe.ref)
+      val service = ConversationService(tProbe.ref, aProbe.ref, s3Service)
 
       val stubUser1 = createStubUser("123")
       val stubUser2 = createStubUser("456")
@@ -99,7 +103,7 @@ class ConversationServiceSpec extends Specification
     "start conversations with only unidentified users " in withSetupTeardown {
       val tProbe = TestProbe()
       val aProbe = TestProbe()
-      val service = ConversationService(tProbe.ref, aProbe.ref)
+      val service = ConversationService(tProbe.ref, aProbe.ref, s3Service)
 
       val starter = createVerifiedUser("starter@starter.com", "password")
       val results = await(service.startConversation(starter.id.get, Set("123", "456"), "text", "url"))
@@ -117,7 +121,7 @@ class ConversationServiceSpec extends Specification
     "start conversations with a mix of all three types of users" in withSetupTeardown {
       val tProbe = TestProbe()
       val aProbe = TestProbe()
-      val service = ConversationService(tProbe.ref, aProbe.ref)
+      val service = ConversationService(tProbe.ref, aProbe.ref, s3Service)
 
       val starter = createVerifiedUser("starter@starter.com", "password")
       val user1 = createVerifiedUser("email@email.com", "password", "12")
@@ -158,7 +162,7 @@ class ConversationServiceSpec extends Specification
     "not send invitations to stub users if their invitation count is maxed out" in withSetupTeardown {
       val tProbe = TestProbe()
       val aProbe = TestProbe()
-      val service = ConversationService(tProbe.ref, aProbe.ref)
+      val service = ConversationService(tProbe.ref, aProbe.ref, s3Service)
 
       createStubUser("888", 3)
       createStubUser("999", 3)
@@ -173,7 +177,7 @@ class ConversationServiceSpec extends Specification
     "send APNS notifications when responding to a conversation" in withSetupTeardown {
       val tProbe = TestProbe()
       val aProbe = TestProbe()
-      val service = ConversationService(tProbe.ref, aProbe.ref)
+      val service = ConversationService(tProbe.ref, aProbe.ref, s3Service)
 
       val starter = createVerifiedUser("starter@starter.com", "password")
       val receiver = createVerifiedUser("email@email.com", "password", "12345")
@@ -189,6 +193,134 @@ class ConversationServiceSpec extends Specification
       tProbe.expectNoMsg()
 
       results.id must beEqualTo(1)
+    }
+
+    //not testing probes here..as i'm being stubborn and until adam convinces me otherwise..i think there is a bug! :-p
+    "start a conversation normally if the receiver has mutualOnly set and the sender and receiver are connected" in withSetupTeardown {
+
+      val tProbe = TestProbe()
+      val aProbe = TestProbe()
+      val service = ConversationService(tProbe.ref, aProbe.ref, s3Service)
+
+      val userA = createVerifiedUser("a@a.com", "123", "123")
+      val userB = createVerifiedUser("b@b.com", "456", "456", true)
+      val userC = createVerifiedUser("c@c.com", "789", "780")
+      val aToB = Contact(None, userA.id.get, userB.id.get)
+      val bToA = Contact(None, userB.id.get, userA.id.get)
+      contacts.insertAll(Seq(aToB, bToA))
+
+      val s = await(service.startConversation(userA.id.get, Set("456", "789"), "text", "url"))
+      s.createdCount must beEqualTo(2)
+
+      val feed = await(service.findFeed(userA.id.get, NoPaging))
+      feed.foreach { feedEntry =>
+        feedEntry.items must have size 1
+        feedEntry.items.head.toUserDeleted must beEqualTo(false)
+      }
+      feed.size must beEqualTo(2)
+
+      val bFeed = await(service.findFeed(userB.id.get, NoPaging))
+      bFeed.foreach { feedEntry =>
+        feedEntry.items must have size 1
+        feedEntry.items.head.toUserDeleted must beEqualTo(false)
+      }
+      feed.size must beEqualTo(2)
+
+    }
+    "start a conversation which appears deleted to the to user if the receiver has mutualOnly and they are not connected" in withSetupTeardown {
+      val tProbe = TestProbe()
+      val aProbe = TestProbe()
+      val service = ConversationService(tProbe.ref, aProbe.ref, s3Service)
+
+      val userA = createVerifiedUser("a@a.com", "123", "123")
+      val userB = createVerifiedUser("b@b.com", "456", "456", true)
+      val userC = createVerifiedUser("c@c.com", "789", "789")
+
+      val aToB = Contact(None, userA.id.get, userB.id.get)
+      contacts.insertAll(Seq(aToB))
+
+      val s = await(service.startConversation(userA.id.get, Set("456", "789"), "text", "url"))
+      s.createdCount must beEqualTo(2)
+
+      val expectedDeletionFlags = Map(userB.id.get -> true, userC.id.get -> false)
+
+      val feed = await(service.findFeed(userA.id.get, NoPaging))
+      feed.foreach { feedEntry =>
+        feedEntry.items must have size 1
+        val deleted = expectedDeletionFlags.get(feedEntry.conversation.toUser)
+        feedEntry.items.head.toUserDeleted must beEqualTo(deleted.get)
+      }
+      feed.size must beEqualTo(2)
+
+      val bFeed = await(service.findFeed(userB.id.get, NoPaging))
+      bFeed should be empty
+
+    }
+
+    "responding to a conversation after recipient sets mutualOnly should not block any new conversation items if the users are connected" in withSetupTeardown {
+      val tProbe = TestProbe()
+      val aProbe = TestProbe()
+      val service = ConversationService(tProbe.ref, aProbe.ref, s3Service)
+
+      val userA = createVerifiedUser("a@a.com", "123", "123")
+      val userB = createVerifiedUser("b@b.com", "456", "456", true)
+      val aToB = Contact(None, userA.id.get, userB.id.get)
+      val bToA = Contact(None, userB.id.get, userA.id.get)
+      contacts.insertAll(Seq(aToB, bToA))
+      await(service.startConversation(userA.id.get, Set("456"), "text", "url"))
+      val conversations = conversationDao.findByFromUserId(userA.id.get)
+      phantomUsersDao.updateSetting(userB.id.get, MutualContactMessaging, true)
+      await(service.respondToConversation(userA.id.get, conversations.head.id.get, "text", ".com"))
+
+      val aFeed = await(service.findFeed(userA.id.get, NoPaging))
+      aFeed.foreach { feedEntry =>
+        feedEntry.items must have size 2
+        feedEntry.items.head.toUserDeleted must beEqualTo(false)
+      }
+
+      aFeed must have size 1
+
+      val bFeed = await(service.findFeed(userB.id.get, NoPaging))
+      bFeed.foreach { feedEntry =>
+        feedEntry.items must have size 2
+        feedEntry.items.head.toUserDeleted must beEqualTo(false)
+      }
+
+      bFeed must have size 1
+
+    }
+
+    "responding to a conversation after recipient sets mutualOnly should block any new conversation items to the recipient if the users are not connected" in withSetupTeardown {
+      val tProbe = TestProbe()
+      val aProbe = TestProbe()
+      val service = ConversationService(tProbe.ref, aProbe.ref, s3Service)
+
+      val userA = createVerifiedUser("a@a.com", "123", "123")
+      val userB = createVerifiedUser("b@b.com", "456", "456", true)
+      val aToB = Contact(None, userA.id.get, userB.id.get)
+      contacts.insertAll(Seq(aToB))
+      await(service.startConversation(userA.id.get, Set("456"), "text", "url"))
+      val conversations = conversationDao.findByFromUserId(userA.id.get)
+      phantomUsersDao.updateSetting(userB.id.get, MutualContactMessaging, true)
+      await(service.respondToConversation(userA.id.get, conversations.head.id.get, "text", ".com"))
+
+      val aFeed = await(service.findFeed(userA.id.get, NoPaging))
+      aFeed.foreach { feedEntry =>
+        feedEntry.items must have size 2
+        val expectedDeleteFlags = Seq(true, false)
+        val deletedFlags = feedEntry.items.map(_.toUserDeleted)
+        deletedFlags must beEqualTo(expectedDeleteFlags)
+      }
+
+      aFeed must have size 1
+
+      val bFeed = await(service.findFeed(userB.id.get, NoPaging))
+      bFeed.foreach { feedEntry =>
+        feedEntry.items must have size 1
+        feedEntry.items.head.toUserDeleted must beEqualTo(false)
+      }
+
+      bFeed must have size 1
     }
 
   }

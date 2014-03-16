@@ -20,6 +20,8 @@ import com.phantom.model.Conversation
 import com.phantom.model.BlockUserByConversationResponse
 import com.phantom.model.Contact
 import scala.slick.session.Session
+import com.phantom.ds.integration.amazon.S3Service
+import com.phantom.ds.integration.mock.TestS3Service
 
 /**
  * Created by Neosavvy
@@ -44,6 +46,7 @@ class ConversationEndpointSpec extends Specification
   val appleProbe = TestProbe()
   val twilioActor : ActorRef = probe.ref
   val appleActor : ActorRef = appleProbe.ref
+  def s3Service : S3Service = new TestS3Service()
 
   "Conversation Service" should {
 

@@ -47,6 +47,13 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     }
   }
 
+  def filterConnectedToContactOperation(ownerIds : Set[Long], contactId : Long)(implicit session : Session) = {
+    val q = for {
+      (u, c) <- UserTable join ContactTable on (_.id === _.ownerId) if (u.id inSet ownerIds) && (c.contactId is contactId)
+    } yield u.id
+    q.list
+  }
+
   def update(contact : Contact) : Future[Int] = {
     future {
       db.withTransaction { implicit session =>

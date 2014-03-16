@@ -47,8 +47,8 @@ trait BaseDAOSpec extends Specification with DatabaseSupport with TestUtils {
     List(item1, item2, item3)
   }
 
-  def createVerifiedUser(email : String, password : String, phoneNumber : String = "") : PhantomUser = {
-    val user = PhantomUser(None, UUID.randomUUID, Some(email), Some(Passwords.getSaltedHash(password)), Some(Dates.nowLD), true, Some(phoneNumber), Verified)
+  def createVerifiedUser(email : String, password : String, phoneNumber : String = "", mutualContactsOnly : Boolean = false) : PhantomUser = {
+    val user = PhantomUser(None, UUID.randomUUID, Some(email), Some(Passwords.getSaltedHash(password)), Some(Dates.nowLD), true, Some(phoneNumber), Verified, mutualContactSetting = mutualContactsOnly)
     phantomUsersDao.insert(user)
   }
 
