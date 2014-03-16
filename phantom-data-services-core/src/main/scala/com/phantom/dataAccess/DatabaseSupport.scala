@@ -18,6 +18,7 @@ trait DatabaseSupport extends DSConfiguration with Logging {
   val conversationItemDao = new ConversationItemDAO(dataAccessLayer, db)
   val contacts = new ContactDAO(dataAccessLayer, db)
   val sessions = new SessionDAO(dataAccessLayer, db)
+  val photoDao = new PhotoDAO(dataAccessLayer, db)
 
   //  dataAccessLayer.create(db)
 
