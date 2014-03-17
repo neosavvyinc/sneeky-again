@@ -36,6 +36,7 @@ trait DSConfiguration {
       case "nohash" => NonHashingAuthentication
       case "none"   => NoAuthentication
       case "full"   => FullAuthentication
+      case "debug"  => DebugAuthentication
       case _        => FullAuthentication
     }
   }
@@ -45,6 +46,8 @@ trait DSConfiguration {
   case object NonHashingAuthentication extends AuthenticationMode
 
   case object NoAuthentication extends AuthenticationMode
+
+  case object DebugAuthentication extends AuthenticationMode
 
   object AWS {
     val accessKeyId = awsConfig.getString("accessKeyId")

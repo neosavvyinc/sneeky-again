@@ -30,55 +30,58 @@ trait RequestAuthenticator extends Authenticator {
 trait PhantomRequestAuthenticator extends RequestAuthenticator with DSConfiguration with DatabaseSupport with Logging {
 
   def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[PhantomUser]] = {
-
-    log.debug("hash: " + ctx.request.uri.query.get(hashP))
-    log.debug("date: " + ctx.request.uri.query.get(dateP))
-    log.debug("sessionId: " + ctx.request.uri.query.get(sessionIdP))
-
+    log.debug(s"authenticating request ${ctx.request.uri}")
     future {
       val result = for {
-        h <- ctx.request.uri.query.get(hashP)
-        d <- ctx.request.uri.query.get(dateP)
-        s <- ctx.request.uri.query.get(sessionIdP)
-        _ <- validateHash(h, d, s)
-        dt <- validateTime(d)
-        user <- validateSession(s)
+        h <- extractParameter(hashP, ctx)
+        d <- extractParameter(dateP, ctx)
+        s <- extractParameter(sessionIdP, ctx)
+        _ <- validateHash(h, d, s, ctx)
+        dt <- validateTime(d, ctx)
+        user <- validateSession(s, ctx)
       } yield user
+      logAuthFailure(result, s"auth failed", ctx)
       val filtered = result.filter(x => PhantomAuthorizer.authorize(status, x.status))
-      toAuthentication(filtered)
+      toAuthentication(logAuthFailure(filtered, s"request was valid but the user's status was rejected", ctx))
     }
   }
 
-  private def validateHash(clientHash : String, date : String, sessionId : String) = {
+  private def validateHash(clientHash : String, date : String, sessionId : String, ctx : RequestContext) : Option[String] = {
     val calculated = hashWithSecret(s"$date$delim$sessionId")
     log.debug(s"PhantomRequestAuthenticator.validateHash[calculated: $calculated and provided: $clientHash]")
-    if (calculated == clientHash) {
-      Some(date)
-    } else {
-      None
-    }
+    val opt = if (calculated == clientHash) { Some(date) } else { None }
+    logAuthFailure(opt, "clientHash $clientHash does not match calculated hash : $calculated.", ctx)
   }
 
-  protected def validateSession(sessionId : String) : Option[PhantomUser] = {
-    sessions.findFromSession(UUID.fromString(sessionId))
+  protected def validateSession(sessionId : String, ctx : RequestContext) : Option[PhantomUser] = {
+    val opt = sessions.findFromSession(UUID.fromString(sessionId))
+    logAuthFailure(opt, s"cannot find session from $sessionId", ctx)
   }
 }
 
 trait NonHashingRequestAuthenticator extends PhantomRequestAuthenticator {
   override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[PhantomUser]] = {
 
-    log.debug("hash: " + ctx.request.uri.query.get(hashP))
-    log.debug("date: " + ctx.request.uri.query.get(dateP))
-    log.debug("sessionId: " + ctx.request.uri.query.get(sessionIdP))
-
     future {
       val result = for {
-        s <- ctx.request.uri.query.get(sessionIdP)
-        user <- validateSession(s)
+        s <- extractParameter(sessionIdP, ctx)
+        user <- validateSession(s, ctx)
       } yield user
       val filtered = result.filter(x => PhantomAuthorizer.authorize(status, x.status))
       toAuthentication(filtered)
     }
+  }
+}
+
+trait DebugAuthenticator extends NonHashingRequestAuthenticator {
+
+  private object FullAuth extends PhantomRequestAuthenticator
+
+  override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[PhantomUser]] = {
+    log.debug(s"DEBUG auth for request ${ctx.request.uri}")
+    val actualResults = super.request(status, ctx)
+    val fullAuthResults = FullAuth.request(status, ctx)
+    actualResults
   }
 }
 

@@ -25,6 +25,7 @@
     </root>
     <logger name="com.phantom.ds" level="error"/>
     <logger name="com.phantom.ds.conversation" level="error"/>
+    <logger name="com.phantom.ds.framework.auth" level="trace"/>
     <logger name="com.phantom.dataAccess" level="error"/>
     <logger name="scala.slick.session" level="error"/>
     <logger name="com.phantom.ds.framework" level="error"/>

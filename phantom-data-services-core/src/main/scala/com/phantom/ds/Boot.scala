@@ -33,6 +33,7 @@ object Boot extends App with DSConfiguration with Logging {
       case FullAuthentication       => system.actorOf(Props(new PhantomRouteActor(twilioActor, appleActor, S3Service()) with PhantomRequestAuthenticator with PhantomEntryPointAuthenticator), "service")
       case NonHashingAuthentication => system.actorOf(Props(new PhantomRouteActor(twilioActor, appleActor, S3Service()) with NonHashingRequestAuthenticator with PassThroughEntryPointAuthenticator), "service")
       case NoAuthentication         => system.actorOf(Props(new PhantomRouteActor(twilioActor, appleActor, S3Service()) with PassThroughRequestAuthenticator with PassThroughEntryPointAuthenticator), "service")
+      case DebugAuthentication      => system.actorOf(Props(new PhantomRouteActor(twilioActor, appleActor, S3Service()) with DebugAuthenticator with PhantomEntryPointAuthenticator), "service")
     }
   }
 
