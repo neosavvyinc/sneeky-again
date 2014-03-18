@@ -9,7 +9,7 @@ import com.phantom.model.ConversationUpdateResponse
 import com.phantom.model.Conversation
 import com.phantom.model.ConversationItem
 import com.phantom.model.ConversationInsertResponse
-import com.phantom.ds.framework.Logging
+import com.phantom.ds.framework.{ Dates, Logging }
 import akka.actor.ActorRef
 import com.phantom.ds.integration.twilio.SendInviteToStubUsers
 import com.phantom.ds.integration.apple.AppleNotification
@@ -253,7 +253,18 @@ object ConversationService extends DSConfiguration with BasicCrypto {
               receivingUser <- phantomUsersDao.findByIdOperation(getOtherUserId(conversation, loggedInUser))
             } yield {
               val visibleToRecipient = checkUsersConnected(receivingUser, loggedInUser)
-              conversationItemDao.insertOperation(ConversationItem(None, conversationId, imageUrl, imageText, receivingUser.id.get, loggedInUser, visibleToRecipient))
+              conversationItemDao.insertOperation(
+                ConversationItem(
+                  None,
+                  conversationId,
+                  imageUrl,
+                  imageText,
+                  receivingUser.id.get,
+                  loggedInUser,
+                  false,
+                  Dates.nowDT,
+                  visibleToRecipient
+                ))
               conversationDao.updateLastUpdatedOperation(conversationId)
               receivingUser
             }

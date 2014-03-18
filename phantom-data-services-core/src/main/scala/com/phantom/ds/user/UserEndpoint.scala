@@ -8,6 +8,7 @@ import com.phantom.ds.{ BasicCrypto, DataHttpService }
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 import java.util.UUID
 import scala.concurrent.{ Await, Future }
+import spray.http.StatusCodes
 
 trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCrypto {
   this : RequestAuthenticator with EntryPointAuthenticator =>
@@ -142,6 +143,13 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
                 forgotPasswordRequest.email
               )
             }
+          }
+        }
+      } ~
+      pathPrefix("healthcheck") {
+        get {
+          complete {
+            StatusCodes.OK
           }
         }
       }
