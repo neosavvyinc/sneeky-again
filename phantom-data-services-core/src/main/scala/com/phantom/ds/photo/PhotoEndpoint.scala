@@ -15,7 +15,7 @@ trait PhotoEndpoint extends DataHttpService with PhantomJsonProtocol {
 
   val photoRoute =
     pathPrefix("photos") {
-      authenticate(enter _) { user =>
+      authenticate(unverified _) { user =>
         get {
           respondWithMediaType(`application/json`) {
             complete(photoService.findAll.map(PhotoCategoryList(_)))

@@ -31,6 +31,7 @@ class PhotoEndpointSpec extends Specification
       val u = createVerifiedUser("ccaplinger@dickpics.com", "mypassword")
       val session = await(sessions.createSession(PhantomSession.newSession(u)))(ec)
 
+      authedUser = Some(u)
       Get(s"/photos?sessionId=${session.sessionId.toString}") ~> photoRoute ~> check {
         assertPayload[PhotoCategoryList] { response =>
           response.name must be equalTo "categories"
