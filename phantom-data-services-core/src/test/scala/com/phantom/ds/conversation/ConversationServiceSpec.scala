@@ -6,10 +6,12 @@ import com.phantom.ds.dataAccess.BaseDAOSpec
 import com.phantom.ds.TestUtils
 import akka.actor.ActorRefFactory
 import spray.testkit.Specs2RouteTest
-import com.phantom.ds.integration.twilio.SendInviteToStubUsers
-import com.phantom.ds.integration.apple.AppleNotification
-import com.phantom.model.{ MutualContactMessaging, Contact, NoPaging, FeedEntry }
+import com.phantom.model._
 import com.phantom.ds.integration.mock.TestS3Service
+import com.phantom.ds.integration.apple.AppleNotification
+import com.phantom.model.FeedEntry
+import com.phantom.ds.integration.twilio.SendInviteToStubUsers
+import com.phantom.model.Contact
 
 /**
  * Created with IntelliJ IDEA.
@@ -195,7 +197,6 @@ class ConversationServiceSpec extends Specification
       results.id must beEqualTo(1)
     }
 
-    //not testing probes here..as i'm being stubborn and until adam convinces me otherwise..i think there is a bug! :-p
     "start a conversation normally if the receiver has mutualOnly set and the sender and receiver are connected" in withSetupTeardown {
 
       val tProbe = TestProbe()
@@ -204,13 +205,18 @@ class ConversationServiceSpec extends Specification
 
       val userA = createVerifiedUser("a@a.com", "123", "123")
       val userB = createVerifiedUser("b@b.com", "456", "456", true)
-      val userC = createVerifiedUser("c@c.com", "789", "780")
+      val userC = createVerifiedUser("c@c.com", "789", "789")
+      val bSession = await(sessions.createSession(PhantomSession.newSession(userB, Some("tokenB"))))
+      val cSession = await(sessions.createSession(PhantomSession.newSession(userC, Some("tokenC"))))
       val aToB = Contact(None, userA.id.get, userB.id.get)
       val bToA = Contact(None, userB.id.get, userA.id.get)
       contacts.insertAll(Seq(aToB, bToA))
 
       val s = await(service.startConversation(userA.id.get, Set("456", "789"), "text", "url"))
       s.createdCount must beEqualTo(2)
+
+      tProbe.expectNoMsg()
+      aProbe.expectMsgAllOf(AppleNotification(true, bSession.pushNotifierToken), AppleNotification(true, cSession.pushNotifierToken))
 
       val feed = await(service.findFeed(userA.id.get, NoPaging))
       feed.foreach { feedEntry =>
@@ -225,8 +231,8 @@ class ConversationServiceSpec extends Specification
         feedEntry.items.head.toUserDeleted must beEqualTo(false)
       }
       feed.size must beEqualTo(2)
-
     }
+
     "start a conversation which appears deleted to the to user if the receiver has mutualOnly and they are not connected" in withSetupTeardown {
       val tProbe = TestProbe()
       val aProbe = TestProbe()
@@ -235,12 +241,16 @@ class ConversationServiceSpec extends Specification
       val userA = createVerifiedUser("a@a.com", "123", "123")
       val userB = createVerifiedUser("b@b.com", "456", "456", true)
       val userC = createVerifiedUser("c@c.com", "789", "789")
+      await(sessions.createSession(PhantomSession.newSession(userB, Some("tokenB"))))
+      val cSession = await(sessions.createSession(PhantomSession.newSession(userC, Some("tokenC"))))
 
       val aToB = Contact(None, userA.id.get, userB.id.get)
       contacts.insertAll(Seq(aToB))
 
       val s = await(service.startConversation(userA.id.get, Set("456", "789"), "text", "url"))
       s.createdCount must beEqualTo(2)
+      tProbe.expectNoMsg()
+      aProbe.expectMsgAllOf(AppleNotification(true, cSession.pushNotifierToken))
 
       val expectedDeletionFlags = Map(userB.id.get -> true, userC.id.get -> false)
 
@@ -263,7 +273,9 @@ class ConversationServiceSpec extends Specification
       val service = ConversationService(tProbe.ref, aProbe.ref, s3Service)
 
       val userA = createVerifiedUser("a@a.com", "123", "123")
-      val userB = createVerifiedUser("b@b.com", "456", "456", true)
+      val userB = createVerifiedUser("b@b.com", "456", "456", false)
+      val bSession = await(sessions.createSession(PhantomSession.newSession(userB, Some("tokenB"))))
+
       val aToB = Contact(None, userA.id.get, userB.id.get)
       val bToA = Contact(None, userB.id.get, userA.id.get)
       contacts.insertAll(Seq(aToB, bToA))
@@ -271,6 +283,9 @@ class ConversationServiceSpec extends Specification
       val conversations = conversationDao.findByFromUserId(userA.id.get)
       phantomUsersDao.updateSetting(userB.id.get, MutualContactMessaging, true)
       await(service.respondToConversation(userA.id.get, conversations.head.id.get, "text", ".com"))
+
+      tProbe.expectNoMsg()
+      aProbe.expectMsgAllOf(AppleNotification(true, bSession.pushNotifierToken), AppleNotification(true, bSession.pushNotifierToken))
 
       val aFeed = await(service.findFeed(userA.id.get, NoPaging))
       aFeed.foreach { feedEntry =>
@@ -296,18 +311,25 @@ class ConversationServiceSpec extends Specification
       val service = ConversationService(tProbe.ref, aProbe.ref, s3Service)
 
       val userA = createVerifiedUser("a@a.com", "123", "123")
-      val userB = createVerifiedUser("b@b.com", "456", "456", true)
+      val userB = createVerifiedUser("b@b.com", "456", "456", false)
+      val bSession = await(sessions.createSession(PhantomSession.newSession(userB, Some("tokenB"))))
       val aToB = Contact(None, userA.id.get, userB.id.get)
       contacts.insertAll(Seq(aToB))
       await(service.startConversation(userA.id.get, Set("456"), "text", "url"))
+      aProbe.expectMsg(AppleNotification(true, bSession.pushNotifierToken))
       val conversations = conversationDao.findByFromUserId(userA.id.get)
       phantomUsersDao.updateSetting(userB.id.get, MutualContactMessaging, true)
+      Thread.sleep(1000)
       await(service.respondToConversation(userA.id.get, conversations.head.id.get, "text", ".com"))
+      aProbe.expectNoMsg()
+      tProbe.expectNoMsg()
 
       val aFeed = await(service.findFeed(userA.id.get, NoPaging))
+      //REMEMBER: CONVERSATION ITEMS ARE IN ASCENDING ORDER..as OPPOSED TO CONVERSATIONS WHICH ARE IN DESCENDING ORDER.  Look at FeedFolder's 'toFeedEntry' function..thre is no sorting on the items list.
       aFeed.foreach { feedEntry =>
         feedEntry.items must have size 2
-        val expectedDeleteFlags = Seq(true, false)
+        println(feedEntry.items)
+        val expectedDeleteFlags = Seq(false, true)
         val deletedFlags = feedEntry.items.map(_.toUserDeleted)
         deletedFlags must beEqualTo(expectedDeleteFlags)
       }

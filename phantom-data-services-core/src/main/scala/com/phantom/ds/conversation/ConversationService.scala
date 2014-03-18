@@ -261,23 +261,22 @@ object ConversationService extends DSConfiguration with BasicCrypto {
                   imageText,
                   receivingUser.id.get,
                   loggedInUser,
-                  false,
-                  Dates.nowDT,
-                  visibleToRecipient
+                  toUserDeleted = !visibleToRecipient
                 ))
               conversationDao.updateLastUpdatedOperation(conversationId)
-              receivingUser
+              (receivingUser, visibleToRecipient)
             }
           }
         }
 
       recipientOF.flatMap {
-        case None    => throw PhantomException.nonExistentConversation
-        case Some(x) => sendConversationNotificationsToRecipient(x)
+        case None             => throw PhantomException.nonExistentConversation
+        case Some((x, true))  => sendConversationNotificationsToRecipient(x)
+        case Some((x, false)) => Future.successful(ConversationUpdateResponse(1))
       }
     }
 
-    private def checkUsersConnected(recipient : PhantomUser, sendingUser : Long)(implicit session : Session) = {
+    private def checkUsersConnected(recipient : PhantomUser, sendingUser : Long)(implicit session : Session) : Boolean = {
       if (recipient.mutualContactSetting) {
         val connectedUsers = contacts.filterConnectedToContactOperation(Set(recipient.id.get), sendingUser)
         connectedUsers.nonEmpty
