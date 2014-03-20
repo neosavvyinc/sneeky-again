@@ -9,7 +9,7 @@ import com.phantom.model.ConversationUpdateResponse
 import com.phantom.model.Conversation
 import com.phantom.model.ConversationItem
 import com.phantom.model.ConversationInsertResponse
-import com.phantom.ds.framework.Logging
+import com.phantom.ds.framework.{ Dates, Logging }
 import akka.actor.ActorRef
 import com.phantom.ds.integration.twilio.SendInviteToStubUsers
 import com.phantom.ds.integration.apple.AppleNotification
@@ -253,20 +253,30 @@ object ConversationService extends DSConfiguration with BasicCrypto {
               receivingUser <- phantomUsersDao.findByIdOperation(getOtherUserId(conversation, loggedInUser))
             } yield {
               val visibleToRecipient = checkUsersConnected(receivingUser, loggedInUser)
-              conversationItemDao.insertOperation(ConversationItem(None, conversationId, imageUrl, imageText, receivingUser.id.get, loggedInUser, visibleToRecipient))
+              conversationItemDao.insertOperation(
+                ConversationItem(
+                  None,
+                  conversationId,
+                  imageUrl,
+                  imageText,
+                  receivingUser.id.get,
+                  loggedInUser,
+                  toUserDeleted = !visibleToRecipient
+                ))
               conversationDao.updateLastUpdatedOperation(conversationId)
-              receivingUser
+              (receivingUser, visibleToRecipient)
             }
           }
         }
 
       recipientOF.flatMap {
-        case None    => throw PhantomException.nonExistentConversation
-        case Some(x) => sendConversationNotificationsToRecipient(x)
+        case None             => throw PhantomException.nonExistentConversation
+        case Some((x, true))  => sendConversationNotificationsToRecipient(x)
+        case Some((x, false)) => Future.successful(ConversationUpdateResponse(1))
       }
     }
 
-    private def checkUsersConnected(recipient : PhantomUser, sendingUser : Long)(implicit session : Session) = {
+    private def checkUsersConnected(recipient : PhantomUser, sendingUser : Long)(implicit session : Session) : Boolean = {
       if (recipient.mutualContactSetting) {
         val connectedUsers = contacts.filterConnectedToContactOperation(Set(recipient.id.get), sendingUser)
         connectedUsers.nonEmpty
