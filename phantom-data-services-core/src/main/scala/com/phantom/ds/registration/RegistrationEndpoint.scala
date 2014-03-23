@@ -50,10 +50,10 @@ trait RegistrationEndpoint extends DataHttpService
       pathPrefix("users" / "verification") { // this is for the nexmo verification method
         get {
           parameters(
-            'messageId.as[String],
-            'msisdn.as[String],
-            'to.as[String],
-            'text.as[String]) {
+            'messageId.as[String] ? "",
+            'msisdn.as[String] ? "",
+            'to.as[String] ? "",
+            'text.as[String] ? "") {
               (messageId, msisdn, to, text) =>
                 complete {
                   registrationService.verifyRegistration(
