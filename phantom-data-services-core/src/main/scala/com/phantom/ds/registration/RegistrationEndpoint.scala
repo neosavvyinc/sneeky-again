@@ -56,8 +56,24 @@ trait RegistrationEndpoint extends DataHttpService
             'text.as[String] ? "") {
               (messageId, msisdn, to, text) =>
                 complete {
+                  val s = new scala.collection.immutable.StringOps(to)
+                  val toSane = {
+                    if (s.startsWith("+"))
+                      to
+                    else
+                      "+" + to
+                  }
+
+                  val s1 = new scala.collection.immutable.StringOps(msisdn)
+                  val fromSane = {
+                    if (s1.startsWith("+"))
+                      msisdn
+                    else
+                      "+" + msisdn
+                  }
+
                   registrationService.verifyRegistration(
-                    RegistrationVerification(messageId, "", msisdn, to, text, 0))
+                    RegistrationVerification(messageId, "", fromSane, toSane, text, 0))
                 }
             }
         }

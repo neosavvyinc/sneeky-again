@@ -103,7 +103,7 @@ class RegistrationEndpointSpec extends Specification
         status == OK
         val updatedUser = phantomUsersDao.find(user.id.get).get
         updatedUser.status must be equalTo Verified
-        updatedUser.phoneNumber must be equalTo Some("19197419597")
+        updatedUser.phoneNumber must be equalTo Some("+19197419597")
       }
 
     }
