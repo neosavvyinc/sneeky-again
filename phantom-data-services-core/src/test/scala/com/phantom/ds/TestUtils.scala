@@ -10,6 +10,10 @@ trait TestUtils {
     RegistrationVerification("", "", "", "", s"$pre[$uuid]$post", 1)
   }
 
+  def nexMoReg(to : String, from : String, pre : String, uuid : String, post : String) = {
+    RegistrationVerification("", "", from, to, s"$pre[$uuid]$post", 1)
+  }
+
   def regNoBracket(pre : String, uuid : String, post : String) = {
     RegistrationVerification("", "", "", "", s"$pre $uuid $post", 1)
   }
