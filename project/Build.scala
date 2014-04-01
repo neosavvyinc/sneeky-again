@@ -170,6 +170,7 @@ object Assembly {
     {
       case PathList("org", "hamcrest", xs @ _*)         => MergeStrategy.first
       case "logback.properties" =>  MergeStrategy.discard
+      case "logback.xml" =>  MergeStrategy.discard
       case "application.conf" => MergeStrategy.concat
       case x => old(x)
     }})

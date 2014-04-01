@@ -12,29 +12,27 @@ trait EntryPointAuthenticator extends Authenticator {
 trait PhantomEntryPointAuthenticator extends EntryPointAuthenticator with DSConfiguration {
 
   def enter(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[Boolean]] = {
-
-    log.debug("hash: " + ctx.request.uri.query.get(hashP))
-    log.debug("date: " + ctx.request.uri.query.get(dateP))
-
+    log.debug(s"authenticating request ${ctx.request.uri}")
     future {
       val result = for {
-        h <- ctx.request.uri.query.get(hashP)
-        d <- ctx.request.uri.query.get(dateP)
-        _ <- validateHash(h, d)
-        dt <- validateTime(d)
+        h <- extractParameter(hashP, ctx)
+        d <- extractParameter(dateP, ctx)
+        _ <- validateHash(h, d, ctx)
+        dt <- validateTime(d, ctx)
       } yield true
-      toAuthentication(result)
+      toAuthentication(logAuthFailure(result, s"auth failed", ctx))
     }
   }
 
-  private def validateHash(clientHash : String, date : String) = {
+  private def validateHash(clientHash : String, date : String, ctx : RequestContext) = {
     val calculated = hashWithSecret(date)
     log.debug(s"PhantomEntryPointAuthenticator.validateHash[calculated: $calculated and provided: $clientHash]")
-    if (hashWithSecret(date) == clientHash) {
+    val results = if (hashWithSecret(date) == clientHash) {
       Some(date)
     } else {
       None
     }
+    logAuthFailure(results, s"supplied hash $clientHash did not match the expected hash when hashing the date with secret $date", ctx)
   }
 }
 

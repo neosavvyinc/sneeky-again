@@ -2,12 +2,11 @@ package com.phantom.ds.conversation
 
 import spray.http.MediaTypes._
 import com.phantom.ds.{ BasicCrypto, DataHttpService }
-
+import com.phantom.model.{ ConversationStartRequest, ConversationRespondRequest }
 import com.phantom.ds.framework.auth.RequestAuthenticator
 import akka.actor.ActorRef
-import org.apache.commons.codec.binary.Base64
-import com.phantom.ds.framework.crypto.AES
 import com.phantom.model.Paging
+import com.phantom.ds.integration.amazon.S3Service
 
 /**
  * Created by Neosavvy
@@ -23,7 +22,9 @@ trait ConversationEndpoint extends DataHttpService with BasicCrypto {
 
   def appleActor : ActorRef
 
-  val conversationService = ConversationService(twilioActor, appleActor) //need a better way of injecting services..trait!
+  def s3Service : S3Service
+
+  val conversationService = ConversationService(twilioActor, appleActor, s3Service) //need a better way of injecting services..trait!
   val conversation = "conversation"
 
   val conversationRoute =
@@ -58,13 +59,41 @@ trait ConversationEndpoint extends DataHttpService with BasicCrypto {
                     decryptField(fieldVal)
                   }
 
-                  conversationService.startConversation(
-                    user.id.get,
-                    decryptedToUsers.toSet,
-                    imageText,
-                    //todo: move this into the service, and future bound it
-                    conversationService.saveFileForConversationId(image, user.id.get)
-                  )
+                  conversationService.saveFileForConversationId(image, user.id.get).map { url =>
+                    conversationService.startConversation(
+                      user.id.get,
+                      decryptedToUsers.toSet,
+                      imageText,
+                      url
+                    )
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } ~ {
+      pathPrefix(conversation) {
+        path("start" / "stock") {
+          authenticate(verified _) { user =>
+            post {
+              respondWithMediaType(`application/json`) {
+                entity(as[ConversationStartRequest]) { req =>
+
+                  complete {
+                    val decryptedToUsers : Seq[String] = req.toUsers.map(decryptField(_))
+                    conversationService.findPhotoUrlById(req.imageId).map { photoUrl : Option[String] =>
+                      photoUrl.map { url : String =>
+                        conversationService.startConversation(
+                          user.id.get,
+                          decryptedToUsers.toSet,
+                          req.imageText,
+                          url
+                        )
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -81,12 +110,40 @@ trait ConversationEndpoint extends DataHttpService with BasicCrypto {
             post {
               formFields('image.as[Array[Byte]], 'imageText, 'convId.as[Long]) { (image, imageText, convId) =>
                 complete {
-                  conversationService.respondToConversation(
-                    user.id.get,
-                    convId,
-                    imageText,
-                    image)
+                  conversationService.saveFileForConversationId(image, convId).map { url =>
+                    conversationService.respondToConversation(
+                      user.id.get,
+                      convId,
+                      imageText,
+                      url
+                    )
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } ~ {
+      pathPrefix(conversation) {
+        path("respond" / "stock") {
+          authenticate(verified _) { user =>
+            post {
+              respondWithMediaType(`application/json`) {
 
+                // TO DO change this to ConversationContinueRequest (or something)
+                entity(as[ConversationRespondRequest]) { req =>
+                  complete {
+                    conversationService.findPhotoUrlById(req.imageId).map { photoUrl : Option[String] =>
+                      photoUrl.map { url : String =>
+                        conversationService.respondToConversation(
+                          user.id.get,
+                          req.convId,
+                          req.imageText,
+                          url)
+                      }
+                    }
+                  }
                 }
               }
             }

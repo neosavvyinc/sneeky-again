@@ -94,6 +94,20 @@ class RegistrationEndpointSpec extends Specification
       }
     }
 
+    "be able to verify a registration with nexmo" in withSetupTeardown {
+
+      val user = createUnverifiedUser("email@email.com", "password")
+      val regResponse = nexMoReg("19999999999", "19197419597", "pre", user.uuid.toString, "post")
+
+      Get(s"/users/verification?messageId=${regResponse.messageSid}&to=${regResponse.to}&msisdn=${regResponse.from}&text=${regResponse.body}") ~> registrationRoute ~> check {
+        status == OK
+        val updatedUser = phantomUsersDao.find(user.id.get).get
+        updatedUser.status must be equalTo Verified
+        updatedUser.phoneNumber must be equalTo Some("+19197419597")
+      }
+
+    }
+
     "be able to convert a StubUser" in withSetupTeardown {
       val fromUser = createVerifiedUser("n@n.com", "password").id.get
       val user = createUnverifiedUser("email@email.com", "password")

@@ -13,12 +13,15 @@ import akka.testkit.TestProbe
 import akka.actor.ActorRef
 import com.phantom.model._
 import com.phantom.ds.dataAccess.BaseDAOSpec
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.phantom.model.ConversationItem
 import com.phantom.model.Conversation
 import com.phantom.model.BlockUserByConversationResponse
 import com.phantom.model.Contact
 import scala.slick.session.Session
+import com.phantom.ds.integration.amazon.S3Service
+import com.phantom.ds.integration.mock.TestS3Service
 
 /**
  * Created by Neosavvy
@@ -43,8 +46,11 @@ class ConversationEndpointSpec extends Specification
   val appleProbe = TestProbe()
   val twilioActor : ActorRef = probe.ref
   val appleActor : ActorRef = appleProbe.ref
+  def s3Service : S3Service = new TestS3Service()
 
   "Conversation Service" should {
+
+    implicit val routeTestTimeout = RouteTestTimeout(15 seconds span)
 
     "return a user's feed with default pagination parameters" in withSetupTeardown {
       insertTestConverationsWithItems()
@@ -128,7 +134,29 @@ class ConversationEndpointSpec extends Specification
         }
         conversations should have size 3
       }
+    }
 
+    "support starting a conversation with a stock photo" in withSetupTeardown {
+      insertTestUsers()
+      insertTestPhotoCategories()
+      insertTestPhotos()
+      authedUser = phantomUsersDao.find(2L)
+
+      val req = ConversationStartRequest(Seq("111111", "222222", "333333"), "check this ooooout", 1)
+
+      Post("/conversation/start/stock", req) ~> conversationRoute ~> check {
+        status === OK
+        val conversations = conversationDao.findByFromUserId(2)
+        conversations.foreach { conversation =>
+          val items = db.withSession { implicit session : Session =>
+            conversationItemDao.findByConversationIdAndUserOperation(conversation.id.get, authedUser.get.id.get)
+          }
+          items should have size 1
+          items.head.imageText must beEqualTo("check this ooooout")
+          items.head.imageUrl must beEqualTo("/somewhere/1")
+        }
+        conversations should have size 3
+      }
     }
 
     "support receiving a multi-part form post to update a conversation with image" in withSetupTeardown {
@@ -144,6 +172,24 @@ class ConversationEndpointSpec extends Specification
 
       Post("/conversation/respond", multipartFormWithData) ~> conversationRoute ~> check {
         status === OK
+      }
+    }
+
+    "support responding to a conversation with a stock photo" in withSetupTeardown {
+      insertTestPhotoCategories()
+      insertTestPhotos()
+      insertTestConverationsWithItems()
+      authedUser = phantomUsersDao.find(2L)
+      val req = ConversationRespondRequest(1, "check dat text", 1)
+
+      Post("/conversation/respond/stock", req) ~> conversationRoute ~> check {
+        status === OK
+        val mostRecentConvo = conversationDao.findByFromUserId(2).last
+        val items = db.withSession { implicit session : Session =>
+          conversationItemDao.findByConversationIdAndUserOperation(mostRecentConvo.id.get, authedUser.get.id.get)
+        }
+        items.last.imageText must beEqualTo("check dat text")
+        items.last.imageUrl must beEqualTo("/somewhere/1")
       }
     }
 
