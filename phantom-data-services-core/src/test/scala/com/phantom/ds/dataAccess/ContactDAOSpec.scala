@@ -1,6 +1,7 @@
 package com.phantom.ds.dataAccess
 
 import com.phantom.model.{ Blocked, Contact }
+import scala.slick.session.Session
 
 class ContactDAOSpec extends BaseDAOSpec {
 
@@ -39,19 +40,21 @@ class ContactDAOSpec extends BaseDAOSpec {
       )
     }
 
-    "should support deleting a user's contacts" in withSetupTeardown {
-
-      val session = db.createSession()
+    "should support deleting all nonblocked users in the user's contact list" in withSetupTeardown {
 
       val cs : List[Contact] = List(
         Contact(None, 1, 2),
-        Contact(None, 1, 3)
+        Contact(None, 1, 3, Blocked)
       )
 
       insertTestUsers()
       contacts.insertAll(cs)
+      val deleted = db.withTransaction { implicit session : Session =>
+        contacts.deleteAllUnblockedOperation(1)
+      }
 
-      contacts.deleteAll(1)(session) must be_==(2)
+      deleted must be_==(1)
+
     }
 
     "should support finding a contact by contactId" in withSetupTeardown {

@@ -10,8 +10,6 @@ import org.joda.time.LocalDate
 import com.phantom.ds.framework.auth.{ SuppliedUserRequestAuthenticator, PassThroughEntryPointAuthenticator }
 import com.phantom.ds.dataAccess.BaseDAOSpec
 import spray.http.StatusCodes
-import scala.concurrent.duration
-import java.util.concurrent.TimeUnit
 
 class UserEndpointSpec extends Specification
     with PhantomEndpointSpec
@@ -129,7 +127,7 @@ class UserEndpointSpec extends Specification
       }
     }
 
-    "Requesting a forgot password should accept the email address of the user" in withSetupTeardown {
+    /*"Requesting a forgot password should accept the email address of the user" in withSetupTeardown {
       implicit val routeTestTimeout = RouteTestTimeout(duration.FiniteDuration(5, TimeUnit.SECONDS))
       Post("/users/forgotPassword", ForgotPasswordRequest(
         "aparrish@neosavvy.com"
@@ -137,7 +135,71 @@ class UserEndpointSpec extends Specification
         status == StatusCodes.OK
       }
 
+    }*/
+
+    "be able to upload a contact list which does not delete blocked users and returns a list of contacts which excludes blocked users who are not in their contacts" in withSetupTeardown {
+      insertTestUsers()
+      val user = createVerifiedUser("1@1.com", "password", "777777")
+      authedUser = Some(user)
+      contacts.insertAll(Seq(Contact(None, user.id.get, 1, Blocked), Contact(None, user.id.get, 2, Blocked), Contact(None, user.id.get, 3, Friend)))
+      val contactsToUpload = Map("numbers" -> Seq("111111", "444444", "555555", "666666", "999999"))
+      val expectedNumbers = Set(Some("111111"), Some("444444"), Some("555555"), Some("666666"))
+      val expectedBlockedNumbers = Set(Some("111111"), Some("222222"))
+      val expectedFriendNumbers = Set(Some("444444"), Some("555555"), Some("666666"))
+      Post("/users/contacts", contactsToUpload) ~> userRoute ~> check {
+        assertPayload[Seq[SanitizedContact]] { response =>
+
+          val set = response.toSet
+          set.foreach { x => expectedNumbers.find(_ == x.phoneNumber) must beSome }
+          response must have size 4
+        }
+      }
+
+      val allContacts = contacts.findAllForOwner(user.id.get).toSet
+      expectedBlockedNumbers.foreach { x =>
+        val found = allContacts.find(y => y._2.phoneNumber == x)
+        found must beSome
+        found.get._1.contactType must be equalTo Blocked
+      }
+
+      expectedFriendNumbers.foreach { x =>
+        val found = allContacts.find(y => y._2.phoneNumber == x)
+        found must beSome
+        found.get._1.contactType must be equalTo Friend
+      }
+
+      allContacts must have size 5
+
     }
+
+    /*"be able to block users" in withSetupTeardown {
+      insertTestUsers()
+      val user = createVerifiedUser("1@1.com", "password", "777777")
+      authedUser = Some(user)
+      contacts.insertAll(Seq(Contact(None, user.id.get, 1, Blocked), Contact(None, user.id.get, 2, Blocked), Contact(None, user.id.get, 3, Friend), Contact(None, user.id.get, 4, Friend)))
+      val contactsToBlock = Seq("111111", "333333", "666666", "999999")
+      val expectedBlockedNumbers = Set(Some("111111"), Some("222222"), Some("333333"), Some("666666"))
+      val expectedFriendNumbers = Set(Some("444444"))
+      Post("/users/block", contactsToBlock) ~> userRoute ~> check {
+        status == StatusCodes.OK
+      }
+
+      val allContacts = contacts.findAllForOwner(user.id.get).toSet
+      expectedBlockedNumbers.foreach { x =>
+        val found = allContacts.find(y => y._2.phoneNumber == x)
+        found must beSome
+        found.get._1.contactType must be equalTo Blocked
+      }
+
+      expectedFriendNumbers.foreach { x =>
+        val found = allContacts.find(y => y._2.phoneNumber == x)
+        found must beSome
+        found.get._1.contactType must be equalTo Friend
+      }
+
+      allContacts must have size 5
+
+    }*/
 
     "clear a blocked list" in withSetupTeardown {
       insertTestUsers()
@@ -148,9 +210,9 @@ class UserEndpointSpec extends Specification
       Post("/users/clearblocklist") ~> userRoute ~> check {
         status == StatusCodes.OK
 
-        val fetched = contacts.findAllForOwner(user.id.get)
-        val notBlocked = fetched.filter(_.contactType == Friend)
-        notBlocked must have size 4
+        val (notBlocked, blocked) = contacts.findAllForOwner(user.id.get).partition(_._1.contactType == Friend)
+        notBlocked must have size 2
+        blocked must beEmpty
       }
 
     }

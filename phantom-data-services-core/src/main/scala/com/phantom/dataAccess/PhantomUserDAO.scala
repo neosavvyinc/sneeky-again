@@ -1,7 +1,6 @@
 package com.phantom.dataAccess
 
 import scala.slick.session.Database
-import spray.http.{ StatusCode, StatusCodes }
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.framework.exception.PhantomException
 import com.phantom.model._
@@ -139,36 +138,24 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
     }
   }
 
-  //TODO: future me (or remove..used by dead code only)
-  def findContacts(id : Long) : Future[List[PhantomUser]] = {
-    db.withSession { implicit session =>
-      val q = for {
-        u <- UserTable
-        c <- ContactTable if u.id === c.contactId && c.ownerId === id
-      } yield u
+  def findPhantomUserIdsByPhoneOperation(contacts : List[String])(implicit session : Session) : (List[PhantomUser], List[String]) = {
+    val q = for {
+      u <- UserTable if (u.status === (Verified : UserStatus)) && (u.phoneNumber inSet contacts)
+    } yield u
 
-      q.list match {
-        case u : List[PhantomUser] => Future.successful(u)
-        case _                     => Future.failed(new Exception())
-      }
-    }
+    val users = q.list
+    val userNumbers = users.map(_.phoneNumber).flatten
+
+    // note, checking on Verified above, so this will include unverified and stub users in
+    // addition to not found numbers. I suppose this is okay for now, as we're not actually
+    // using notFound for anything at the moment
+    val notFound = contacts.diff(userNumbers)
+    (users, notFound)
   }
 
+  //ONLY USED BY TESTS
   def findPhantomUserIdsByPhone(contacts : List[String]) : (List[PhantomUser], List[String]) = {
-    db.withSession { implicit session =>
-      val q = for {
-        u <- UserTable if (u.status === (Verified : UserStatus)) && (u.phoneNumber inSet contacts)
-      } yield u
-
-      val users = q.list
-      val userNumbers = users.map(_.phoneNumber).flatten
-
-      // note, checking on Verified above, so this will include unverified and stub users in
-      // addition to not found numbers. I suppose this is okay for now, as we're not actually
-      // using notFound for anything at the moment
-      val notFound = contacts.diff(userNumbers)
-      (users, notFound)
-    }
+    db.withSession { implicit session => findPhantomUserIdsByPhoneOperation(contacts) }
   }
 
   //how in the hell do i exec update blank from users set invite = invite +1 where id in(..) ?
@@ -181,11 +168,6 @@ class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executi
         statement.executeUpdate(q)
       }
     }
-  }
-
-  def clearBlockListOperation(id : Long)(implicit session : Session) : Int = {
-    val q = for { c <- ContactTable if c.ownerId === id && c.contactType === (Blocked : ContactType) } yield c.contactType
-    q.update(Friend)
   }
 
   def deleteOperation(id : Long)(implicit session : Session) : Int = {

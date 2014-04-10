@@ -304,7 +304,7 @@ object ConversationService extends DSConfiguration with BasicCrypto {
 
           val updatedOpt = for {
             conversation <- conversationDao.findByIdAndUserOperation(conversationId, userId)
-            updateCount <- Option(contacts.blockContactOperation(userId, getOtherUserId(conversation, userId)))
+            updateCount <- Option(contacts.blockContactByUserIdOperation(userId, getOtherUserId(conversation, userId)))
           } yield (updateCount, conversation)
 
           updatedOpt match {
