@@ -126,7 +126,8 @@ object ConversationService extends DSConfiguration with BasicCrypto {
         (nonUsers, allUsers) <- partitionUsers(contactNumbers)
         (stubUsers, users) <- partitionStubUsers(allUsers)
         (unconnectedUsers, connectedUsers) <- partitionMutuallyConnectedUsers(users, fromUserId)
-        (newStubUsers, response) <- createStubUsersAndRoots(nonUsers, connectedUsers ++ stubUsers, unconnectedUsers, fromUserId, imageText, imageUrl)
+        (blockedUsers, conversableUsers) <- partitionBlockedUsers(connectedUsers, fromUserId)
+        (newStubUsers, response) <- createStubUsersAndRoots(nonUsers, (conversableUsers ++ stubUsers).toSeq /*gross cheating..yek*/ , unconnectedUsers ++ blockedUsers, fromUserId, imageText, imageUrl)
         _ <- sendInvitations(stubUsers ++ newStubUsers)
         tokens <- getTokens(connectedUsers.map(_.id.get)) //TODO: These two lines need not be here..they are a single function
         _ <- sendNewConversationNotifications(connectedUsers, tokens)
@@ -166,6 +167,24 @@ object ConversationService extends DSConfiguration with BasicCrypto {
           val (connected, notConnected) = mutualContactsOnly.partition(_.id.exists(mutuallyConnectedUsers.contains(_)))
           (notConnected, connected ++ promiscuousUsers)
 
+        }
+      }
+    }
+
+    private def partitionBlockedUsers(users : Seq[PhantomUser], fromUserId : Long) : Future[(Set[PhantomUser], Set[PhantomUser])] = {
+      future {
+        db.withSession { implicit session : Session =>
+          val userNumbers = users.map(_.phoneNumber).flatten.toSet
+          val userContacts = contacts.findAllForOwnerInSetOperation(fromUserId, userNumbers)
+
+          val (blocked, notBlocked) = userContacts.partition { case (c, u) => c.contactType == Blocked }
+
+          val allWhoBlockFromUser = contacts.findAllWhoBlockUserOperation(fromUserId, userNumbers).map(_._2)
+
+          val allBlockedUsers = blocked.map(_._2).toSet ++ allWhoBlockFromUser
+          val allConversableUsers = users.toSet -- allBlockedUsers
+
+          (allBlockedUsers, allConversableUsers)
         }
       }
     }
@@ -252,7 +271,7 @@ object ConversationService extends DSConfiguration with BasicCrypto {
               conversation <- conversationDao.findByIdAndUserOperation(conversationId, loggedInUser)
               receivingUser <- phantomUsersDao.findByIdOperation(getOtherUserId(conversation, loggedInUser))
             } yield {
-              val visibleToRecipient = checkUsersConnected(receivingUser, loggedInUser)
+              val visibleToRecipient = checkUsersConnected(receivingUser, loggedInUser) && ensureUsersAreNotBlocked(receivingUser, loggedInUser)
               conversationItemDao.insertOperation(
                 ConversationItem(
                   None,
@@ -285,6 +304,15 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       }
     }
 
+    private def ensureUsersAreNotBlocked(recipient : PhantomUser, sendingUser : Long)(implicit session : Session) : Boolean = {
+      val recipientNumber = recipient.phoneNumber.map(x => Set(x)).getOrElse(throw PhantomException.nonExistentConversation)
+      val sendingUserContact = contacts.findAllForOwnerInSetOperation(sendingUser, recipientNumber)
+      val recipientContact = contacts.findAllWhoBlockUserOperation(sendingUser, recipientNumber)
+      val sendingUserNotBlockingRecipient = sendingUserContact.isEmpty || sendingUserContact.head._1.contactType == Friend
+      val recipientNotBlockingSender = recipientContact.isEmpty
+      sendingUserNotBlockingRecipient && recipientNotBlockingSender
+    }
+
     private def sendConversationNotificationsToRecipient(recipient : PhantomUser) = {
       for {
         tokens <- getTokens(Seq(recipient.id.get))
@@ -309,9 +337,13 @@ object ConversationService extends DSConfiguration with BasicCrypto {
 
           updatedOpt match {
             case None => throw PhantomException.nonExistentConversation
-            case Some((0, conversation)) =>
-              backfillBlockedContact(userId, getOtherUserId(conversation, userId)); BlockUserByConversationResponse(conversation.id.get, true)
-            case Some((_, conversation)) => BlockUserByConversationResponse(conversation.id.get, true)
+            case Some((count, c)) => {
+              deleteConversation(userId, c.id.get)
+              if (count == 0) {
+                backfillBlockedContact(userId, getOtherUserId(c, userId))
+              }
+              BlockUserByConversationResponse(c.id.get, true)
+            }
           }
         }
       }

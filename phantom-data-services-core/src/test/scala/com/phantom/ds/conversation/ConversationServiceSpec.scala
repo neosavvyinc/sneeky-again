@@ -267,6 +267,48 @@ class ConversationServiceSpec extends Specification
 
     }
 
+    "starting a conversation with blocked users, or with users who block the user should not actually start a converation but appear as if it did" in withSetupTeardown {
+      val tProbe = TestProbe()
+      val aProbe = TestProbe()
+      val service = ConversationService(tProbe.ref, aProbe.ref, s3Service)
+      insertTestUsers()
+      val contact2 = Contact(None, 2, 1)
+      val contact3 = Contact(None, 3, 1)
+      val contact4 = Contact(None, 4, 1, Blocked)
+      val contact5 = Contact(None, 5, 1, Blocked)
+      val contact6 = Contact(None, 1, 6, Blocked)
+      contacts.insertAll(Seq(contact2, contact3, contact4, contact5, contact6))
+      val s = await(service.startConversation(1, Set("222222", "333333", "444444", "555555", "666666"), "text", "url"))
+      s.createdCount must beEqualTo(5)
+      val expectedDeletionFlags = Map(2L -> false, 3L -> false, 4L -> true, 5L -> true, 6L -> true)
+      val feed = await(service.findFeed(1L, NoPaging))
+      feed.foreach { feedEntry =>
+        feedEntry.items must have size 1
+        val deleted = expectedDeletionFlags.get(feedEntry.conversation.toUser)
+        feedEntry.items.head.toUserDeleted must beEqualTo(deleted.get)
+      }
+      feed.size must beEqualTo(5)
+
+      val emptyFeedUsers = Seq(4L, 5L, 6L)
+      val nonEmptyFeedUsers = Seq(2L, 3L)
+
+      emptyFeedUsers.foreach { x =>
+        val feed = await(service.findFeed(x, NoPaging))
+        feed should beEmpty
+      }
+
+      nonEmptyFeedUsers.foreach { x =>
+        val feed = await(service.findFeed(x, NoPaging))
+        feed should have size 1
+        feed.foreach { entry =>
+          entry.items must have size 1
+          entry.items.head.toUserDeleted must beFalse
+        }
+      }
+      //to shut the compiler up
+      1 should beEqualTo(1)
+    }
+
     "responding to a conversation after recipient sets mutualOnly should not block any new conversation items if the users are connected" in withSetupTeardown {
       val tProbe = TestProbe()
       val aProbe = TestProbe()
@@ -328,7 +370,6 @@ class ConversationServiceSpec extends Specification
       //REMEMBER: CONVERSATION ITEMS ARE IN ASCENDING ORDER..as OPPOSED TO CONVERSATIONS WHICH ARE IN DESCENDING ORDER.  Look at FeedFolder's 'toFeedEntry' function..thre is no sorting on the items list.
       aFeed.foreach { feedEntry =>
         feedEntry.items must have size 2
-        println(feedEntry.items)
         val expectedDeleteFlags = Seq(false, true)
         val deletedFlags = feedEntry.items.map(_.toUserDeleted)
         deletedFlags must beEqualTo(expectedDeleteFlags)
@@ -345,6 +386,33 @@ class ConversationServiceSpec extends Specification
       bFeed must have size 1
     }
 
+    "responding to a conversation after a user has blocked, should result in the recipient not seeing the post" in withSetupTeardown {
+      val tProbe = TestProbe()
+      val aProbe = TestProbe()
+      val service = ConversationService(tProbe.ref, aProbe.ref, s3Service)
+      insertTestUsers()
+      await(service.startConversation(1L, Set("222222"), "text", "url"))
+      contacts.insertAll(Seq(Contact(None, 2L, 1L, Blocked)))
+      await(service.respondToConversation(1L, 1L, "bla", "bla"))
+      val aFeed = await(service.findFeed(1L, NoPaging))
+      aFeed.foreach { feedEntry =>
+        feedEntry.items must have size 2
+        val expectedDeleteFlags = Seq(false, true)
+        val deletedFlags = feedEntry.items.map(_.toUserDeleted)
+        deletedFlags must beEqualTo(expectedDeleteFlags)
+      }
+
+      val bFeed = await(service.findFeed(2L, NoPaging))
+      bFeed.foreach { feedEntry =>
+        feedEntry.items must have size 1
+        val expectedDeleteFlags = Seq(false)
+        val deletedFlags = feedEntry.items.map(_.toUserDeleted)
+        deletedFlags must beEqualTo(expectedDeleteFlags)
+      }
+
+      aFeed should have size 1
+      bFeed should have size 1
+    }
   }
 
   override def after : Any = system.shutdown _

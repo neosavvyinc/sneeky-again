@@ -106,6 +106,16 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     q.list()
   }
 
+  def findAllWhoBlockUserOperation(userId : Long, numbers : Set[String])(implicit session : Session) : List[(Contact, PhantomUser)] = {
+    val q = for {
+      c <- ContactTable
+      u <- UserTable if (u.id is c.ownerId) && (u.phoneNumber inSet numbers) && (c.contactId is userId) && (c.contactType is (Blocked : ContactType))
+    } yield (c, u)
+
+    q.list()
+
+  }
+
   def deleteAllUnblockedOperation(ownerId : Long)(implicit session : Session) : Int = {
 
     val q = for { c <- ContactTable if c.ownerId === ownerId && (c.contactType === (Friend : ContactType)) } yield c
