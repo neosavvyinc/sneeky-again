@@ -280,7 +280,7 @@ class ConversationServiceSpec extends Specification
       contacts.insertAll(Seq(contact2, contact3, contact4, contact5, contact6))
       val s = await(service.startConversation(1, Set("222222", "333333", "444444", "555555", "666666"), "text", "url"))
       s.createdCount must beEqualTo(5)
-      val expectedDeletionFlags = Map(2L -> false, 3L -> false, 4L -> true, 5L -> true, 6L -> true)
+      val expectedDeletionFlags = Map(2L -> false, 3L -> false, 4L -> true, 5L -> true, 6L -> false)
       val feed = await(service.findFeed(1L, NoPaging))
       feed.foreach { feedEntry =>
         feedEntry.items must have size 1
@@ -289,8 +289,8 @@ class ConversationServiceSpec extends Specification
       }
       feed.size must beEqualTo(5)
 
-      val emptyFeedUsers = Seq(4L, 5L, 6L)
-      val nonEmptyFeedUsers = Seq(2L, 3L)
+      val emptyFeedUsers = Seq(4L, 5L)
+      val nonEmptyFeedUsers = Seq(2L, 3L, 6L)
 
       emptyFeedUsers.foreach { x =>
         val feed = await(service.findFeed(x, NoPaging))

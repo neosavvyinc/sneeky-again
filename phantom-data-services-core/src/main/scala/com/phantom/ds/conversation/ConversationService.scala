@@ -117,7 +117,7 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       }
     }
 
-    //TODO: ther'es a lot in this..we should make a new service just for starting conversations
+    //TODO: there's a lot in this..we should make a new service just for starting conversations
     def startConversation(fromUserId : Long,
                           contactNumbers : Set[String],
                           imageText : String,
@@ -175,16 +175,9 @@ object ConversationService extends DSConfiguration with BasicCrypto {
       future {
         db.withSession { implicit session : Session =>
           val userNumbers = users.map(_.phoneNumber).flatten.toSet
-          val userContacts = contacts.findAllForOwnerInSetOperation(fromUserId, userNumbers)
-
-          val (blocked, notBlocked) = userContacts.partition { case (c, u) => c.contactType == Blocked }
-
-          val allWhoBlockFromUser = contacts.findAllWhoBlockUserOperation(fromUserId, userNumbers).map(_._2)
-
-          val allBlockedUsers = blocked.map(_._2).toSet ++ allWhoBlockFromUser
-          val allConversableUsers = users.toSet -- allBlockedUsers
-
-          (allBlockedUsers, allConversableUsers)
+          val allWhoBlockFromUser = contacts.findAllWhoBlockUserOperation(fromUserId, userNumbers).map(_._2).toSet
+          val allConversableUsers = users.toSet -- allWhoBlockFromUser
+          (allWhoBlockFromUser, allConversableUsers)
         }
       }
     }
@@ -306,11 +299,8 @@ object ConversationService extends DSConfiguration with BasicCrypto {
 
     private def ensureUsersAreNotBlocked(recipient : PhantomUser, sendingUser : Long)(implicit session : Session) : Boolean = {
       val recipientNumber = recipient.phoneNumber.map(x => Set(x)).getOrElse(throw PhantomException.nonExistentConversation)
-      val sendingUserContact = contacts.findAllForOwnerInSetOperation(sendingUser, recipientNumber)
       val recipientContact = contacts.findAllWhoBlockUserOperation(sendingUser, recipientNumber)
-      val sendingUserNotBlockingRecipient = sendingUserContact.isEmpty || sendingUserContact.head._1.contactType == Friend
-      val recipientNotBlockingSender = recipientContact.isEmpty
-      sendingUserNotBlockingRecipient && recipientNotBlockingSender
+      recipientContact.isEmpty
     }
 
     private def sendConversationNotificationsToRecipient(recipient : PhantomUser) = {

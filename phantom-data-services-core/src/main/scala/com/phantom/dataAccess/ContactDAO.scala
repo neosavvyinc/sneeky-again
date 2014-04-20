@@ -97,15 +97,6 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     byOwnerQuery(ownerId).list()
   }
 
-  def findAllForOwnerInSetOperation(ownerId : Long, numbers : Set[String])(implicit session : Session) : List[(Contact, PhantomUser)] = {
-    val q = for {
-      c <- ContactTable
-      u <- UserTable if (u.id is c.contactId) && (c.ownerId is ownerId) && (u.phoneNumber inSet numbers)
-    } yield (c, u)
-
-    q.list()
-  }
-
   def findAllWhoBlockUserOperation(userId : Long, numbers : Set[String])(implicit session : Session) : List[(Contact, PhantomUser)] = {
     val q = for {
       c <- ContactTable
