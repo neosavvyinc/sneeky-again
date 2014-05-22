@@ -10,12 +10,14 @@ import java.util.UUID
 import com.phantom.ds.framework.exception.PhantomException
 import com.phantom.ds.framework.email.{ MandrillConfiguration, MandrillUtil }
 import com.phantom.ds.BasicCrypto
+import scala.slick.session.Session
 
 trait UserService {
 
   def login(loginRequest : UserLogin) : Future[LoginSuccess]
   def logout(sessionId : String) : Future[Int]
   def updateContacts(id : Long, contacts : List[String]) : Future[List[SanitizedContact]]
+  //def blockUsers(id : Long, numbers : Set[String]) : Future[Int]
   def clearBlockList(id : Long) : Future[Int]
   def forgotPassword(email : String) : Future[Boolean]
 }
@@ -37,36 +39,82 @@ object UserService extends BasicCrypto {
 
     def findById(id : Long) : Future[PhantomUser] = {
       future {
-        val opt = phantomUsersDao.find(id)
-        opt.getOrElse(throw PhantomException.nonExistentUser)
+        db.withSession { implicit session =>
+          val opt = phantomUsersDao.findByIdOperation(id)
+          opt.getOrElse(throw PhantomException.nonExistentUser)
+        }
       }
     }
 
-    //TODO FIX ME..I DELETE BLOCKED USERS
     def updateContacts(id : Long, contactList : List[String]) : Future[List[SanitizedContact]] = {
-      val session = db.createSession
 
       val decryptedContacts : List[String] = contactList.map(c => decryptField(c))
-
       future {
-        contacts.deleteAll(id)(session)
-        val (users : List[PhantomUser], numbersNotFound : List[String]) = phantomUsersDao.findPhantomUserIdsByPhone(decryptedContacts)
-        contacts.insertAll(users.map(u => Contact(None, id, u.id.get)))
+        db.withTransaction { implicit session : Session =>
 
-        users.map(u => SanitizedContact(
-          encryptLocalDate(u.birthday),
-          u.status,
-          encryptOption(u.phoneNumber)
-        ))
+          log.trace(s"decrypted : $decryptedContacts")
+          //delete all unblocked users
+          contacts.deleteAllUnblockedOperation(id)
+
+          //fetch all contacts, which are all the remaining blocked users
+          val blockedUsers : List[(Contact, PhantomUser)] = contacts.findAllForOwnerOperation(id)
+          log.trace(s"blockedUsers: $blockedUsers")
+
+          //now, lets take the user's uploaded contacts, and filter out any numbers that appear in the blocked list.
+          //we do this to avoid inserting any dupes, since blocked users already are in the table
+          val filteredDecrypted = decryptedContacts.filter(x => blockedUsers.find(_._2.phoneNumber == Some(x)).isEmpty)
+          log.trace(s"filterDecrypted: $filteredDecrypted")
+
+          //resolve the filtered list into phantom users
+          val (users, _) = phantomUsersDao.findPhantomUserIdsByPhoneOperation(filteredDecrypted)
+
+          contacts.insertAllOperation(users.map(u => Contact(None, id, u.id.get)))
+
+          //get a list of sanitizedcontacts which represent the user's blocked contacts who they are actually connected to(ie: not a random stranger they blocked who is not in their phone list)
+          val blockedContacts = blockedUsers.collect {
+            new PartialFunction[(Contact, PhantomUser), SanitizedContact] {
+              override def apply(v1 : (Contact, PhantomUser)) : SanitizedContact = SanitizedContact(encryptLocalDate(v1._2.birthday), v1._2.status, encryptOption(v1._2.phoneNumber))
+
+              override def isDefinedAt(x : (Contact, PhantomUser)) : Boolean = decryptedContacts.exists(y => x._2.phoneNumber == Some(y))
+            }
+          }
+
+          log.trace(s"blockedContacts: $blockedContacts")
+
+          users.map(u => SanitizedContact(
+            encryptLocalDate(u.birthday),
+            u.status,
+            encryptOption(u.phoneNumber)
+          )) ++ blockedContacts
+        }
       }
     }
+
+    //no use for htis now..but in multi conversations, you might want to delete multiple users..so keeping this in as a reference
+    /* def blockUsers(id : Long, numbers : Set[String]) : Future[Int] = {
+      future {
+        db.withTransaction { implicit session : Session =>
+          //find existing contacts whose numbers match
+          //change those to Blocked
+          //find existing users for the rest
+          //insert as blocked
+          //note any phone numbers that don't map to users, get ignored
+          val existingContacts = contacts.findAllForOwnerInSetOperation(id, numbers)
+          val unconnectedContacts = numbers.filterNot(x => existingContacts.exists { case (c, u) => u.phoneNumber == Some(x) })
+          val ids = existingContacts.map { case (c, u) => c.id }.flatten.toSet
+          contacts.blockContactsOperation(ids)
+          val (users, _) = phantomUsersDao.findPhantomUserIdsByPhoneOperation(unconnectedContacts.toList)
+          val inserted = contacts.insertAllOperation(users.map(x => Contact(None, id, x.id.get, Blocked)))
+          existingContacts.size + inserted.size
+        }
+      }
+    }*/
 
     def clearBlockList(id : Long) : Future[Int] = {
       future {
         db.withTransaction { implicit session =>
-          phantomUsersDao.clearBlockListOperation(id)
+          contacts.clearBlockListOperation(id)
         }
-
       }
     }
 

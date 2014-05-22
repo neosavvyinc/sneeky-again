@@ -2,10 +2,12 @@ package com.phantom.ds
 
 import akka.actor.{ ActorRef, Actor }
 import com.phantom.ds.user.UserEndpoint
+import com.phantom.ds.photo.PhotoEndpoint
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 import com.phantom.ds.conversation.ConversationEndpoint
 import com.phantom.dataAccess.DatabaseSupport
 import com.phantom.ds.registration.RegistrationEndpoint
+import com.phantom.ds.integration.amazon.S3Service
 
 /**
  * Created by Neosavvy
@@ -15,10 +17,11 @@ import com.phantom.ds.registration.RegistrationEndpoint
  * Time: 4:53 PM
  */
 
-class PhantomRouteActor(val twilioActor : ActorRef, val appleActor : ActorRef) extends Actor
+class PhantomRouteActor(val twilioActor : ActorRef, val appleActor : ActorRef, val s3Service : S3Service) extends Actor
     with UserEndpoint
     with RegistrationEndpoint
     with ConversationEndpoint
+    with PhotoEndpoint
     with DatabaseSupport {
   this : RequestAuthenticator with EntryPointAuthenticator =>
 
@@ -30,6 +33,6 @@ class PhantomRouteActor(val twilioActor : ActorRef, val appleActor : ActorRef) e
   // other things here, like request stream processing
   // or timeout handling
   def receive = runRoute(
-    userRoute ~ conversationRoute ~ registrationRoute
+    userRoute ~ conversationRoute ~ registrationRoute ~ photoRoute
   )
 }

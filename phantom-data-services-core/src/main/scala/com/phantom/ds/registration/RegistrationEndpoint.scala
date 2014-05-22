@@ -46,5 +46,37 @@ trait RegistrationEndpoint extends DataHttpService
             }
         }
 
+      } ~
+      pathPrefix("users" / "verification") { // this is for the nexmo verification method
+        get {
+          parameters(
+            'messageId.as[String] ? "",
+            'msisdn.as[String] ? "",
+            'to.as[String] ? "",
+            'text.as[String] ? "") {
+              (messageId, msisdn, to, text) =>
+                complete {
+                  val s = new scala.collection.immutable.StringOps(to)
+                  val toSane = {
+                    if (s.startsWith("+"))
+                      to
+                    else
+                      "+" + to
+                  }
+
+                  val s1 = new scala.collection.immutable.StringOps(msisdn)
+                  val fromSane = {
+                    if (s1.startsWith("+"))
+                      msisdn
+                    else
+                      "+" + msisdn
+                  }
+
+                  registrationService.verifyRegistration(
+                    RegistrationVerification(messageId, "", fromSane, toSane, text, 0))
+                }
+            }
+        }
+
       }
 }

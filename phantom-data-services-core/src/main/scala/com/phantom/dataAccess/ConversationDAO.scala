@@ -9,11 +9,10 @@ package com.phantom.dataAccess
  */
 
 import scala.slick.session.Database
-import com.phantom.model.{ ConversationItem, FeedEntry, Conversation }
+import com.phantom.model.{ ConversationItem, Conversation }
 import scala.concurrent.{ Future, ExecutionContext, future }
-import com.phantom.ds.framework.Logging
+import com.phantom.ds.framework.{ Dates, Logging }
 import com.phantom.ds.framework.exception.PhantomException
-import org.joda.time.DateTime
 
 class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionContext)
     extends BaseDAO(dal, db)
@@ -86,6 +85,11 @@ class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
 
   def findByIdAndUserOperation(conversationId : Long, userId : Long)(implicit session : Session) : Option[Conversation] = {
     byIdAndUserQuery(conversationId, userId).firstOption
+  }
+
+  def updateLastUpdatedOperation(id : Long)(implicit session : Session) : Int = {
+    val q = for { c <- ConversationTable if c.id is id } yield c.lastUpdated
+    q.update(Dates.nowDT)
   }
 
   //ONLY USED BY TESTS

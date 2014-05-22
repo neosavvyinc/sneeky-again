@@ -2,8 +2,9 @@ package com.phantom.dataAccess
 
 import scala.slick.session.Database
 import com.phantom.ds.framework.exception.PhantomException
-import com.phantom.model.{ Blocked, Contact }
+import com.phantom.model._
 import scala.concurrent.{ ExecutionContext, Future, future }
+import com.phantom.model.Contact
 
 class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionContext) extends BaseDAO(dal, db) {
   import dal._
@@ -23,14 +24,16 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     }
   }
 
-  //TODO OPERATION ME
-  def insertAll(contacts : Seq[Contact]) : Seq[Contact] = {
-    db.withTransaction { implicit session =>
-      val c = ContactTable.forInsert.insertAll(contacts : _*)
-      c.zip(contacts).map {
-        case (id, contact) => contact.copy(id = Some(id))
-      }
+  def insertAllOperation(contacts : Seq[Contact])(implicit session : Session) : Seq[Contact] = {
+    val c = ContactTable.forInsert.insertAll(contacts : _*)
+    c.zip(contacts).map {
+      case (id, contact) => contact.copy(id = Some(id))
     }
+  }
+
+  //TODO ONLY USED BY TESTS
+  def insertAll(contacts : Seq[Contact]) : Seq[Contact] = {
+    db.withTransaction { implicit session => insertAllOperation(contacts) }
   }
 
   def findByContactId(ownerId : Long, contactId : Long) : Future[Contact] = {
@@ -47,6 +50,13 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     }
   }
 
+  def filterConnectedToContactOperation(ownerIds : Set[Long], contactId : Long)(implicit session : Session) = {
+    val q = for {
+      (u, c) <- UserTable join ContactTable on (_.id === _.ownerId) if (u.id inSet ownerIds) && (c.contactId is contactId)
+    } yield u.id
+    q.list
+  }
+
   def update(contact : Contact) : Future[Int] = {
     future {
       db.withTransaction { implicit session =>
@@ -58,18 +68,49 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     }
   }
 
-  def blockContactOperation(ownerId : Long, contactId : Long)(implicit session : Session) : Int = {
+  def clearBlockListOperation(id : Long)(implicit session : Session) : Int = {
+    val q = for { c <- ContactTable if c.ownerId === id && c.contactType === (Blocked : ContactType) } yield c
+    q.delete
+  }
+
+  def blockContactByUserIdOperation(ownerId : Long, contactId : Long)(implicit session : Session) : Int = {
     val q = for {
       c <- ContactTable if c.ownerId === ownerId && c.contactId === contactId
     } yield c.contactType
     q.update(Blocked)
   }
 
-  //TODO OPERATION ME
-  def deleteAll(id : Long)(session : scala.slick.session.Session) : Int = {
-    db.withTransaction { implicit session =>
-      Query(ContactTable).filter(_.ownerId === id).delete(session)
-    }
+  def blockContactsOperation(ids : Set[Long])(implicit session : Session) : Int = {
+    val q = for {
+      c <- ContactTable if c.id inSet ids
+    } yield c.contactType
+    q.update(Blocked)
+  }
+
+  private val byOwnerQuery = for {
+    owner <- Parameters[Long]
+    c <- ContactTable
+    u <- UserTable if (u.id === c.contactId) && (c.ownerId === owner)
+  } yield (c, u)
+
+  def findAllForOwnerOperation(ownerId : Long)(implicit session : Session) : List[(Contact, PhantomUser)] = {
+    byOwnerQuery(ownerId).list()
+  }
+
+  def findAllWhoBlockUserOperation(userId : Long, numbers : Set[String])(implicit session : Session) : List[(Contact, PhantomUser)] = {
+    val q = for {
+      c <- ContactTable
+      u <- UserTable if (u.id is c.ownerId) && (u.phoneNumber inSet numbers) && (c.contactId is userId) && (c.contactType is (Blocked : ContactType))
+    } yield (c, u)
+
+    q.list()
+
+  }
+
+  def deleteAllUnblockedOperation(ownerId : Long)(implicit session : Session) : Int = {
+
+    val q = for { c <- ContactTable if c.ownerId === ownerId && (c.contactType === (Friend : ContactType)) } yield c
+    q.delete
   }
 
   //ONLY USED BY TESTS
@@ -80,12 +121,7 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
   }
 
   //ONLY USED BY TESTS
-  def findAllForOwner(id : Long) : Seq[Contact] = {
-    db.withSession { implicit session =>
-      val q = for { c <- ContactTable if c.ownerId === id } yield c
-      q.list()
-    }
+  def findAllForOwner(id : Long) : Seq[(Contact, PhantomUser)] = {
+    db.withSession { implicit session => findAllForOwnerOperation(id) }
   }
-
 }
-
