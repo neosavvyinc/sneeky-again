@@ -1,0 +1,88 @@
+
+* User (Profile / Settings)
+   * Login
+      * Request
+         * Email
+         * Password
+      * Response
+         * Profile Object (or just user id)
+         * Error (bad email, password, etc)
+   * Register
+      * Request
+         * Email
+         * Password
+         * Birthday
+      * Response
+         * Profile Object (or just user id)
+         * Error (already registered, etc)
+      * Update phone number (TWILIO)
+         * Get ID for text message
+         * Notification Sound
+            * Request
+               * BOOL (on, off)
+            * Response
+               * 200?
+      * Get contacts
+         * Request
+            * User Id
+         * Response
+            * List of registered contacts
+            * List of recent contacts
+               * anyone you’ve had a conversation with
+      * Update Contacts
+         * Request
+            * List of contacts (phone numbers)
+         * Response
+            * List of friends on Phantom
+      * Reset Block List
+         * Request
+            * UserId
+         * Response
+            * 200?
+
+
+* Conversations
+   * Get my feed
+      * Request
+         * UserId
+      * Response
+         * List of conversations
+   * Start new conversation / reply to conversation
+      * Request
+         * Multipart form
+            * Image
+            * Image Text
+            * User List (User ids who image is being sent to)
+            * User Id (sender)
+            * Conversation Id (Optional - blank if new conversation)
+      * Response
+         * Conversation Id
+         * Error
+
+      * Notifications (This seems to be a duplicate of the one below)
+         * New Picture Received
+            * Request
+               * BOOL (on, off)
+            * Response
+               * 200?
+
+
+   * View (Viewed a photo)
+      * Request
+         * Conversation Id
+         * Photo Id
+         * User Id
+      * Response
+         * 200?
+   * Block
+      * Request
+         * Conversation Id
+         * User Id
+      * Response
+         * 200?
+   * Delete
+      * Request
+         * Photo Id
+         * User Id
+      * Response
+         * 200?
