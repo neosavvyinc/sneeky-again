@@ -22,12 +22,12 @@ object Build extends sbt.Build {
 
 
   lazy val root =
-    project(id = "phantom-data-services",
+    project(id = "shoutout-data-services",
       base = file(".")) aggregate core
 
   lazy val core =
-    project(id = "phantom-data-services-core",
-      base = file("phantom-data-services-core"),
+    project(id = "shoutout-data-services-core",
+      base = file("shoutout-data-services-core"),
       settings = Seq(libraryDependencies ++=
           Shared.Spray ++
           Shared.Akka ++
@@ -114,7 +114,7 @@ object Shared {
   )
 
   val settings = Seq(
-    organization := "com.phantom",
+    organization := "com.shoutout",
     scalaVersion := "2.10.3",
     scalacOptions := Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
     parallelExecution in Test := false,
@@ -163,7 +163,7 @@ object Formatting {
 
 
 object Assembly {
-  val prefs = Set(jarName in assembly := "phantom.jar",
+  val prefs = Set(jarName in assembly := "shoutout.jar",
     mainClass in assembly := None,
     test in assembly := {},
     mergeStrategy in assembly <<= (mergeStrategy in assembly) {(old) =>

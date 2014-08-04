@@ -1,1 +1,1 @@
- java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=4000 -cp ./phantom-data-services-core/target/scala-2.10/phantom.jar:./phantom-data-services-core/src/main/resources com.phantom.ds.Boot
+ java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=4000 -cp ./shoutout-data-services-core/target/scala-2.10/shoutout.jar:./shoutout-data-services-core/src/main/resources com.phantom.ds.Boot
