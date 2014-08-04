@@ -9,14 +9,14 @@ sealed trait ContactType
 object ContactType {
 
   def toStringRep(contactType : ContactType) : String = contactType match {
-    case Friend  => "friend"
-    case Blocked => "blocked"
+    case Friend => "friend"
+    case Group  => "group"
   }
 
   def fromStringRep(contactType : String) : ContactType = contactType.toLowerCase match {
-    case "friend"  => Friend
-    case "blocked" => Blocked
-    case _         => throw new Exception(s"unrecognized ContactType $contactType")
+    case "friend" => Friend
+    case "group"  => Group
+    case _        => throw new Exception(s"unrecognized ContactType $contactType")
 
   }
 
@@ -24,11 +24,12 @@ object ContactType {
 
 case object Friend extends ContactType
 
-case object Blocked extends ContactType
+case object Group extends ContactType
 
 case class Contact(id : Option[Long],
                    ownerId : Long,
                    contactId : Long,
+                   sortOrder : Long,
                    contactType : ContactType = Friend)
 
 trait ContactComponent { this : Profile with UserComponent =>
@@ -44,16 +45,13 @@ trait ContactComponent { this : Profile with UserComponent =>
 
     // * UNIQUE * //
     def ownerId = column[Long]("OWNER_ID")
-
-    // * UNIQUE * //
     def contactId = column[Long]("CONTACT_ID")
+    def sortOrder = column[Long]("SORT_ORDER")
     def contactType = column[ContactType]("TYPE")
-    def * = id.? ~ ownerId ~ contactId ~ contactType <> (Contact, Contact.unapply _)
+    def * = id.? ~ ownerId ~ contactId ~ sortOrder ~ contactType <> (Contact, Contact.unapply _)
     def forInsert = * returning id
 
     def owner = foreignKey("OWNER_FK", ownerId, UserTable)(_.id)
-    def contact = foreignKey("CONTACT_FK", contactId, UserTable)(_.id)
-    def uniqueContact = index("uniqueContact", (ownerId, contactId), unique = true)
   }
 
 }

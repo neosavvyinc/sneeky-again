@@ -3,7 +3,7 @@ package com.phantom.dataAccess
 import scala.slick.session.Database
 import com.phantom.ds.framework.Logging
 import java.util.UUID
-import com.phantom.model.{ PhantomSession, PhantomUser, MobilePushType }
+import com.phantom.model.{ PhantomSession, ShoutoutUser, MobilePushType }
 import scala.concurrent.{ ExecutionContext, Future, future }
 
 class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionContext) extends BaseDAO(dal, db)
@@ -28,7 +28,7 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
   } yield s
 
   //TODO future me
-  def findFromSession(session : UUID) : Option[PhantomUser] = {
+  def findFromSession(session : UUID) : Option[ShoutoutUser] = {
     db.withSession { implicit s =>
       userBySessionId(session).firstOption
     }

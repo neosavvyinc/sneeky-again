@@ -7,7 +7,7 @@ import spray.http.StatusCodes._
 import com.phantom.ds.dataAccess.BaseDAOSpec
 import java.util.UUID
 import com.phantom.model._
-import com.phantom.model.PhantomUser
+import com.phantom.model.ShoutoutUser
 import com.phantom.ds.framework.Dates
 
 class PhantomRequestAuthenticatorSpec extends Specification

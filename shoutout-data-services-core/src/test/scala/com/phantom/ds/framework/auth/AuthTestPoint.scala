@@ -7,17 +7,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 trait AuthTestPoint extends HttpService {
   this : RequestAuthenticator with EntryPointAuthenticator =>
 
-  def protectedRoute = pathPrefix("test" / "protected") {
-    get {
-      authenticate(verified _) {
-        user =>
-          complete {
-            StatusCodes.OK
-          }
-      }
-    }
-  }
-
   def entryRoute = pathPrefix("test" / "entry") {
     post {
       authenticate(enter _) {
@@ -29,17 +18,6 @@ trait AuthTestPoint extends HttpService {
     }
   }
 
-  def unverifiedRoute = pathPrefix("test" / "unverified") {
-    get {
-      authenticate(unverified _) {
-        user =>
-          complete {
-            StatusCodes.OK
-          }
-      }
-    }
-  }
-
-  val testRoute = protectedRoute ~ entryRoute ~ unverifiedRoute
+  val testRoute = entryRoute
 
 }

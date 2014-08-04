@@ -1,6 +1,6 @@
 package com.phantom.ds.dataAccess
 
-import com.phantom.model.{ PhantomUser, Blocked, Contact }
+import com.phantom.model.{ Contact }
 import scala.slick.session.Session
 
 class ContactDAOSpec extends BaseDAOSpec {

@@ -43,15 +43,6 @@ package object httpx {
       }
     }
 
-    implicit object UserStatusFormat extends JsonFormat[UserStatus] {
-      def write(obj : UserStatus) = JsString(UserStatus.toStringRep(obj))
-
-      def read(json : JsValue) : UserStatus = json match {
-        case JsString(x) => UserStatus.fromStringRep(x)
-        case _           => deserializationError("Expected String value for UserStatus")
-      }
-    }
-
     implicit object PushSettingTypeFormat extends JsonFormat[SettingType] {
       def write(obj : SettingType) = JsString(SettingType.toStringRep(obj))
 
@@ -88,58 +79,9 @@ package object httpx {
       }
     }
 
-    implicit object ListTypeFormat extends JsonFormat[List[ConversationItem]] {
-      override def write(obj : List[ConversationItem]) : JsValue = JsArray(obj.map(conversationItemFormat.write))
-
-      override def read(json : JsValue) : List[ConversationItem] = json match {
-        case JsArray(x) => x.map(conversationItemFormat.read)
-        case _          => deserializationError("Expected String value for List[ConversationItem]")
-      }
-    }
-
-    implicit object FEListTypeFormat extends JsonFormat[List[FEConversationItem]] {
-      override def write(obj : List[FEConversationItem]) : JsValue = JsArray(obj.map(feConversationItem.write))
-
-      override def read(json : JsValue) : List[FEConversationItem] = json match {
-        case JsArray(x) => x.map(feConversationItem.read)
-        case _          => deserializationError("Expected String value for List[FEConversationItem]")
-      }
-    }
-
     implicit val failureFormat = jsonFormat2(Failure)
-    implicit val userRegistrationFormat = jsonFormat3(UserRegistration)
-    implicit val userRegistrationRequestFormat = jsonFormat3(UserRegistrationRequest)
-    implicit val userRegistrationResponseFormat = jsonFormat2(RegistrationResponse)
 
-    implicit val userFormat = jsonFormat12(PhantomUser)
-    implicit val sanitizedUserFormat = jsonFormat8(SanitizedUser)
-    implicit val sanitizedContactFormat = jsonFormat3(SanitizedContact)
-    implicit val userLoginFormat = jsonFormat2(UserLogin)
-    implicit val loginSuccessFormat = jsonFormat1(LoginSuccess)
-    implicit val registrationVerificationFormat = jsonFormat6(RegistrationVerification)
-    implicit val sessionIdwithPushNotifier = jsonFormat2(UpdatePushTokenRequest)
-    implicit val pushSettingsRequest = jsonFormat2(SettingsRequest)
-    implicit val conversationFormat = jsonFormat5(Conversation)
-    implicit val conversationItemFormat = jsonFormat10(ConversationItem)
-
-    implicit val feedEntryRequest = jsonFormat2(FeedEntry)
-    implicit val feConversation = jsonFormat4(FEConversation)
-    implicit val feConversationItem = jsonFormat7(FEConversationItem)
-    implicit val feedWrapper = jsonFormat2(FeedWrapper)
-    implicit val contactFormat = jsonFormat4(Contact)
-    implicit val forgotPasswordRequest = jsonFormat1(ForgotPasswordRequest)
-
-    implicit val conversationInsertResponse = jsonFormat1(ConversationInsertResponse)
-    implicit val conversationUpdateResponse = jsonFormat1(ConversationUpdateResponse)
-    implicit val conversationStartRequest = jsonFormat3(ConversationStartRequest)
-    implicit val conversationRespondRequest = jsonFormat3(ConversationRespondRequest)
-    implicit val blockUserByConversationResponse = jsonFormat2(BlockUserByConversationResponse)
-
-    implicit val photoResponse = jsonFormat4(Photo)
-    implicit val photoListResponse = jsonFormat2(PhotoList)
-    implicit val photoCategoryResponse = jsonFormat2(PhotoCategory)
-    implicit val photoCategoryListResponse = jsonFormat2(PhotoCategoryList)
-
+    implicit val userFormat = jsonFormat10(ShoutoutUser)
   }
 
   trait PhantomResponseMarshaller extends PhantomJsonProtocol {

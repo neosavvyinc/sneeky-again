@@ -6,7 +6,6 @@ import scala.util.Try
 import java.security.MessageDigest
 import spray.routing.{ RequestContext, AuthenticationFailedRejection }
 import spray.routing.AuthenticationFailedRejection.CredentialsRejected
-import com.phantom.model.{ Stub, Unverified, Verified, UserStatus }
 import com.phantom.ds.framework.{ Dates, Logging }
 
 trait Authenticator extends DSConfiguration with Logging {
@@ -53,25 +52,6 @@ trait Authenticator extends DSConfiguration with Logging {
     val bytes = withSuffix.getBytes("UTF-8")
     val digested = digest.digest(bytes)
     valueOf(digested)
-  }
-
-}
-
-/*very simple authorizer for now...will keep us afloat until we have more stringent requirements
-this just assumes the following auth hierarchy:
-- Verified -> Top dawg, can hit all points
-- Unverified -> can only hit endpoints for Unverified and Stubs
-- Stub       -> can only hit endpoints for Stus
-*/
-object PhantomAuthorizer extends Logging {
-
-  private val weights : Map[UserStatus, Int] = Map(Verified -> 100, Unverified -> 10, Stub -> 1)
-
-  def authorize(securityRole : UserStatus, userRole : UserStatus) : Boolean = {
-    val securityWeight = weights.getOrElse(securityRole, -1)
-    val userWeight = weights.getOrElse(userRole, -1)
-    log.debug(s"authorizing $securityRole with weight $securityWeight against user role $userRole with weight $userWeight")
-    userWeight >= securityWeight
   }
 
 }

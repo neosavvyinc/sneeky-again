@@ -1,7 +1,7 @@
 
 package com.phantom.ds.dataAccess
 
-import com.phantom.model.{ NotificationOnNewPicture, SoundOnNewNotification, PhantomUser }
+import com.phantom.model.{ SoundOnNewNotification, ShoutoutUser }
 
 class PhantomUsersDAOSpec extends BaseDAOSpec {
 

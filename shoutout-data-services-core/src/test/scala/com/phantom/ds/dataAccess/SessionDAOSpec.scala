@@ -2,7 +2,7 @@ package com.phantom.ds.dataAccess
 
 import com.phantom.model._
 import scala.concurrent.ExecutionContext.Implicits.global
-import com.phantom.model.PhantomUser
+import com.phantom.model.ShoutoutUser
 
 /**
  * Created with IntelliJ IDEA.

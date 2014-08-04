@@ -8,7 +8,7 @@ import scala.concurrent.{ ExecutionContext, Future, future }
 import java.util.UUID
 import com.phantom.ds.user.Passwords
 import com.phantom.model.UserLogin
-import com.phantom.model.PhantomUser
+import com.phantom.model.ShoutoutUser
 import com.phantom.model.UserRegistration
 
 class PhantomUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionContext) extends BaseDAO(dal, db)
