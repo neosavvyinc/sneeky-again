@@ -4,7 +4,7 @@ import com.jolbox.bonecp.{ BoneCPDataSource, BoneCPConfig }
 import com.phantom.ds.DSConfiguration
 import scala.slick.session.Database
 
-object PhantomDatabase extends DSConfiguration {
+object ShoutoutDatabase extends DSConfiguration {
 
   val source = {
     val dsConfig = new BoneCPConfig
@@ -14,9 +14,7 @@ object PhantomDatabase extends DSConfiguration {
     dsConfig.setPassword(DBConfiguration.pass)
     dsConfig.setMinConnectionsPerPartition(DBConfiguration.minConnectionsPerPartition)
     dsConfig.setMaxConnectionsPerPartition(DBConfiguration.maxConnectionsPerPartition)
-    // dsConfig.setStatementsCacheSize(DBConfiguration.statementCacheSize)
     dsConfig.setPartitionCount(DBConfiguration.numPartitions)
-    //  dsConfig.setPoolAvailabilityThreshold(5)
     new BoneCPDataSource(dsConfig)
   }
 

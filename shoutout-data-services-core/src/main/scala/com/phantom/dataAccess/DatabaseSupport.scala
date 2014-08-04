@@ -9,7 +9,7 @@ trait DatabaseSupport extends DSConfiguration with Logging {
 
   private implicit def executionContext : ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  val db = PhantomDatabase.db
+  val db = ShoutoutDatabase.db
 
   // again, creating a DAL requires a Profile, which in this case is the MySQLDriver
   val dataAccessLayer = new DataAccessLayer(MySQLDriver)
@@ -18,7 +18,6 @@ trait DatabaseSupport extends DSConfiguration with Logging {
   val conversationItemDao = new ConversationItemDAO(dataAccessLayer, db)
   val contacts = new ContactDAO(dataAccessLayer, db)
   val sessions = new SessionDAO(dataAccessLayer, db)
-  val photoDao = new PhotoDAO(dataAccessLayer, db)
 
   //  dataAccessLayer.create(db)
 
