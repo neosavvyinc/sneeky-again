@@ -7,7 +7,7 @@ import com.phantom.model.UserLogin
 import com.phantom.model.ShoutoutUser
 import com.phantom.dataAccess.DatabaseSupport
 import java.util.UUID
-import com.phantom.ds.framework.exception.PhantomException
+import com.phantom.ds.framework.exception.ShoutoutException
 import com.phantom.ds.framework.email.{ MandrillConfiguration, MandrillUtil }
 import com.phantom.ds.BasicCrypto
 import scala.slick.session.Session
@@ -24,6 +24,30 @@ object UserService extends BasicCrypto {
 
     def hello() : String = {
       "hello"
+    }
+
+    def login(loginRequest : UserLogin) : Future[LoginSuccess] = {
+      for {
+        user <- shoutoutUsersDao.login(loginRequest)
+        session <- sessions.createSession(ShoutoutSession.newSession(user))
+      } yield LoginSuccess(session.sessionId)
+    }
+
+    def register(registrationRequest : UserRegistrationRequest) : Future[RegistrationResponse] = {
+      for {
+        _ <- Passwords.validate(registrationRequest.password)
+        registrationResponse <- doRegistration(registrationRequest)
+      } yield registrationResponse
+    }
+
+    private def doRegistration(registrationRequest : UserRegistrationRequest) : Future[RegistrationResponse] = {
+      future {
+        db.withTransaction { implicit s =>
+          val user = shoutoutUsersDao.registerOperation(registrationRequest)
+          val session = sessions.createSessionOperation(ShoutoutSession.newSession(user))
+          RegistrationResponse(user.uuid, session.sessionId)
+        }
+      }
     }
 
   }

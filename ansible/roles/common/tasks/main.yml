@@ -1,0 +1,8 @@
+- name: Make sure mysql-python is installed
+  easy_install: name=mysql-python
+
+- name: Set up mysql user shoutout
+  mysql_user: name=shoutout password=shoutout priv=*.*:ALL state=present
+
+- name: Set Up mysql cadence database
+  mysql_db: name=shoutout state=present

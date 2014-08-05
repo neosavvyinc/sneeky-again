@@ -16,7 +16,7 @@ import com.phantom.ds.integration.amazon.S3Service
  * Time: 4:53 PM
  */
 
-class PhantomRouteActor(val appleActor : ActorRef, val s3Service : S3Service) extends Actor
+class ShoutoutRouteActor(val appleActor : ActorRef, val s3Service : S3Service) extends Actor
     with UserEndpoint
     with RegistrationEndpoint
     with ConversationEndpoint

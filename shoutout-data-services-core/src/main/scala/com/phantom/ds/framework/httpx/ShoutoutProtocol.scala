@@ -7,13 +7,11 @@ import spray.http.HttpEntity
 import spray.http.StatusCodes.OK
 import spray.json._
 import com.phantom.model._
-import com.phantom.ds.framework.exception.{ UnverifiedUserException, PhantomException }
+import com.phantom.ds.framework.exception.{ UnverifiedUserException, ShoutoutException }
 import spray.http.HttpResponse
 
 import com.phantom.model.ConversationItem
 import java.util.UUID
-
-import com.phantom.model.UserRegistration
 
 import org.joda.time.{ LocalDate, DateTime }
 
@@ -81,7 +79,11 @@ package object httpx {
 
     implicit val failureFormat = jsonFormat2(Failure)
 
-    implicit val userFormat = jsonFormat10(ShoutoutUser)
+    implicit val shoutuser2json = jsonFormat10(ShoutoutUser)
+    implicit val loginWithEmail2json = jsonFormat2(UserLogin)
+    implicit val loginSuccess2json = jsonFormat1(LoginSuccess)
+    implicit val userRegistration2json = jsonFormat2(UserRegistrationRequest)
+    implicit val registrationResponse2json = jsonFormat2(RegistrationResponse)
   }
 
   trait PhantomResponseMarshaller extends PhantomJsonProtocol {
@@ -112,7 +114,7 @@ package object httpx {
     private def toJson(t : Throwable) = {
       val failure = t match {
         case x : UnverifiedUserException => Failure(x.code, x.msg)
-        case x : PhantomException        => Failure(x.code, Errors.getMessage(x.code))
+        case x : ShoutoutException       => Failure(x.code, Errors.getMessage(x.code))
         case x                           => log.error(x.getMessage, x); Failure(defaultCode, Errors.getMessage(defaultCode))
       }
       failureFormat.write(failure)

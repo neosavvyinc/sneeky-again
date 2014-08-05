@@ -4,7 +4,7 @@ import scala.slick.session.Database
 import com.phantom.model.{ ConversationItem, Conversation }
 import scala.concurrent.{ Future, ExecutionContext, future }
 import com.phantom.ds.framework.{ Dates, Logging }
-import com.phantom.ds.framework.exception.PhantomException
+import com.phantom.ds.framework.exception.ShoutoutException
 
 class ConversationDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionContext)
     extends BaseDAO(dal, db)

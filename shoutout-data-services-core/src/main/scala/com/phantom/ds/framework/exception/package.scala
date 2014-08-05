@@ -4,23 +4,23 @@ import java.util.ResourceBundle
 
 package object exception {
 
-  class PhantomException(val code : Int, val msg : String = "") extends java.lang.Exception(msg)
+  class ShoutoutException(val code : Int, val msg : String = "") extends java.lang.Exception(msg)
 
-  class UnverifiedUserException(code : Int, msg : String = "") extends PhantomException(code, msg)
+  class UnverifiedUserException(code : Int, msg : String = "") extends ShoutoutException(code, msg)
 
-  object PhantomException {
+  object ShoutoutException {
     //signup/login/auth exceptions will be in the 100 block
-    def duplicateUser = new PhantomException(101)
-    def nonExistentUser = new PhantomException(103)
+    def duplicateUser = new ShoutoutException(101)
+    def nonExistentUser = new ShoutoutException(103)
     def unverifiedUser(uuid : String) = new UnverifiedUserException(104, uuid)
-    def passwordsComplexity = new PhantomException(105)
-    def noFeedFound = new PhantomException(201)
-    def nonExistentConversation = new PhantomException(203)
-    def unableToUpdateConversationLastChanged = new PhantomException(204)
-    def contactNotUpdated = new PhantomException(301)
-    def contactNotInserted = new PhantomException(302)
-    def nonExistentContact = new PhantomException(303)
-    def apnsError(msg : String) = new PhantomException(400, msg)
+    def passwordsComplexity = new ShoutoutException(105)
+    def noFeedFound = new ShoutoutException(201)
+    def nonExistentConversation = new ShoutoutException(203)
+    def unableToUpdateConversationLastChanged = new ShoutoutException(204)
+    def contactNotUpdated = new ShoutoutException(301)
+    def contactNotInserted = new ShoutoutException(302)
+    def nonExistentContact = new ShoutoutException(303)
+    def apnsError(msg : String) = new ShoutoutException(400, msg)
   }
 
   object Errors {

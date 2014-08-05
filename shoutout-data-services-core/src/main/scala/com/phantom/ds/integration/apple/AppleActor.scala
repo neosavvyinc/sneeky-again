@@ -4,7 +4,7 @@ import akka.actor.Actor
 import scala.util.{ Success, Failure }
 import com.phantom.ds.DSConfiguration
 import com.phantom.ds.framework.Logging
-import com.phantom.ds.framework.exception.PhantomException
+import com.phantom.ds.framework.exception.ShoutoutException
 import scala.util.Try
 import com.relayrides.pushy.apns._
 import util._
@@ -72,7 +72,7 @@ class AppleActor extends Actor with DSConfiguration with Logging {
       AppleService.pushManager match {
         case Failure(ex) => {
           log.trace(s"Error pushing message for $token caused by: $ex")
-          throw PhantomException.apnsError(ex.toString())
+          throw ShoutoutException.apnsError(ex.toString())
         }
         case Success(pm) => {
           log.trace(s"Successful push for $token")

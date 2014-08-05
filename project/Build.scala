@@ -23,7 +23,10 @@ object Build extends sbt.Build {
 
   lazy val root =
     project(id = "shoutout-data-services",
-      base = file(".")) aggregate core
+      base = file("."),
+      settings = Seq(libraryDependencies ++=
+        Shared.Slick
+      )) aggregate core
 
   lazy val core =
     project(id = "shoutout-data-services-core",

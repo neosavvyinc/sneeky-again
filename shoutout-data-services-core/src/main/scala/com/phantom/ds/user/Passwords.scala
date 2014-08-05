@@ -4,7 +4,7 @@ import java.security.SecureRandom
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import org.apache.commons.codec.binary.Base64
-import com.phantom.ds.framework.exception.PhantomException
+import com.phantom.ds.framework.exception.ShoutoutException
 import scala.concurrent.Future
 import com.phantom.ds.framework.Dates
 
@@ -24,7 +24,7 @@ object Passwords {
 
   def validate(password : String) = {
     if (password.length < 6) {
-      Future.failed(PhantomException.passwordsComplexity)
+      Future.failed(ShoutoutException.passwordsComplexity)
     } else {
       Future.successful(password)
     }

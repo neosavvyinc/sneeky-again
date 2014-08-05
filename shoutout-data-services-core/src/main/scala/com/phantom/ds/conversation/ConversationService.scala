@@ -12,7 +12,7 @@ import com.phantom.model.ConversationInsertResponse
 import com.phantom.ds.framework.{ Dates, Logging }
 import akka.actor.ActorRef
 import com.phantom.ds.integration.apple.AppleNotification
-import com.phantom.ds.framework.exception.PhantomException
+import com.phantom.ds.framework.exception.ShoutoutException
 import scala.slick.session.Session
 import java.util.UUID
 

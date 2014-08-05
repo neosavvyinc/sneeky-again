@@ -8,7 +8,6 @@ import com.phantom.ds.user.Passwords
 import java.util.UUID
 import com.phantom.model.RegistrationVerification
 import com.phantom.model.RegistrationResponse
-import com.phantom.model.UserRegistration
 import scala.slick.session.Session
 
 trait RegistrationService {

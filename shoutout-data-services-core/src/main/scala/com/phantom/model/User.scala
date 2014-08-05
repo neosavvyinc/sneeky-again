@@ -7,12 +7,7 @@ import java.util.UUID
 import com.phantom.ds.framework.Dates
 
 case class UserRegistrationRequest(email : String,
-                                   birthday : String,
                                    password : String)
-
-case class UserRegistration(email : String,
-                            birthday : LocalDate,
-                            password : String)
 
 case class RegistrationResponse(verificationUUID : UUID, sessionUUID : UUID)
 
@@ -93,21 +88,21 @@ case class ShoutoutUser(id : Option[Long],
 
 case class ForgotPasswordRequest(email : String)
 
-object PhantomSession {
+object ShoutoutSession {
 
-  def newSession(user : ShoutoutUser, token : Option[String] = None) : PhantomSession = {
+  def newSession(user : ShoutoutUser, token : Option[String] = None) : ShoutoutSession = {
     val now = Dates.nowDT
-    PhantomSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now, token, None)
+    ShoutoutSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now, token, None)
   }
 }
 
-case class PhantomSession(sessionId : UUID,
-                          userId : Long,
-                          created : DateTime,
-                          lastAccessed : DateTime,
-                          pushNotifierToken : Option[String] = None,
-                          pushNotifierType : Option[MobilePushType] = None,
-                          sessionInvalid : Boolean = false)
+case class ShoutoutSession(sessionId : UUID,
+                           userId : Long,
+                           created : DateTime,
+                           lastAccessed : DateTime,
+                           pushNotifierToken : Option[String] = None,
+                           pushNotifierType : Option[MobilePushType] = None,
+                           sessionInvalid : Boolean = false)
 
 trait UserComponent { this : Profile =>
 
@@ -118,7 +113,7 @@ trait UserComponent { this : Profile =>
 
   object UserTable extends Table[ShoutoutUser]("USERS") {
     def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
-    def uuid = column[UUID]("UUID")
+    def uuid = column[UUID]("UUID", DBType("CHAR(36)"))
     def facebookID = column[String]("FACEBOOK_ID", DBType("VARCHAR(64)"), O.Nullable)
     def email = column[String]("EMAIL", DBType("VARCHAR(256)"), O.Nullable)
     def password = column[String]("PASSWORD", DBType("VARCHAR(300)"), O.Nullable)
@@ -141,7 +136,7 @@ trait UserSessionComponent { this : Profile with UserComponent =>
 
   implicit val MobilePushTypeMapper = MappedTypeMapper.base[MobilePushType, String](MobilePushType.toStringRep, MobilePushType.fromStringRep)
 
-  object SessionTable extends Table[PhantomSession]("SESSIONS") {
+  object SessionTable extends Table[ShoutoutSession]("SESSIONS") {
     def sessionId = column[UUID]("SESSIONID")
     def userId = column[Long]("USERID")
     def created = column[DateTime]("CREATED")
@@ -149,7 +144,7 @@ trait UserSessionComponent { this : Profile with UserComponent =>
     def pushNotifierToken = column[String]("PUSH_NOTIFIER_TOKEN", O.Nullable)
     def pushNotifierType = column[MobilePushType]("PUSH_NOTIFIER_TYPE", O.Nullable)
     def sessionInvalidated = column[Boolean]("SESSION_INVALID")
-    def * = sessionId ~ userId ~ created ~ lastAccessed ~ pushNotifierToken.? ~ pushNotifierType.? ~ sessionInvalidated <> (PhantomSession.apply _, PhantomSession.unapply _)
+    def * = sessionId ~ userId ~ created ~ lastAccessed ~ pushNotifierToken.? ~ pushNotifierType.? ~ sessionInvalidated <> (ShoutoutSession.apply _, ShoutoutSession.unapply _)
 
     def owner = foreignKey("USER_FK", userId, UserTable)(_.id)
     //def userUnqiue = index("userUnique", userId, unique = true)

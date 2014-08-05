@@ -1,7 +1,7 @@
 package com.phantom.dataAccess
 
 import scala.slick.session.Database
-import com.phantom.ds.framework.exception.PhantomException
+import com.phantom.ds.framework.exception.ShoutoutException
 import com.phantom.model._
 import scala.concurrent.{ ExecutionContext, Future, future }
 import com.phantom.model.Contact

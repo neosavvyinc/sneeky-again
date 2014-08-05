@@ -1,5 +1,9 @@
 resolvers += "sean8223 Releases" at "https://github.com/sean8223/repository/raw/master/releases"
 
+resolvers += "bigtoast-github" at "http://bigtoast.github.com/repo/"
+
+addSbtPlugin("com.github.bigtoast" % "sbt-liquibase" % "0.5")
+
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.7.4")
 
 addSbtPlugin("com.github.gseitz" % "sbt-release" % "0.8")

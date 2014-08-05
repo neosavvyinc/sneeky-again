@@ -13,7 +13,7 @@ trait DatabaseSupport extends DSConfiguration with Logging {
 
   // again, creating a DAL requires a Profile, which in this case is the MySQLDriver
   val dataAccessLayer = new DataAccessLayer(MySQLDriver)
-  val phantomUsersDao = new PhantomUserDAO(dataAccessLayer, db)
+  val shoutoutUsersDao = new ShoutoutUserDAO(dataAccessLayer, db)
   val conversationDao = new ConversationDAO(dataAccessLayer, db)
   val conversationItemDao = new ConversationItemDAO(dataAccessLayer, db)
   val contacts = new ContactDAO(dataAccessLayer, db)

@@ -3,7 +3,7 @@ package com.phantom.dataAccess
 import scala.slick.session.Database
 import com.phantom.ds.framework.Logging
 import java.util.UUID
-import com.phantom.model.{ PhantomSession, ShoutoutUser, MobilePushType }
+import com.phantom.model.{ ShoutoutSession, ShoutoutUser, MobilePushType }
 import scala.concurrent.{ ExecutionContext, Future, future }
 
 class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionContext) extends BaseDAO(dal, db)
@@ -48,7 +48,7 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     }
   }
 
-  def existingSession(userId : Long) : Future[Option[PhantomSession]] = {
+  def existingSession(userId : Long) : Future[Option[ShoutoutSession]] = {
     future {
       db.withSession { implicit session =>
         byUserId(userId).firstOption
@@ -56,7 +56,7 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     }
   }
 
-  def sessionByUUID(uuid : UUID) : Future[PhantomSession] = {
+  def sessionByUUID(uuid : UUID) : Future[ShoutoutSession] = {
     future {
       db.withSession { implicit session =>
         bySessionId(uuid).first
@@ -74,13 +74,13 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     }
   }
 
-  def createSession(session : PhantomSession) : Future[PhantomSession] = {
+  def createSession(session : ShoutoutSession) : Future[ShoutoutSession] = {
     future {
       db.withTransaction { implicit s => createSessionOperation(session) }
     }
   }
 
-  def createSessionOperation(session : PhantomSession)(implicit s : Session) : PhantomSession = {
+  def createSessionOperation(session : ShoutoutSession)(implicit s : Session) : ShoutoutSession = {
     SessionTable.insert(session)
     session
   }
