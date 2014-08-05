@@ -9,7 +9,7 @@ import com.phantom.ds.framework.Dates
 case class UserRegistrationRequest(email : String,
                                    password : String)
 
-case class RegistrationResponse(verificationUUID : UUID, sessionUUID : UUID)
+case class RegistrationResponse(sessionUUID : UUID)
 
 case class RegistrationVerification(messageSid : String,
                                     accountSid : String,
@@ -20,6 +20,11 @@ case class RegistrationVerification(messageSid : String,
 
 case class UserLogin(email : String,
                      password : String)
+
+case class FacebookUserLogin(facebookId : String,
+                             firstName : String,
+                             lastName : String,
+                             birthdate : LocalDate)
 
 case class LoginSuccess(sessionUUID : UUID)
 

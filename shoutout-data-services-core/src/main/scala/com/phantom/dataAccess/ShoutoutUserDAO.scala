@@ -24,6 +24,11 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     u <- UserTable if u.email.toLowerCase is email.toLowerCase
   ) yield u
 
+  private val byFacebookQuery = for (
+    facebookId <- Parameters[String];
+    u <- UserTable if u.facebookID is facebookId
+  ) yield u
+
   private val existsQuery = for (
     email <- Parameters[String];
     u <- UserTable if u.email.toLowerCase is email.toLowerCase
@@ -31,6 +36,10 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
 
   private def findByEmailOperation(email : String)(implicit session : Session) : Option[ShoutoutUser] = {
     byEmailQuery(email.toLowerCase).firstOption
+  }
+
+  private def findByFacebookOperation(email : String)(implicit session : Session) : Option[ShoutoutUser] = {
+    byFacebookQuery(email.toLowerCase).firstOption
   }
 
   private def insertNoTransact(user : ShoutoutUser)(implicit session : Session) : ShoutoutUser = {
@@ -69,6 +78,30 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
         } yield user
 
         val user = userOpt.getOrElse(throw ShoutoutException.nonExistentUser)
+        user
+      }
+    }
+  }
+
+  def loginByFacebook(loginRequest : FacebookUserLogin) : Future[ShoutoutUser] = {
+    future {
+      db.withSession { implicit session =>
+        log.trace(s"logging in $loginRequest")
+        val userOpt = for {
+          user <- findByFacebookOperation(loginRequest.facebookId)
+        } yield user
+
+        val user = userOpt.getOrElse(insertNoTransact(ShoutoutUser(
+          None,
+          UUID.randomUUID,
+          Some(loginRequest.facebookId),
+          None,
+          None,
+          Some(loginRequest.birthdate),
+          Some(loginRequest.firstName),
+          Some(loginRequest.lastName),
+          "")))
+
         user
       }
     }

@@ -36,7 +36,15 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
    * for you, otherwise it should create a record
    * @return - session or user id for the record
    */
-  def loginFacebook = ???
+  def loginFacebook = pathPrefix(users / "login" / "facebook") {
+    post {
+      entity(as[FacebookUserLogin]) { loginRequest =>
+        respondWithMediaType(`application/json`) {
+          complete(userService.facebookLogin(loginRequest))
+        }
+      }
+    }
+  }
 
   /**
    * This should accept
@@ -53,15 +61,15 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
     }
   }
 
-  def simpleHello = pathPrefix(users) {
-    get {
-      respondWithMediaType(`application/json`) {
-        complete {
-          StatusCodes.OK
+  def logout = pathPrefix("users" / "logout") {
+    get { //todo:  authenticate should return case class of User/Session
+      parameter('sessionId) { session =>
+        respondWithMediaType(`application/json`) {
+          complete(userService.logout(session))
         }
       }
     }
   }
 
-  val userRoute = simpleHello ~ loginEmail ~ registerEmail
+  val userRoute = loginFacebook ~ loginEmail ~ registerEmail ~ logout
 }

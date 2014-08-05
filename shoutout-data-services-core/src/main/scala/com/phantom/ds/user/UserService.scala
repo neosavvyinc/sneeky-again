@@ -14,7 +14,9 @@ import scala.slick.session.Session
 
 trait UserService {
 
-  def hello() : String
+  def login(loginRequest : UserLogin) : Future[LoginSuccess]
+  def facebookLogin(loginRequest : FacebookUserLogin) : Future[LoginSuccess]
+  def register(registrationRequest : UserRegistrationRequest) : Future[RegistrationResponse]
 
 }
 
@@ -22,13 +24,16 @@ object UserService extends BasicCrypto {
 
   def apply()(implicit ec : ExecutionContext) = new UserService with DatabaseSupport with Logging {
 
-    def hello() : String = {
-      "hello"
-    }
-
     def login(loginRequest : UserLogin) : Future[LoginSuccess] = {
       for {
         user <- shoutoutUsersDao.login(loginRequest)
+        session <- sessions.createSession(ShoutoutSession.newSession(user))
+      } yield LoginSuccess(session.sessionId)
+    }
+
+    def facebookLogin(loginRequest : FacebookUserLogin) : Future[LoginSuccess] = {
+      for {
+        user <- shoutoutUsersDao.loginByFacebook(loginRequest)
         session <- sessions.createSession(ShoutoutSession.newSession(user))
       } yield LoginSuccess(session.sessionId)
     }
@@ -40,12 +45,16 @@ object UserService extends BasicCrypto {
       } yield registrationResponse
     }
 
+    def logout(sessionId : String) : Future[Int] = {
+      sessions.removeSession(UUID.fromString(sessionId))
+    }
+
     private def doRegistration(registrationRequest : UserRegistrationRequest) : Future[RegistrationResponse] = {
       future {
         db.withTransaction { implicit s =>
           val user = shoutoutUsersDao.registerOperation(registrationRequest)
           val session = sessions.createSessionOperation(ShoutoutSession.newSession(user))
-          RegistrationResponse(user.uuid, session.sessionId)
+          RegistrationResponse(session.sessionId)
         }
       }
     }

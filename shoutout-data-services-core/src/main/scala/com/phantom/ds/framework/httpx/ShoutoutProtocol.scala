@@ -81,9 +81,10 @@ package object httpx {
 
     implicit val shoutuser2json = jsonFormat10(ShoutoutUser)
     implicit val loginWithEmail2json = jsonFormat2(UserLogin)
+    implicit val loginWithFacebook2json = jsonFormat4(FacebookUserLogin)
     implicit val loginSuccess2json = jsonFormat1(LoginSuccess)
     implicit val userRegistration2json = jsonFormat2(UserRegistrationRequest)
-    implicit val registrationResponse2json = jsonFormat2(RegistrationResponse)
+    implicit val registrationResponse2json = jsonFormat1(RegistrationResponse)
   }
 
   trait PhantomResponseMarshaller extends PhantomJsonProtocol {
