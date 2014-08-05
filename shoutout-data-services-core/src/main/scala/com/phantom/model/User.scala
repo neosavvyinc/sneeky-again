@@ -22,9 +22,9 @@ case class UserLogin(email : String,
                      password : String)
 
 case class FacebookUserLogin(facebookId : String,
-                             firstName : String,
-                             lastName : String,
-                             birthdate : LocalDate)
+                             firstName : Option[String],
+                             lastName : Option[String],
+                             birthdate : Option[LocalDate])
 
 case class LoginSuccess(sessionUUID : UUID)
 

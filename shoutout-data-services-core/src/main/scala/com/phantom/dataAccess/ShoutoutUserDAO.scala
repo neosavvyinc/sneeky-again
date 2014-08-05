@@ -1,5 +1,7 @@
 package com.phantom.dataAccess
 
+import org.joda.time.LocalDate
+
 import scala.slick.session.Database
 import com.phantom.ds.framework.Logging
 import com.phantom.ds.framework.exception.ShoutoutException
@@ -97,9 +99,18 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
           Some(loginRequest.facebookId),
           None,
           None,
-          Some(loginRequest.birthdate),
-          Some(loginRequest.firstName),
-          Some(loginRequest.lastName),
+          loginRequest.birthdate match {
+            case Some(x) => Some(x)
+            case None    => None
+          },
+          loginRequest.firstName match {
+            case Some(x) => Some(x)
+            case None    => None
+          },
+          loginRequest.lastName match {
+            case Some(x) => Some(x)
+            case None    => None
+          },
           "")))
 
         user
