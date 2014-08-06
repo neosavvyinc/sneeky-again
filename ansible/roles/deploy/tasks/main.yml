@@ -1,0 +1,2 @@
+- name: Copy the deployable jar file to the target server
+  copy: src=shoutout.jar dest=/opt/shoutout/shoutout.jar

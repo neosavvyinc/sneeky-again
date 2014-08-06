@@ -1,4 +1,6 @@
 - hosts: staging
+  remote_user: root
   roles:
     - ubuntu
     - common
+    - deploy
