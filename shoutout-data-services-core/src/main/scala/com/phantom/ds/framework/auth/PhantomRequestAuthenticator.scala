@@ -94,6 +94,7 @@ trait PassThroughRequestAuthenticator extends RequestAuthenticator {
       Some("firstName"),
       Some("lastName"),
       "username",
+      Some("blah"),
       true)
     )
 

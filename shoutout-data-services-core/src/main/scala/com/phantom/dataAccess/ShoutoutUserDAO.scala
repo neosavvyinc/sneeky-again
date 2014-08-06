@@ -70,7 +70,8 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
       None,
       None,
       None,
-      ""))
+      "",
+      None))
   }
 
   /**
@@ -120,7 +121,8 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
             case Some(x) => Some(x)
             case None    => None
           },
-          "")))
+          "",
+          None)))
 
         user
       }
@@ -181,6 +183,7 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
             case Some(x) => updateRequest.lastName
           },
           updateRequest.username.getOrElse(persistentUser.username),
+          persistentUser.profilePictureUrl,
           persistentUser.settingSound
         )
 

@@ -66,5 +66,12 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="3" author="aparrish">
+        <addColumn tableName="USERS">
+            <column name="PROFILE_URL" type="VARCHAR(2048)">
+                <constraints nullable="true"></constraints>
+            </column>
+        </addColumn>
+    </changeSet>
 
 </databaseChangeLog>

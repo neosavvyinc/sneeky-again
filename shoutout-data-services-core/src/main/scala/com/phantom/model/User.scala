@@ -113,6 +113,7 @@ case class ShoutoutUser(id : Option[Long],
                         firstName : Option[String],
                         lastName : Option[String],
                         username : String,
+                        profilePictureUrl : Option[String],
                         settingSound : Boolean = true)
 
 case class ActiveShoutoutUser(
@@ -120,6 +121,7 @@ case class ActiveShoutoutUser(
   firstName : String,
   lastName : String,
   username : String,
+  profilePictureUrl : String,
   settingSound : Boolean = true)
 
 case class ForgotPasswordRequest(email : String)
@@ -157,9 +159,10 @@ trait UserComponent { this : Profile =>
     def firstName = column[String]("FIRST_NAME", O.Nullable)
     def lastName = column[String]("LAST_NAME", O.Nullable)
     def username = column[String]("USERNAME")
+    def profilePictureUrl = column[String]("PROFILE_URL")
     def settingSound = column[Boolean]("SOUND_NOTIF")
 
-    def * = id.? ~ uuid ~ facebookID.? ~ email.? ~ password.? ~ birthday.? ~ firstName.? ~ lastName.? ~ username ~ settingSound <> (ShoutoutUser, ShoutoutUser.unapply _)
+    def * = id.? ~ uuid ~ facebookID.? ~ email.? ~ password.? ~ birthday.? ~ firstName.? ~ lastName.? ~ username ~ profilePictureUrl.? ~ settingSound <> (ShoutoutUser, ShoutoutUser.unapply _)
     def forInsert = * returning id
 
   }
