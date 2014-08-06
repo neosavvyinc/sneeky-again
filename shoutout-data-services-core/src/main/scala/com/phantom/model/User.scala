@@ -116,11 +116,6 @@ case class ShoutoutUser(id : Option[Long],
                         settingSound : Boolean = true)
 
 case class ActiveShoutoutUser(
-  id : Long,
-  uuid : UUID,
-  facebookID : String,
-  email : String,
-  password : String,
   birthday : LocalDate,
   firstName : String,
   lastName : String,

@@ -15,6 +15,7 @@ package object exception {
     def unverifiedUser(uuid : String) = new UnverifiedUserException(104, uuid)
     def passwordsComplexity = new ShoutoutException(105)
     def userNotUpdated = new ShoutoutException(106)
+    def usernameNotAvailable = new ShoutoutException(107)
 
     def noFeedFound = new ShoutoutException(201)
     def nonExistentConversation = new ShoutoutException(203)

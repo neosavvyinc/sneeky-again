@@ -70,7 +70,7 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
       None,
       None,
       None,
-      reg.email.toLowerCase))
+      ""))
   }
 
   /**
@@ -153,9 +153,14 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
-  def update(persistentUser : ShoutoutUser, updateRequest : ShoutoutUserUpdateRequest) : Future[ShoutoutUser] = {
+  def update(persistentUser : ShoutoutUser, updateRequest : ShoutoutUserUpdateRequest) : Future[Int] = {
     future {
       db.withSession { implicit session =>
+
+        val userNameExists = for { user <- UserTable if user.username === updateRequest.username } yield user
+        if (userNameExists.list().length > 0) {
+          throw ShoutoutException.usernameNotAvailable
+        }
 
         val updated = ShoutoutUser(
           persistentUser.id,
@@ -180,12 +185,12 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
         )
 
         val q = for { user <- UserTable if user.id === persistentUser.id } yield user
-        val count = q.update(updated)
+        val count : Int = q.update(updated)
 
         if (count > 0)
-          updated
+          count
         else
-          throw ShoutoutException.contactNotUpdated
+          throw ShoutoutException.userNotUpdated
 
       }
 

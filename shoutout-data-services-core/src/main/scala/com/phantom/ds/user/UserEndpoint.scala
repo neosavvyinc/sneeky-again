@@ -86,11 +86,6 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
             complete(
               Future.successful(
                 ActiveShoutoutUser(
-                  user.id.get,
-                  user.uuid,
-                  user.facebookID.getOrElse(""),
-                  user.email.getOrElse(""),
-                  user.password.getOrElse(""),
                   user.birthday.getOrElse(Dates.readLocalDate("19810810")),
                   user.firstName.getOrElse(""),
                   user.lastName.getOrElse(""),
@@ -106,11 +101,15 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
     }
   }
 
-  def update = pathPrefix(users / "update" / IntNumber) { userId =>
-    {
-      respondWithMediaType(`application/json`) {
-        entity(as[ShoutoutUserUpdateRequest]) { request =>
-          complete(userService.updateUser(userId, request))
+  def update = pathPrefix(users / "update") {
+    authenticate(unverified _) { user =>
+      parameter('sessionId) { session =>
+        {
+          respondWithMediaType(`application/json`) {
+            entity(as[ShoutoutUserUpdateRequest]) { request =>
+              complete(userService.updateUser(user.id.get, request))
+            }
+          }
         }
       }
     }

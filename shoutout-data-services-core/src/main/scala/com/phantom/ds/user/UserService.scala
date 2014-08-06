@@ -18,7 +18,7 @@ trait UserService {
   def facebookLogin(loginRequest : FacebookUserLogin) : Future[LoginSuccess]
   def register(registrationRequest : UserRegistrationRequest) : Future[RegistrationResponse]
   def logout(sessionId : String) : Future[Int]
-  def updateUser(userId : Int, updateRequest : ShoutoutUserUpdateRequest) : Future[ShoutoutUser]
+  def updateUser(userId : Long, updateRequest : ShoutoutUserUpdateRequest) : Future[Int]
   def findFromSessionId(sessionId : String) : Future[ShoutoutSession]
 
 }
@@ -56,12 +56,13 @@ object UserService extends BasicCrypto {
       sessions.sessionByUUID(UUID.fromString(sessionId))
     }
 
-    def updateUser(userId : Int, updateRequest : ShoutoutUserUpdateRequest) : Future[ShoutoutUser] = {
+    def updateUser(userId : Long, updateRequest : ShoutoutUserUpdateRequest) : Future[Int] = {
 
       for {
         persistentUser <- shoutoutUsersDao.findById(userId)
-        updatedUser <- shoutoutUsersDao.update(persistentUser, updateRequest)
-      } yield updatedUser
+        rowsUpdated <- shoutoutUsersDao.update(persistentUser, updateRequest)
+      } yield rowsUpdated
+
     }
 
     private def doRegistration(registrationRequest : UserRegistrationRequest) : Future[RegistrationResponse] = {
