@@ -61,7 +61,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
     }
   }
 
-  def logout = pathPrefix("users" / "logout") {
+  def logout = pathPrefix(users / "logout") {
     get { //todo:  authenticate should return case class of User/Session
       parameter('sessionId) { session =>
         respondWithMediaType(`application/json`) {
@@ -71,5 +71,19 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
     }
   }
 
-  val userRoute = loginFacebook ~ loginEmail ~ registerEmail ~ logout
+  //  def activeUser = pathPrefix(users / "active" ) {
+  //
+  //  }
+
+  def update = pathPrefix(users / "update" / IntNumber) { userId =>
+    {
+      respondWithMediaType(`application/json`) {
+        entity(as[ShoutoutUserUpdateRequest]) { request =>
+          complete(userService.updateUser(userId, request))
+        }
+      }
+    }
+  }
+
+  val userRoute = loginFacebook ~ loginEmail ~ registerEmail ~ logout ~ update
 }

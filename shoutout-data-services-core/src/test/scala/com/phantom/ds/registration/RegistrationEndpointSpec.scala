@@ -10,7 +10,6 @@ import scala.concurrent.duration
 import java.util.concurrent.TimeUnit
 import com.phantom.model._
 import com.phantom.model.RegistrationResponse
-import com.phantom.model.UserRegistration
 import spray.http.StatusCodes._
 import spray.http.{ StatusCodes, FormData }
 import scala.concurrent.ExecutionContext.Implicits.global

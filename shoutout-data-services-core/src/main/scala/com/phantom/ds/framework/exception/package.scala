@@ -14,12 +14,16 @@ package object exception {
     def nonExistentUser = new ShoutoutException(103)
     def unverifiedUser(uuid : String) = new UnverifiedUserException(104, uuid)
     def passwordsComplexity = new ShoutoutException(105)
+    def userNotUpdated = new ShoutoutException(106)
+
     def noFeedFound = new ShoutoutException(201)
     def nonExistentConversation = new ShoutoutException(203)
     def unableToUpdateConversationLastChanged = new ShoutoutException(204)
+
     def contactNotUpdated = new ShoutoutException(301)
     def contactNotInserted = new ShoutoutException(302)
     def nonExistentContact = new ShoutoutException(303)
+
     def apnsError(msg : String) = new ShoutoutException(400, msg)
   }
 

@@ -21,6 +21,11 @@ case class RegistrationVerification(messageSid : String,
 case class UserLogin(email : String,
                      password : String)
 
+case class ShoutoutUserUpdateRequest(birthday : Option[LocalDate],
+                                     firstName : Option[String],
+                                     lastName : Option[String],
+                                     username : Option[String])
+
 case class FacebookUserLogin(facebookId : String,
                              firstName : Option[String],
                              lastName : Option[String],

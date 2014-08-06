@@ -36,12 +36,21 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     u <- UserTable if u.email.toLowerCase is email.toLowerCase
   ) yield u.exists
 
+  private val byIdQuery = for {
+    id <- Parameters[Long];
+    u <- UserTable if u.id === id
+  } yield u
+
   private def findByEmailOperation(email : String)(implicit session : Session) : Option[ShoutoutUser] = {
     byEmailQuery(email.toLowerCase).firstOption
   }
 
   private def findByFacebookOperation(email : String)(implicit session : Session) : Option[ShoutoutUser] = {
     byFacebookQuery(email.toLowerCase).firstOption
+  }
+
+  private def findByIdOperation(id : Long)(implicit session : Session) : Option[ShoutoutUser] = {
+    byIdQuery(id).firstOption
   }
 
   private def insertNoTransact(user : ShoutoutUser)(implicit session : Session) : ShoutoutUser = {
@@ -132,5 +141,55 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     mapped.getOrElse(createUserRecord(registrationRequest))
   }
 
+  def findById(id : Long) : Future[ShoutoutUser] = {
+    future {
+      db.withSession { implicit session =>
+        val userOpt = for {
+          user <- findByIdOperation(id)
+        } yield user
+
+        userOpt.getOrElse(throw ShoutoutException.nonExistentUser)
+      }
+    }
+  }
+
+  def update(persistentUser : ShoutoutUser, updateRequest : ShoutoutUserUpdateRequest) : Future[ShoutoutUser] = {
+    future {
+      db.withSession { implicit session =>
+
+        val updated = ShoutoutUser(
+          persistentUser.id,
+          persistentUser.uuid,
+          persistentUser.facebookID,
+          persistentUser.email,
+          persistentUser.password,
+          updateRequest.birthday match {
+            case None    => persistentUser.birthday
+            case Some(x) => updateRequest.birthday
+          },
+          updateRequest.birthday match {
+            case None    => persistentUser.firstName
+            case Some(x) => updateRequest.firstName
+          },
+          updateRequest.birthday match {
+            case None    => persistentUser.lastName
+            case Some(x) => updateRequest.lastName
+          },
+          updateRequest.username.getOrElse(persistentUser.username),
+          persistentUser.settingSound
+        )
+
+        val q = for { user <- UserTable if user.id === persistentUser.id } yield user
+        val count = q.update(updated)
+
+        if (count > 0)
+          updated
+        else
+          throw ShoutoutException.contactNotUpdated
+
+      }
+
+    }
+  }
 }
 
