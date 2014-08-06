@@ -17,7 +17,9 @@ trait UserService {
   def login(loginRequest : UserLogin) : Future[LoginSuccess]
   def facebookLogin(loginRequest : FacebookUserLogin) : Future[LoginSuccess]
   def register(registrationRequest : UserRegistrationRequest) : Future[RegistrationResponse]
+  def logout(sessionId : String) : Future[Int]
   def updateUser(userId : Int, updateRequest : ShoutoutUserUpdateRequest) : Future[ShoutoutUser]
+  def findFromSessionId(sessionId : String) : Future[ShoutoutSession]
 
 }
 
@@ -48,6 +50,10 @@ object UserService extends BasicCrypto {
 
     def logout(sessionId : String) : Future[Int] = {
       sessions.removeSession(UUID.fromString(sessionId))
+    }
+
+    def findFromSessionId(sessionId : String) : Future[ShoutoutSession] = {
+      sessions.sessionByUUID(UUID.fromString(sessionId))
     }
 
     def updateUser(userId : Int, updateRequest : ShoutoutUserUpdateRequest) : Future[ShoutoutUser] = {

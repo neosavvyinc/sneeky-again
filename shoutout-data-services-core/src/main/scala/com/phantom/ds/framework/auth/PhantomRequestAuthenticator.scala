@@ -10,19 +10,20 @@ import com.phantom.dataAccess.DatabaseSupport
 import java.util.UUID
 import com.phantom.ds.framework.Logging
 import org.joda.time.LocalDate
-import com.phantom.model.ShoutoutUser
 import spray.routing.RequestContext
 
 //For now this authenticator does a bit of both authentication and authorization
 //since we have no real roles or permissioning yet..just being a user opens up all doors
 //hence, for every request, we opted for just one authenticator which we could use to identify a user
 trait RequestAuthenticator extends Authenticator {
-  def request(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]]
+  def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]]
+
+  def unverified(ctx : RequestContext)(implicit ec : ExecutionContext) = request(Unverified, ctx)
 }
 
 trait PhantomRequestAuthenticator extends RequestAuthenticator with DSConfiguration with DatabaseSupport with Logging {
 
-  def request(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]] = {
+  def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]] = {
     log.debug(s"authenticating request ${ctx.request.uri}")
     future {
       val result = for {
@@ -52,7 +53,7 @@ trait PhantomRequestAuthenticator extends RequestAuthenticator with DSConfigurat
 }
 
 trait NonHashingRequestAuthenticator extends PhantomRequestAuthenticator {
-  override def request(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]] = {
+  override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]] = {
 
     future {
       val result = for {
@@ -68,16 +69,16 @@ trait DebugAuthenticator extends NonHashingRequestAuthenticator {
 
   private object FullAuth extends PhantomRequestAuthenticator
 
-  override def request(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]] = {
+  override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]] = {
     log.debug(s"DEBUG auth for request ${ctx.request.uri}")
-    val actualResults = super.request(ctx)
+    val actualResults = super.request(status, ctx)
     actualResults
   }
 }
 
 trait PassThroughRequestAuthenticator extends RequestAuthenticator {
 
-  override def request(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]] = {
+  override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]] = {
 
     log.debug("hash: " + ctx.request.uri.query.get(hashP))
     log.debug("date: " + ctx.request.uri.query.get(dateP))
@@ -105,7 +106,7 @@ trait SuppliedUserRequestAuthenticator extends RequestAuthenticator {
   // :( this hurts..cannot run in parallel w/ this ever
   var authedUser : Option[ShoutoutUser] = Option.empty
 
-  override def request(ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]] = {
+  override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]] = {
     Future.successful(authedUser.toRight(AuthenticationFailedRejection(CredentialsRejected, Nil)))
   }
 }

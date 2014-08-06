@@ -39,6 +39,25 @@ case class UpdatePushTokenRequest(pushNotifierToken : String,
 case class SettingsRequest(settingValue : Boolean,
                            settingType : SettingType)
 
+sealed trait UserStatus
+
+object UserStatus {
+  def toStringRep(status : UserStatus) : String = status match {
+    case Unverified => "unverified"
+    case Verified   => "verified"
+  }
+
+  def fromStringRep(str : String) : UserStatus = str.toLowerCase match {
+    case "unverified" => Unverified
+    case "verified"   => Verified
+    case x            => throw new Exception(s"unrecognized user status $x")
+  }
+}
+
+case object Unverified extends UserStatus
+
+case object Verified extends UserStatus
+
 sealed trait SettingType
 
 object SettingType {
@@ -95,6 +114,18 @@ case class ShoutoutUser(id : Option[Long],
                         lastName : Option[String],
                         username : String,
                         settingSound : Boolean = true)
+
+case class ActiveShoutoutUser(
+  id : Long,
+  uuid : UUID,
+  facebookID : String,
+  email : String,
+  password : String,
+  birthday : LocalDate,
+  firstName : String,
+  lastName : String,
+  username : String,
+  settingSound : Boolean = true)
 
 case class ForgotPasswordRequest(email : String)
 

@@ -1,5 +1,7 @@
 package com.phantom.ds.user
 
+import com.phantom.ds.framework.Dates
+import org.joda.time.{ LocalDate }
 import spray.http.MediaTypes._
 import com.phantom.model._
 import com.phantom.ds.framework.httpx._
@@ -71,9 +73,38 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
     }
   }
 
-  //  def activeUser = pathPrefix(users / "active" ) {
-  //
-  //  }
+  def activeUser = pathPrefix(users / "active") {
+    authenticate(unverified _) { user =>
+      parameter('sessionId) { session =>
+        get {
+          respondWithMediaType(`application/json`) {
+            log.trace(s"identify function invoked : $user")
+
+            import scala.concurrent.duration._
+            val sessionObject = Await.result(userService.findFromSessionId(session), 1 seconds)
+
+            complete(
+              Future.successful(
+                ActiveShoutoutUser(
+                  user.id.get,
+                  user.uuid,
+                  user.facebookID.getOrElse(""),
+                  user.email.getOrElse(""),
+                  user.password.getOrElse(""),
+                  user.birthday.getOrElse(Dates.readLocalDate("19810810")),
+                  user.firstName.getOrElse(""),
+                  user.lastName.getOrElse(""),
+                  user.username,
+                  user.settingSound
+                )
+              )
+            )
+
+          }
+        }
+      }
+    }
+  }
 
   def update = pathPrefix(users / "update" / IntNumber) { userId =>
     {
@@ -85,5 +116,5 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
     }
   }
 
-  val userRoute = loginFacebook ~ loginEmail ~ registerEmail ~ logout ~ update
+  val userRoute = loginFacebook ~ loginEmail ~ registerEmail ~ logout ~ update ~ activeUser
 }
