@@ -3,13 +3,15 @@ package com.phantom.ds.group
 import com.phantom.dataAccess.DatabaseSupport
 import com.phantom.ds.BasicCrypto
 import com.phantom.ds.framework.Logging
-import com.phantom.model.{ GroupMembershipRequest, ShoutoutUser }
+import com.phantom.ds.framework.exception.ShoutoutException
+import com.phantom.model._
 
 import scala.concurrent.{ ExecutionContext, Future, future }
+import scala.slick.session.Session
 
 trait GroupService {
 
-  def createOrUpdateGroup(user : ShoutoutUser, groupMembershipRequest : GroupMembershipRequest) : Future[Int]
+  def createOrUpdateGroup(user : ShoutoutUser, groupMembershipRequest : GroupMembershipRequest) : Future[GroupResponse]
 
 }
 
@@ -17,21 +19,45 @@ object GroupService extends BasicCrypto {
 
   def apply()(implicit ec : ExecutionContext) = new GroupService with DatabaseSupport with Logging {
 
-    override def createOrUpdateGroup(user : ShoutoutUser, groupMembershipRequest : GroupMembershipRequest) : Future[Int] = {
+    override def createOrUpdateGroup(user : ShoutoutUser, groupMembershipRequest : GroupMembershipRequest) : Future[GroupResponse] = {
 
-      def createGroup(user : ShoutoutUser, groupMembershipRequest : GroupMembershipRequest) : Int = {
-        1
+      def createGroup(user : ShoutoutUser, groupMembershipRequest : GroupMembershipRequest)(implicit session : Session) : GroupResponse = {
+        val group : Group = groupDao.insertGroupOperation(Group(id = groupMembershipRequest.id, ownerId = user.id.get, name = groupMembershipRequest.name))
+        for (m : Int <- groupMembershipRequest.members) {
+          groupDao.insertGroupItemOperation(GroupItem(None, group.id.get, m))
+        }
+        val members = groupDao.findMembers(group.id.get)
+        GroupResponse(group.id.get, user.id.get, group.name, members.map { m => Friend(m.id, m.username, m.firstName, m.lastName, m.profilePictureUrl) })
       }
 
-      def updateGroup(user : ShoutoutUser, groupMembershipRequest : GroupMembershipRequest) : Int = {
-        2
+      def updateGroup(user : ShoutoutUser, groupMembershipRequest : GroupMembershipRequest)(implicit session : Session) : GroupResponse = {
+
+        val group = groupDao.findByIdOperation(groupMembershipRequest.id.get)
+        group match {
+          case None => throw ShoutoutException.groupNotFoundException
+          case Some(g) => {
+            groupDao.deleteMembersOperation(g.id.get)
+
+            for (m : Int <- groupMembershipRequest.members) {
+              groupDao.insertGroupItemOperation(GroupItem(None, g.id.get, m))
+            }
+
+            val members = groupDao.findMembers(g.id.get)
+            GroupResponse(g.id.get, user.id.get, g.name, members.map { m => Friend(m.id, m.username, m.firstName, m.lastName, m.profilePictureUrl) })
+          }
+        }
+
       }
 
       future {
 
-        groupMembershipRequest.id match {
-          case None    => createGroup(user, groupMembershipRequest)
-          case Some(x) => updateGroup(user, groupMembershipRequest)
+        db.withTransaction { implicit session =>
+
+          groupMembershipRequest.id match {
+            case None    => createGroup(user, groupMembershipRequest)
+            case Some(x) => updateGroup(user, groupMembershipRequest)
+          }
+
         }
 
       }

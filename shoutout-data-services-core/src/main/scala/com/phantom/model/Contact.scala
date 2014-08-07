@@ -44,12 +44,6 @@ case class Friend(id : Option[Long],
                   lastName : Option[String],
                   profilePictureUrl : Option[String])
 
-case class Group(id : Option[Long],
-                 ownerId : Long,
-                 name : String)
-//,
-//                 members : List[Friend])
-
 case class Contact(id : Option[Long],
                    sortOrder : Long,
                    ownerId : Long,

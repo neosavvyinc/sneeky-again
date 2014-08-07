@@ -132,4 +132,7 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="6" author="aparrish">
+        <renameTable oldTableName="GROUP_ITEM" newTableName="GROUP_ITEMS"></renameTable>
+    </changeSet>
 </databaseChangeLog>

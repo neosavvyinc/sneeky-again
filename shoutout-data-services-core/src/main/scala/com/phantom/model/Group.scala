@@ -4,6 +4,19 @@ import com.phantom.dataAccess.Profile
 import org.joda.time.{ DateTimeZone, DateTime, LocalDate }
 import scala.slick.lifted.ColumnOption.DBType
 
+case class GroupResponse(id : Long,
+                         ownerId : Long,
+                         name : String,
+                         members : List[Friend])
+
+case class Group(id : Option[Long],
+                 ownerId : Long,
+                 name : String)
+
+case class GroupItem(id : Option[Long],
+                     groupId : Long,
+                     userRefId : Long)
+
 trait GroupComponent { this : Profile =>
 
   import profile.simple._
@@ -25,5 +38,24 @@ trait GroupComponent { this : Profile =>
 
     def * = id.? ~ ownerId ~ groupName <> (Group, Group.unapply _)
     def forInsert = * returning id
+  }
+
+  /**
+   * +-------------+---------+------+-----+---------+----------------+
+   * | Field       | Type    | Null | Key | Default | Extra          |
+   * +-------------+---------+------+-----+---------+----------------+
+   * | ID          | int(11) | NO   | PRI | NULL    | auto_increment |
+   * | GROUP_ID    | int(11) | NO   |     | NULL    |                |
+   * | USER_REF_ID | int(11) | NO   |     | NULL    |                |
+   * +-------------+---------+------+-----+---------+----------------+
+   */
+  object GroupItemTable extends Table[GroupItem]("GROUP_ITEMS") {
+    def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+    def groupId = column[Long]("GROUP_ID")
+    def userRefId = column[Long]("USER_REF_ID", DBType("VARCHAR(256"))
+
+    def * = id.? ~ groupId ~ userRefId <> (GroupItem, GroupItem.unapply _)
+    def forInsert = * returning id
+
   }
 }
