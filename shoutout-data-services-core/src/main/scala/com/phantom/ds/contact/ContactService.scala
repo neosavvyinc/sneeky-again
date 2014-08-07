@@ -3,6 +3,7 @@ package com.phantom.ds.contact
 import com.phantom.dataAccess.DatabaseSupport
 import com.phantom.ds.BasicCrypto
 import com.phantom.ds.framework.Logging
+import com.phantom.ds.framework.exception.ShoutoutException
 import com.phantom.model._
 
 import scala.concurrent.{ Future, future, ExecutionContext }
@@ -15,12 +16,37 @@ trait ContactService {
 
   def saveContacts(user : ShoutoutUser, contactsRequest : ContactsRequest) : Future[Int]
   def findContacts(user : ShoutoutUser) : Future[List[AggregateContact]]
+  def addContact(user : ShoutoutUser, request : ContactByUsernameRequest) : Future[Int]
 
 }
 
 object ContactService extends BasicCrypto {
 
   def apply()(implicit ec : ExecutionContext) = new ContactService with DatabaseSupport with Logging {
+
+    def addContact(user : ShoutoutUser, request : ContactByUsernameRequest) : Future[Int] = {
+      future {
+        db.withTransaction { implicit s =>
+          //find the user to see if they exist
+          shoutoutUsersDao.findByUsernameOperation(request.username) match {
+            case None => throw ShoutoutException.nonExistentUser
+            case Some(persistentUser) => {
+              contactsDao.findContactByUsernameForOwner(user, request.username) match {
+                case None => {
+                  val c = ContactOrdering(None, persistentUser.id, FriendType)
+                  contactsDao.insertFriendAssociation(user, c, None)
+                  1 //?
+                }
+                case Some((contact, user)) => {
+                  0 //?
+                }
+
+              }
+            }
+          }
+        }
+      }
+    }
 
     def saveContacts(user : ShoutoutUser, contactsRequest : ContactsRequest) : Future[Int] = {
 
@@ -29,8 +55,8 @@ object ContactService extends BasicCrypto {
           case Nil => acc
           case h :: t => {
             h.contactType match {
-              case FriendType => contactsDao.insertFriendAssociation(user, h, acc)
-              case GroupType  => contactsDao.insertGroupAssociation(user, h, acc)
+              case FriendType => contactsDao.insertFriendAssociation(user, h, Some(acc))
+              case GroupType  => contactsDao.insertGroupAssociation(user, h, Some(acc))
             }
             saveAssociationStep(user, t, acc + 1)
           }
@@ -111,6 +137,7 @@ object ContactService extends BasicCrypto {
       }
 
     }
+
   }
 
 }

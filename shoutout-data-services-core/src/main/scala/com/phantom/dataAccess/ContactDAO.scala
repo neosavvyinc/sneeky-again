@@ -11,11 +11,21 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
   import dal._
   import dal.profile.simple._
 
-  def insertFriendAssociation(user : ShoutoutUser, ordering : ContactOrdering, sortOrder : Int)(implicit session : Session) = {
+  def findContactByUsernameForOwner(owner : ShoutoutUser, username : String)(implicit session : Session) : Option[(Contact, ShoutoutUser)] = {
+    val q = for {
+      username <- Parameters[String];
+      c <- ContactTable if c.ownerId === owner.id.get
+      u <- UserTable if u.id === c.friendId && username.toLowerCase === u.username.toLowerCase
+    } yield (c, u)
+
+    q(username).firstOption
+  }
+
+  def insertFriendAssociation(user : ShoutoutUser, ordering : ContactOrdering, sortOrder : Option[Long])(implicit session : Session) = {
     ContactTable.forInsert.insert(Contact(None, sortOrder, user.id.get, None, ordering.friendId, FriendType))
   }
 
-  def insertGroupAssociation(user : ShoutoutUser, ordering : ContactOrdering, sortOrder : Int)(implicit session : Session) = {
+  def insertGroupAssociation(user : ShoutoutUser, ordering : ContactOrdering, sortOrder : Option[Long])(implicit session : Session) = {
     ContactTable.forInsert.insert(Contact(None, sortOrder, user.id.get, ordering.groupId, None, GroupType))
   }
 

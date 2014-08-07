@@ -22,6 +22,10 @@ object ContactType {
 
 }
 
+case class ContactByUsernameRequest(username : String)
+
+case class ContactByFacebookIdsRequest(facebookIds : List[String])
+
 case class ContactsRequest(associations : List[ContactOrdering])
 
 case object FriendType extends ContactType
@@ -29,7 +33,7 @@ case object FriendType extends ContactType
 case object GroupType extends ContactType
 
 case class AggregateContact(
-  sortOrder : Long,
+  sortOrder : Option[Long],
   group : Option[GroupResponse],
   friend : Option[Friend],
   contactType : ContactType)
@@ -45,7 +49,7 @@ case class Friend(id : Option[Long],
                   profilePictureUrl : Option[String])
 
 case class Contact(id : Option[Long],
-                   sortOrder : Long,
+                   sortOrder : Option[Long],
                    ownerId : Long,
                    groupId : Option[Long],
                    friendId : Option[Long],
@@ -65,14 +69,14 @@ trait ContactComponent { this : Profile with UserComponent with GroupComponent =
   object ContactTable extends Table[Contact]("CONTACTS") {
 
     def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
-    def sortOrder = column[Long]("SORT_ORDER")
+    def sortOrder = column[Long]("SORT_ORDER", O.Nullable)
     def ownerId = column[Long]("OWNER_ID")
     def friendId = column[Long]("USER_REF_ID")
 
     def groupId = column[Long]("GROUP_REF_ID")
     def contactType = column[ContactType]("CONTACT_TYPE")
 
-    def * = id.? ~ sortOrder ~ ownerId ~ groupId.? ~ friendId.? ~ contactType <> (Contact, Contact.unapply _)
+    def * = id.? ~ sortOrder.? ~ ownerId ~ groupId.? ~ friendId.? ~ contactType <> (Contact, Contact.unapply _)
     def forInsert = * returning id
 
     def owner = foreignKey("OWNER_FK", ownerId, UserTable)(_.id)

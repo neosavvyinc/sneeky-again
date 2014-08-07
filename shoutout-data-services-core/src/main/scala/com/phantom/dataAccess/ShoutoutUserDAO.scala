@@ -31,6 +31,11 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     u <- UserTable if u.facebookID is facebookId
   ) yield u
 
+  private val byUsernameQuery = for (
+    username <- Parameters[String];
+    u <- UserTable if u.username is username
+  ) yield u
+
   private val existsQuery = for (
     email <- Parameters[String];
     u <- UserTable if u.email.toLowerCase is email.toLowerCase
@@ -41,11 +46,15 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     u <- UserTable if u.id === id
   } yield u
 
-  private def findByEmailOperation(email : String)(implicit session : Session) : Option[ShoutoutUser] = {
+  def findByEmailOperation(email : String)(implicit session : Session) : Option[ShoutoutUser] = {
     byEmailQuery(email.toLowerCase).firstOption
   }
 
-  private def findByFacebookOperation(email : String)(implicit session : Session) : Option[ShoutoutUser] = {
+  def findByUsernameOperation(username : String)(implicit session : Session) : Option[ShoutoutUser] = {
+    byUsernameQuery(username).firstOption
+  }
+
+  def findByFacebookOperation(email : String)(implicit session : Session) : Option[ShoutoutUser] = {
     byFacebookQuery(email.toLowerCase).firstOption
   }
 

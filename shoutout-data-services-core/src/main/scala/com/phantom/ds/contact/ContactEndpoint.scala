@@ -3,7 +3,7 @@ package com.phantom.ds.contact
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 import com.phantom.ds.{ BasicCrypto, DataHttpService }
 import com.phantom.ds.framework.httpx.PhantomJsonProtocol
-import com.phantom.model.{ ContactOrdering, ContactsRequest, UserRegistrationRequest }
+import com.phantom.model.{ ContactByUsernameRequest, ContactOrdering, ContactsRequest, UserRegistrationRequest }
 import spray.http.StatusCodes
 import spray.http.MediaTypes._
 
@@ -34,9 +34,7 @@ trait ContactEndpoint extends DataHttpService with PhantomJsonProtocol with Basi
         respondWithMediaType(`application/json`) {
           entity(as[ContactsRequest]) { request =>
             complete {
-
               contactService.saveContacts(user, request)
-
             }
           }
         }
@@ -45,6 +43,20 @@ trait ContactEndpoint extends DataHttpService with PhantomJsonProtocol with Basi
 
   }
 
-  val contactRoute = saveContacts ~ findContacts
+  def addContactByUsername = pathPrefix(contacts / "add" / "username") {
+    authenticate(unverified _) { user =>
+      post {
+        respondWithMediaType(`application/json`) {
+          entity(as[ContactByUsernameRequest]) { request =>
+            complete {
+              contactService.addContact(user, request)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  val contactRoute = saveContacts ~ findContacts ~ addContactByUsername
 
 }

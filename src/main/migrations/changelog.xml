@@ -135,4 +135,8 @@
     <changeSet id="6" author="aparrish">
         <renameTable oldTableName="GROUP_ITEM" newTableName="GROUP_ITEMS"></renameTable>
     </changeSet>
+
+    <changeSet id="7" author="aparrish">
+        <dropNotNullConstraint tableName="CONTACTS" columnName="SORT_ORDER" columnDataType="int"></dropNotNullConstraint>
+    </changeSet>
 </databaseChangeLog>

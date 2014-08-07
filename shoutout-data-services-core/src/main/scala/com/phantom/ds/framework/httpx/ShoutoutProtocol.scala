@@ -126,6 +126,8 @@ package object httpx {
     implicit val contact2json = jsonFormat6(Contact)
     implicit val contactOrdering2json = jsonFormat3(ContactOrdering)
     implicit val contactRequest2json = jsonFormat1(ContactsRequest)
+    implicit val contactByUsernameRequest2json = jsonFormat1(ContactByUsernameRequest)
+    implicit val contactByFacebookRequest2json = jsonFormat1(ContactByFacebookIdsRequest)
     implicit val friend2json = jsonFormat5(Friend)
     implicit val group2json = jsonFormat3(Group)
     implicit val groupResponse2json = jsonFormat4(GroupResponse)
