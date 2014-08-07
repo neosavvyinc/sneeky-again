@@ -31,8 +31,8 @@ case object GroupType extends ContactType
 case class AggregateContact(
   id : Long,
   sortOrder : Long,
-  group : Group,
-  friend : Friend,
+  group : Option[Group],
+  friend : Option[Friend],
   contactType : ContactType)
 
 case class ContactOrdering(groupId : Option[Long],
@@ -42,8 +42,10 @@ case class ContactOrdering(groupId : Option[Long],
 case class Friend(id : Option[Long])
 
 case class Group(id : Option[Long],
-                 name : String,
-                 members : List[Friend])
+                 ownerId : Long,
+                 name : String)
+//,
+//                 members : List[Friend])
 
 case class Contact(id : Option[Long],
                    sortOrder : Long,
@@ -52,7 +54,7 @@ case class Contact(id : Option[Long],
                    friendId : Option[Long],
                    contactType : ContactType = FriendType)
 
-trait ContactComponent { this : Profile with UserComponent =>
+trait ContactComponent { this : Profile with UserComponent with GroupComponent =>
 
   import profile.simple._
   import com.github.tototoshi.slick.JodaSupport._
@@ -64,8 +66,8 @@ trait ContactComponent { this : Profile with UserComponent =>
     def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
     def sortOrder = column[Long]("SORT_ORDER")
     def ownerId = column[Long]("OWNER_ID")
-    def contactId = column[Long]("USER_REF_ID")
     def friendId = column[Long]("USER_REF_ID")
+
     def groupId = column[Long]("GROUP_REF_ID")
     def contactType = column[ContactType]("CONTACT_TYPE")
 
@@ -73,6 +75,8 @@ trait ContactComponent { this : Profile with UserComponent =>
     def forInsert = * returning id
 
     def owner = foreignKey("OWNER_FK", ownerId, UserTable)(_.id)
+    def friend = foreignKey("FRIEND_FK", friendId, UserTable)(_.id)
+    def group = foreignKey("GROUP_FK", groupId, GroupTable)(_.id)
 
   }
 

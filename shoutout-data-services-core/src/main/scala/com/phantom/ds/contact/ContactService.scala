@@ -44,8 +44,31 @@ object ContactService extends BasicCrypto {
       }
     }
 
-    //    def findContacts(user : ShoutoutUser) : Future[AggregateContact] = ???
+    def findContacts(user : ShoutoutUser) : Future[List[AggregateContact]] = {
 
+      def findFriendById(id : Long) : Friend = {
+        Friend(Some(1))
+      }
+
+      def findGroupById(id : Long) : Group = {
+        Group(Some(1L), 1L, "Adams Group")
+      }
+
+      future {
+        db.withSession { implicit s =>
+
+          val aggregate = contactsDao.findAllForUser(user).map(
+            c => c.contactType match {
+              case FriendType => AggregateContact(c.id.get, c.sortOrder, None, Some(findFriendById(c.friendId.get)), c.contactType)
+              case GroupType  => AggregateContact(c.id.get, c.sortOrder, Some(findGroupById(c.groupId.get)), None, c.contactType)
+            }
+          )
+          aggregate
+
+        }
+      }
+
+    }
   }
 
 }

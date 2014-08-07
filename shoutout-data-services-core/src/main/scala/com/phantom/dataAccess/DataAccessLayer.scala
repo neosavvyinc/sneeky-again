@@ -15,8 +15,7 @@ class DataAccessLayer(override val profile : ExtendedProfile) extends Profile wi
     with ConversationComponent
     with ConversationItemComponent
     with ContactComponent
-    with PhotoComponent
-    with PhotoCategoryComponent
+    with GroupComponent
     with UserSessionComponent {
 
   import profile.simple._
@@ -26,8 +25,6 @@ class DataAccessLayer(override val profile : ExtendedProfile) extends Profile wi
       ConversationTable.ddl ++
       ConversationItemTable.ddl ++
       ContactTable.ddl ++
-      PhotoTable.ddl ++
-      PhotoCategoryTable.ddl ++
       SessionTable.ddl
 
   //  val writer = new PrintWriter(new File("schema.ddl"))

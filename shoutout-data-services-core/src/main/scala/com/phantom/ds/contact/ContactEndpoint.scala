@@ -21,9 +21,7 @@ trait ContactEndpoint extends DataHttpService with PhantomJsonProtocol with Basi
       get {
         respondWithMediaType(`application/json`) {
           complete {
-            StatusCodes.OK
-            //            contactService.findContacts(user)
-
+            contactService.findContacts(user)
           }
         }
       }

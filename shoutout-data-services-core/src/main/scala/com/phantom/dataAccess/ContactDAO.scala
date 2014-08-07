@@ -19,11 +19,25 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     ContactTable.forInsert.insert(Contact(None, sortOrder, user.id.get, ordering.groupId, None, GroupType))
   }
 
-  def deleteAllAssociationsForOwner(user : ShoutoutUser)(implicit session : Session) = {
+  def deleteAllAssociationsForOwner(user : ShoutoutUser)(implicit session : Session) : Int = {
 
     val q = for { c <- ContactTable if c.ownerId === user.id } yield c
     q.delete
 
   }
+
+  def findAllForUser(user : ShoutoutUser)(implicit session : Session) : List[Contact] = {
+
+    val q = for {
+      c <- ContactTable if c.ownerId === user.id
+
+    } yield c
+    q.list
+
+  }
+
+  /**
+   * select U.ID, G.ID from CONTACTS C LEFT OUTER JOIN USERS U ON C.USER_REF_ID = U.ID LEFT OUTER JOIN GROUPS G ON C.GROUP_REF_ID = G.ID
+   */
 
 }
