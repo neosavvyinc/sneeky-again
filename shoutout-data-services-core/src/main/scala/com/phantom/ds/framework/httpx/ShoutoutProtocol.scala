@@ -10,7 +10,6 @@ import com.phantom.model._
 import com.phantom.ds.framework.exception.{ UnverifiedUserException, ShoutoutException }
 import spray.http.HttpResponse
 
-import com.phantom.model.ConversationItem
 import java.util.UUID
 
 import org.joda.time.{ LocalDate, DateTime }
@@ -77,6 +76,15 @@ package object httpx {
       }
     }
 
+    implicit object GroupListTypeFormat extends JF[List[Group]] {
+      override def write(obj : List[Group]) : JsValue = JsArray(obj.map(group2json.write))
+
+      override def read(json : JsValue) : List[Group] = json match {
+        case JsArray(x) => x.map(group2json.read)
+        case _          => deserializationError("Expected String value for List[Group]")
+      }
+    }
+
     implicit val failureFormat = jsonFormat2(Failure)
 
     implicit val shoutuser2json = jsonFormat11(ShoutoutUser)
@@ -87,6 +95,14 @@ package object httpx {
     implicit val registrationResponse2json = jsonFormat1(RegistrationResponse)
     implicit val userUpdateRequest2json = jsonFormat4(ShoutoutUserUpdateRequest)
     implicit val activeUser2json = jsonFormat6(ActiveShoutoutUser)
+
+    implicit val contact2json = jsonFormat6(Contact)
+    implicit val contactOrdering2json = jsonFormat3(ContactOrdering)
+    implicit val contactRequest2json = jsonFormat1(ContactsRequest)
+    implicit val friend2json = jsonFormat1(Friend)
+    implicit val group2json = jsonFormat3(Group)
+    implicit val aggregateContact2json = jsonFormat5(AggregateContact)
+
   }
 
   trait PhantomResponseMarshaller extends PhantomJsonProtocol {

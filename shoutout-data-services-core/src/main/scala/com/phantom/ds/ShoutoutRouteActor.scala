@@ -1,6 +1,7 @@
 package com.phantom.ds
 
 import akka.actor.{ ActorRef, Actor }
+import com.phantom.ds.contact.ContactEndpoint
 import com.phantom.ds.user.UserEndpoint
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 import com.phantom.ds.conversation.ConversationEndpoint
@@ -18,6 +19,7 @@ import com.phantom.ds.integration.amazon.S3Service
 
 class ShoutoutRouteActor(val appleActor : ActorRef, val s3Service : S3Service) extends Actor
     with UserEndpoint
+    with ContactEndpoint
     with RegistrationEndpoint
     with ConversationEndpoint
     with DatabaseSupport {
@@ -31,6 +33,6 @@ class ShoutoutRouteActor(val appleActor : ActorRef, val s3Service : S3Service) e
   // other things here, like request stream processing
   // or timeout handling
   def receive = runRoute(
-    userRoute ~ conversationRoute ~ registrationRoute
+    userRoute ~ conversationRoute ~ registrationRoute ~ contactRoute
   )
 }

@@ -74,4 +74,62 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="4" author="aparrish">
+        <createTable tableName="CONTACTS">
+            <column name="ID" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="SORT_ORDER" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="OWNER_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="GROUP_REF_ID" type="int">
+                <constraints nullable="true"></constraints>
+            </column>
+
+            <column name="USER_REF_ID" type="int">
+                <constraints nullable="true"></constraints>
+            </column>
+
+            <column name="CONTACT_TYPE" type="varchar(36)">
+                <constraints nullable="false"></constraints>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="5" author="aparrish">
+        <createTable tableName="GROUPS">
+            <column name="ID" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="OWNER_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="GROUP_NAME" type="varchar(256)">
+                <constraints nullable="false"></constraints>
+            </column>
+        </createTable>
+
+        <createTable tableName="GROUP_ITEM">
+            <column name="ID" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="GROUP_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="USER_REF_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+        </createTable>
+    </changeSet>
+
 </databaseChangeLog>

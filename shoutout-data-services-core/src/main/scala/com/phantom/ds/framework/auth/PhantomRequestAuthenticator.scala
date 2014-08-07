@@ -47,7 +47,7 @@ trait PhantomRequestAuthenticator extends RequestAuthenticator with DSConfigurat
   }
 
   protected def validateSession(sessionId : String, ctx : RequestContext) : Option[ShoutoutUser] = {
-    val opt = sessions.findFromSession(UUID.fromString(sessionId))
+    val opt = sessionsDao.findFromSession(UUID.fromString(sessionId))
     logAuthFailure(opt, s"cannot find session from $sessionId", ctx)
   }
 }

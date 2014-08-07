@@ -9,28 +9,48 @@ sealed trait ContactType
 object ContactType {
 
   def toStringRep(contactType : ContactType) : String = contactType match {
-    case Friend => "friend"
-    case Group  => "group"
+    case FriendType => "friend"
+    case GroupType  => "group"
   }
 
   def fromStringRep(contactType : String) : ContactType = contactType.toLowerCase match {
-    case "friend" => Friend
-    case "group"  => Group
+    case "friend" => FriendType
+    case "group"  => GroupType
     case _        => throw new Exception(s"unrecognized ContactType $contactType")
 
   }
 
 }
 
-case object Friend extends ContactType
+case class ContactsRequest(associations : List[ContactOrdering])
 
-case object Group extends ContactType
+case object FriendType extends ContactType
+
+case object GroupType extends ContactType
+
+case class AggregateContact(
+  id : Long,
+  sortOrder : Long,
+  group : Group,
+  friend : Friend,
+  contactType : ContactType)
+
+case class ContactOrdering(groupId : Option[Long],
+                           friendId : Option[Long],
+                           contactType : ContactType)
+
+case class Friend(id : Option[Long])
+
+case class Group(id : Option[Long],
+                 name : String,
+                 members : List[Friend])
 
 case class Contact(id : Option[Long],
-                   ownerId : Long,
-                   contactId : Long,
                    sortOrder : Long,
-                   contactType : ContactType = Friend)
+                   ownerId : Long,
+                   groupId : Option[Long],
+                   friendId : Option[Long],
+                   contactType : ContactType = FriendType)
 
 trait ContactComponent { this : Profile with UserComponent =>
 
@@ -41,17 +61,19 @@ trait ContactComponent { this : Profile with UserComponent =>
 
   object ContactTable extends Table[Contact]("CONTACTS") {
 
-    def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
-
-    // * UNIQUE * //
-    def ownerId = column[Long]("OWNER_ID")
-    def contactId = column[Long]("CONTACT_ID")
+    def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
     def sortOrder = column[Long]("SORT_ORDER")
-    def contactType = column[ContactType]("TYPE")
-    def * = id.? ~ ownerId ~ contactId ~ sortOrder ~ contactType <> (Contact, Contact.unapply _)
+    def ownerId = column[Long]("OWNER_ID")
+    def contactId = column[Long]("USER_REF_ID")
+    def friendId = column[Long]("USER_REF_ID")
+    def groupId = column[Long]("GROUP_REF_ID")
+    def contactType = column[ContactType]("CONTACT_TYPE")
+
+    def * = id.? ~ sortOrder ~ ownerId ~ groupId.? ~ friendId.? ~ contactType <> (Contact, Contact.unapply _)
     def forInsert = * returning id
 
     def owner = foreignKey("OWNER_FK", ownerId, UserTable)(_.id)
+
   }
 
 }

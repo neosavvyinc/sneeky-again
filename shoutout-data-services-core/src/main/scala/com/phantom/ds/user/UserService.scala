@@ -30,14 +30,14 @@ object UserService extends BasicCrypto {
     def login(loginRequest : UserLogin) : Future[LoginSuccess] = {
       for {
         user <- shoutoutUsersDao.login(loginRequest)
-        session <- sessions.createSession(ShoutoutSession.newSession(user))
+        session <- sessionsDao.createSession(ShoutoutSession.newSession(user))
       } yield LoginSuccess(session.sessionId)
     }
 
     def facebookLogin(loginRequest : FacebookUserLogin) : Future[LoginSuccess] = {
       for {
         user <- shoutoutUsersDao.loginByFacebook(loginRequest)
-        session <- sessions.createSession(ShoutoutSession.newSession(user))
+        session <- sessionsDao.createSession(ShoutoutSession.newSession(user))
       } yield LoginSuccess(session.sessionId)
     }
 
@@ -49,11 +49,11 @@ object UserService extends BasicCrypto {
     }
 
     def logout(sessionId : String) : Future[Int] = {
-      sessions.removeSession(UUID.fromString(sessionId))
+      sessionsDao.removeSession(UUID.fromString(sessionId))
     }
 
     def findFromSessionId(sessionId : String) : Future[ShoutoutSession] = {
-      sessions.sessionByUUID(UUID.fromString(sessionId))
+      sessionsDao.sessionByUUID(UUID.fromString(sessionId))
     }
 
     def updateUser(userId : Long, updateRequest : ShoutoutUserUpdateRequest) : Future[Int] = {
@@ -69,7 +69,7 @@ object UserService extends BasicCrypto {
       future {
         db.withTransaction { implicit s =>
           val user = shoutoutUsersDao.registerOperation(registrationRequest)
-          val session = sessions.createSessionOperation(ShoutoutSession.newSession(user))
+          val session = sessionsDao.createSessionOperation(ShoutoutSession.newSession(user))
           RegistrationResponse(session.sessionId)
         }
       }
