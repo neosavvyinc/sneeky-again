@@ -36,10 +36,10 @@ trait GroupEndpoint extends DataHttpService with PhantomJsonProtocol with BasicC
     authenticate(unverified _) { user =>
       post {
         respondWithMediaType(`application/json`) {
-          entity(as[List[GroupMembershipRequest]]) { groupMembership =>
+          entity(as[GroupMembershipRequest]) { groupMembership =>
             complete {
 
-              StatusCodes.OK
+              groupService.createOrUpdateGroup(user, groupMembership)
 
             }
           }
