@@ -39,7 +39,10 @@ case class ContactOrdering(groupId : Option[Long],
                            friendId : Option[Long],
                            contactType : ContactType)
 
-case class Friend(id : Option[Long])
+case class Friend(id : Option[Long],
+                  firstName : Option[String],
+                  lastName : Option[String],
+                  profilePictureUrl : Option[String])
 
 case class Group(id : Option[Long],
                  ownerId : Long,

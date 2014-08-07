@@ -47,7 +47,11 @@ object ContactService extends BasicCrypto {
     def findContacts(user : ShoutoutUser) : Future[List[AggregateContact]] = {
 
       def findFriendById(id : Long) : Friend = {
-        Friend(Some(1))
+        Friend(
+          Some(1),
+          Some("Adam"),
+          Some("Parrish"),
+          Some("http://www.neosavvy.com/assets/neosavvy_logo_only-5163ecd544a8695c3f6ed85882a8f211.png"))
       }
 
       def findGroupById(id : Long) : Group = {

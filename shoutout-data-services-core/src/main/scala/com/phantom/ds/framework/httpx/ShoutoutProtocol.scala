@@ -99,7 +99,7 @@ package object httpx {
     implicit val contact2json = jsonFormat6(Contact)
     implicit val contactOrdering2json = jsonFormat3(ContactOrdering)
     implicit val contactRequest2json = jsonFormat1(ContactsRequest)
-    implicit val friend2json = jsonFormat1(Friend)
+    implicit val friend2json = jsonFormat4(Friend)
     implicit val group2json = jsonFormat3(Group)
     implicit val aggregateContact2json = jsonFormat5(AggregateContact)
 
