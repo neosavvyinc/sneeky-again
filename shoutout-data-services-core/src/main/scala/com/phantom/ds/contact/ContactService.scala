@@ -14,6 +14,7 @@ import scala.slick.session.Session
 trait ContactService {
 
   def saveContacts(user : ShoutoutUser, contactsRequest : ContactsRequest) : Future[Int]
+  def findContacts(user : ShoutoutUser) : Future[List[AggregateContact]]
 
 }
 

@@ -1,41 +1,45 @@
-package com.phantom.ds.contact
+package com.phantom.ds.group
 
+import com.phantom.ds.contact.ContactService
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 import com.phantom.ds.{ BasicCrypto, DataHttpService }
 import com.phantom.ds.framework.httpx.PhantomJsonProtocol
-import com.phantom.model.{ ContactOrdering, ContactsRequest, UserRegistrationRequest }
-import spray.http.StatusCodes
+import com.phantom.model.{ GroupMembershipRequest, Group, ContactsRequest, ContactOrdering }
 import spray.http.MediaTypes._
+import spray.http.StatusCodes
 
+/**
+ * Created by aparrish on 8/7/14.
+ */
 /**
  * Created by aparrish on 8/6/14.
  */
-trait ContactEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCrypto {
+trait GroupEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCrypto {
   this : RequestAuthenticator with EntryPointAuthenticator =>
 
-  val contactService = ContactService()
-  val contacts = "contacts"
+  val groupService = GroupService()
+  val groups = "groups"
 
-  def findContacts = pathPrefix(contacts) {
+  def findGroups = pathPrefix(groups) {
     authenticate(unverified _) { user =>
       get {
         respondWithMediaType(`application/json`) {
           complete {
-            contactService.findContacts(user)
+            StatusCodes.OK
           }
         }
       }
     }
   }
 
-  def saveContacts = pathPrefix(contacts / "save") {
+  def createOrUpdateGroup = pathPrefix(groups) {
     authenticate(unverified _) { user =>
       post {
         respondWithMediaType(`application/json`) {
-          entity(as[ContactsRequest]) { request =>
+          entity(as[List[GroupMembershipRequest]]) { groupMembership =>
             complete {
 
-              contactService.saveContacts(user, request)
+              StatusCodes.OK
 
             }
           }
@@ -45,6 +49,6 @@ trait ContactEndpoint extends DataHttpService with PhantomJsonProtocol with Basi
 
   }
 
-  val contactRoute = saveContacts ~ findContacts
+  val groupRoute = findGroups ~ createOrUpdateGroup
 
 }

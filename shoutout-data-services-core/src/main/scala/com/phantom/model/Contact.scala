@@ -57,6 +57,10 @@ case class Contact(id : Option[Long],
                    friendId : Option[Long],
                    contactType : ContactType = FriendType)
 
+case class GroupMembershipRequest(id : Option[Long],
+                                  name : String,
+                                  members : List[Int])
+
 trait ContactComponent { this : Profile with UserComponent with GroupComponent =>
 
   import profile.simple._

@@ -174,11 +174,11 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
             case None    => persistentUser.birthday
             case Some(x) => updateRequest.birthday
           },
-          updateRequest.birthday match {
+          updateRequest.firstName match {
             case None    => persistentUser.firstName
             case Some(x) => updateRequest.firstName
           },
-          updateRequest.birthday match {
+          updateRequest.lastName match {
             case None    => persistentUser.lastName
             case Some(x) => updateRequest.lastName
           },
