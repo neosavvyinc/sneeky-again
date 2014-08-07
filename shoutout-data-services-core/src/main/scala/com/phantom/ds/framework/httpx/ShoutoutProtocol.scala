@@ -85,6 +85,15 @@ package object httpx {
       }
     }
 
+    implicit object GroupResponseListTypeFormat extends JF[List[GroupResponse]] {
+      override def write(obj : List[GroupResponse]) : JsValue = JsArray(obj.map(groupResponse2json.write))
+
+      override def read(json : JsValue) : List[GroupResponse] = json match {
+        case JsArray(x) => x.map(groupResponse2json.read)
+        case _          => deserializationError("Expected String value for List[GroupResponse]")
+      }
+    }
+
     implicit object FriendListTypeFormat extends JF[List[Friend]] {
       override def write(obj : List[Friend]) : JsValue = JsArray(obj.map(friend2json.write))
 
@@ -119,9 +128,9 @@ package object httpx {
     implicit val contactRequest2json = jsonFormat1(ContactsRequest)
     implicit val friend2json = jsonFormat5(Friend)
     implicit val group2json = jsonFormat3(Group)
+    implicit val groupResponse2json = jsonFormat4(GroupResponse)
     implicit val aggregateContact2json = jsonFormat4(AggregateContact)
     implicit val groupMembershipRequest2json = jsonFormat3(GroupMembershipRequest)
-    implicit val groupResponse2json = jsonFormat4(GroupResponse)
 
   }
 

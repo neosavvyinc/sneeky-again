@@ -27,15 +27,19 @@ object GroupService extends BasicCrypto {
           groupDao.insertGroupItemOperation(GroupItem(None, group.id.get, m))
         }
         val members = groupDao.findMembers(group.id.get)
-        GroupResponse(group.id.get, user.id.get, group.name, members.map { m => Friend(m.id, m.username, m.firstName, m.lastName, m.profilePictureUrl) })
+        GroupResponse(group.id.get, user.id.get, group.name, members.map {
+          m => Friend(m.id, m.username, m.firstName, m.lastName, m.profilePictureUrl)
+        })
       }
 
       def updateGroup(user : ShoutoutUser, groupMembershipRequest : GroupMembershipRequest)(implicit session : Session) : GroupResponse = {
 
         val group = groupDao.findByIdOperation(groupMembershipRequest.id.get)
+
         group match {
           case None => throw ShoutoutException.groupNotFoundException
           case Some(g) => {
+            groupDao.updateGroupOperation(g.copy(name = groupMembershipRequest.name))
             groupDao.deleteMembersOperation(g.id.get)
 
             for (m : Int <- groupMembershipRequest.members) {
@@ -43,7 +47,7 @@ object GroupService extends BasicCrypto {
             }
 
             val members = groupDao.findMembers(g.id.get)
-            GroupResponse(g.id.get, user.id.get, g.name, members.map { m => Friend(m.id, m.username, m.firstName, m.lastName, m.profilePictureUrl) })
+            GroupResponse(g.id.get, user.id.get, groupMembershipRequest.name, members.map { m => Friend(m.id, m.username, m.firstName, m.lastName, m.profilePictureUrl) })
           }
         }
 

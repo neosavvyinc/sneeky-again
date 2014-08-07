@@ -67,11 +67,33 @@ object ContactService extends BasicCrypto {
 
       }
 
-      def findGroupById(id : Option[Long])(implicit s : Session) : Option[Group] = id match {
+      def findGroupById(id : Option[Long])(implicit s : Session) : Option[GroupResponse] = id match {
         case None => None
-        case Some(x) => for {
-          g <- groupDao.findByIdOperation(x)
-        } yield g
+        case Some(x) => {
+          val group = for {
+            g <- groupDao.findByIdOperation(x)
+          } yield g
+
+          group match {
+            case None => None
+            case Some(group) => {
+              val members = groupDao.findMembers(group.id.get)
+              val friends = members.map {
+                m =>
+                  Friend(m.id,
+                    m.username,
+                    m.firstName,
+                    m.lastName,
+                    m.profilePictureUrl)
+              }
+              val groupResponse = GroupResponse(group.id.get, group.ownerId, group.name, friends)
+
+              Some(groupResponse)
+            }
+          }
+
+        }
+
       }
 
       future {

@@ -30,7 +30,7 @@ case object GroupType extends ContactType
 
 case class AggregateContact(
   sortOrder : Long,
-  group : Option[Group],
+  group : Option[GroupResponse],
   friend : Option[Friend],
   contactType : ContactType)
 

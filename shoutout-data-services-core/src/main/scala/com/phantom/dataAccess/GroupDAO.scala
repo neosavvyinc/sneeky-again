@@ -34,6 +34,17 @@ class GroupDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCont
     byIdQuery(id).firstOption
   }
 
+  def updateGroupOperation(groupUpdate : Group)(implicit session : Session) : Int = {
+    val persistentGroup = findByIdOperation(groupUpdate.id.get)
+    persistentGroup match {
+      case None => 0
+      case Some(pGroup) => {
+        val q = for { group <- GroupTable if group.id === groupUpdate.id } yield group
+        q.update(pGroup.copy(name = groupUpdate.name))
+      }
+    }
+  }
+
   def insertGroupOperation(group : Group)(implicit session : Session) : Group = {
     val id = GroupTable.forInsert.insert(group)
     group.copy(id = Some(id))
