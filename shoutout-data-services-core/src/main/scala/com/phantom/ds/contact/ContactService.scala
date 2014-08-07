@@ -46,16 +46,31 @@ object ContactService extends BasicCrypto {
 
     def findContacts(user : ShoutoutUser) : Future[List[AggregateContact]] = {
 
-      def findFriendById(id : Long) : Friend = {
-        Friend(
-          Some(1),
-          Some("Adam"),
-          Some("Parrish"),
-          Some("http://www.neosavvy.com/assets/neosavvy_logo_only-5163ecd544a8695c3f6ed85882a8f211.png"))
+      def findFriendById(id : Option[Long])(implicit s : Session) : Option[Friend] = id match {
+        case None => None
+        case Some(x) => {
+          val userOpt : Option[ShoutoutUser] = for {
+            user <- shoutoutUsersDao.findByIdOperation(x)
+          } yield user
+
+          userOpt match {
+            case None => None
+            case Some(u) => Some(Friend(
+              u.id,
+              u.username,
+              u.firstName,
+              u.lastName,
+              u.profilePictureUrl))
+          }
+        }
+
       }
 
-      def findGroupById(id : Long) : Group = {
-        Group(Some(1L), 1L, "Adams Group")
+      def findGroupById(id : Option[Long])(implicit s : Session) : Option[Group] = id match {
+        case None => None
+        case Some(x) => for {
+          g <- groupDao.findByIdOperation(x)
+        } yield g
       }
 
       future {
@@ -63,8 +78,8 @@ object ContactService extends BasicCrypto {
 
           val aggregate = contactsDao.findAllForUser(user).map(
             c => c.contactType match {
-              case FriendType => AggregateContact(c.id.get, c.sortOrder, None, Some(findFriendById(c.friendId.get)), c.contactType)
-              case GroupType  => AggregateContact(c.id.get, c.sortOrder, Some(findGroupById(c.groupId.get)), None, c.contactType)
+              case FriendType => AggregateContact(c.sortOrder, None, findFriendById(c.friendId), c.contactType)
+              case GroupType  => AggregateContact(c.sortOrder, findGroupById(c.groupId), None, c.contactType)
             }
           )
           aggregate

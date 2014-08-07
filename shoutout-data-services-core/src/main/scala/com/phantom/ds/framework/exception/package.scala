@@ -17,6 +17,8 @@ package object exception {
     def userNotUpdated = new ShoutoutException(106)
     def usernameNotAvailable = new ShoutoutException(107)
 
+    def groupNotFoundException = new ShoutoutException(120)
+
     def noFeedFound = new ShoutoutException(201)
     def nonExistentConversation = new ShoutoutException(203)
     def unableToUpdateConversationLastChanged = new ShoutoutException(204)

@@ -29,7 +29,6 @@ case object FriendType extends ContactType
 case object GroupType extends ContactType
 
 case class AggregateContact(
-  id : Long,
   sortOrder : Long,
   group : Option[Group],
   friend : Option[Friend],
@@ -40,6 +39,7 @@ case class ContactOrdering(groupId : Option[Long],
                            contactType : ContactType)
 
 case class Friend(id : Option[Long],
+                  username : String,
                   firstName : Option[String],
                   lastName : Option[String],
                   profilePictureUrl : Option[String])

@@ -49,7 +49,7 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     byFacebookQuery(email.toLowerCase).firstOption
   }
 
-  private def findByIdOperation(id : Long)(implicit session : Session) : Option[ShoutoutUser] = {
+  def findByIdOperation(id : Long)(implicit session : Session) : Option[ShoutoutUser] = {
     byIdQuery(id).firstOption
   }
 
