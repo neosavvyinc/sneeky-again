@@ -1,6 +1,7 @@
 package com.phantom.ds.user
 
 import com.phantom.ds.framework.Dates
+import com.phantom.ds.integration.amazon.S3Service
 import org.joda.time.{ LocalDate }
 import spray.http.MediaTypes._
 import com.phantom.model._
@@ -15,7 +16,9 @@ import spray.http.StatusCodes
 trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCrypto {
   this : RequestAuthenticator with EntryPointAuthenticator =>
 
-  val userService = UserService()
+  def s3Service : S3Service
+
+  val userService = UserService(s3Service)
   val users = "users"
 
   /**
@@ -86,7 +89,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
             complete(
               Future.successful(
                 ActiveShoutoutUser(
-                  user.birthday.getOrElse(Dates.readLocalDate("19810810")),
+                  user.birthday,
                   user.firstName.getOrElse(""),
                   user.lastName.getOrElse(""),
                   user.username,
@@ -116,5 +119,24 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
     }
   }
 
-  val userRoute = loginFacebook ~ loginEmail ~ registerEmail ~ logout ~ update ~ activeUser
+  def updateProfilePhoto = pathPrefix(users / "update" / "photo") {
+    val ByteJsonFormat = null
+    authenticate(unverified _) { user =>
+      post {
+        formFields('image.as[Array[Byte]]) { (image) =>
+          complete {
+            userService.updateUserPhoto(image, user)
+          }
+        }
+      }
+    }
+  }
+
+  val userRoute = loginFacebook ~
+    loginEmail ~
+    registerEmail ~
+    logout ~
+    update ~
+    activeUser ~
+    updateProfilePhoto
 }

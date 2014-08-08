@@ -27,7 +27,7 @@ object GroupService extends BasicCrypto {
           groupDao.insertGroupItemOperation(GroupItem(None, group.id.get, m))
         }
         val members = groupDao.findMembers(group.id.get)
-        contactsDao.insertGroupAssociation(user, ContactOrdering(group.id, None, GroupType), None)
+        contactsDao.insertGroupAssociation(user, ContactOrdering(group.id, None, GroupType), Some(contactsDao.countContactsForUser(user)))
         GroupResponse(group.id.get, user.id.get, group.name, members.map {
           m => Friend(m.id, m.username, m.facebookID, m.firstName, m.lastName, m.profilePictureUrl)
         })

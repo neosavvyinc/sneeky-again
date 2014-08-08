@@ -1,5 +1,7 @@
 package com.phantom.ds.user
 
+import com.phantom.ds.integration.amazon.S3Service
+
 import scala.concurrent.{ ExecutionContext, Future, future }
 import com.phantom.model._
 import com.phantom.ds.framework.Logging
@@ -25,7 +27,7 @@ trait UserService {
 
 object UserService extends BasicCrypto {
 
-  def apply()(implicit ec : ExecutionContext) = new UserService with DatabaseSupport with Logging {
+  def apply(s3Service : S3Service)(implicit ec : ExecutionContext) = new UserService with DatabaseSupport with Logging {
 
     def login(loginRequest : UserLogin) : Future[LoginSuccess] = {
       for {
@@ -62,6 +64,20 @@ object UserService extends BasicCrypto {
         persistentUser <- shoutoutUsersDao.findById(userId)
         rowsUpdated <- shoutoutUsersDao.update(persistentUser, updateRequest)
       } yield rowsUpdated
+
+    }
+
+    def updateUserPhoto(image : Array[Byte], user : ShoutoutUser) : Future[String] = {
+
+      def saveUserPhotoForProfile(image : Array[Byte]) : String = {
+        s3Service.saveProfileImage(image)
+      }
+
+      future {
+        val url = saveUserPhotoForProfile(image)
+        shoutoutUsersDao.updateProfilePicUrl(user.copy(profilePictureUrl = Some(url)))
+        url
+      }
 
     }
 

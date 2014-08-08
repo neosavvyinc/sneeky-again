@@ -1,5 +1,7 @@
 package com.phantom.ds.user
 
+import com.phantom.ds.integration.amazon.S3Service
+import com.phantom.ds.integration.mock.TestS3Service
 import com.phantom.model._
 
 import org.specs2._
@@ -22,6 +24,8 @@ class UserEndpointSpec extends Specification
   def actorRefFactory = system
 
   val birthday = LocalDate.parse("1981-08-10")
+
+  def s3Service : S3Service = new TestS3Service()
 
   sequential
 

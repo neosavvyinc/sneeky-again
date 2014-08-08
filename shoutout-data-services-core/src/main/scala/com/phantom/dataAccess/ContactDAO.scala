@@ -39,6 +39,14 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     ContactTable.forInsert.insert(Contact(None, sortOrder, user.id.get, ordering.groupId, None, GroupType))
   }
 
+  def countContactsForUser(user : ShoutoutUser)(implicit session : Session) : Int = {
+    val q = for {
+      c <- ContactTable if c.ownerId === user.id.get
+    } yield c
+
+    q.list().length
+  }
+
   def deleteAllAssociationsForOwner(user : ShoutoutUser)(implicit session : Session) : Int = {
 
     val q = for { c <- ContactTable if c.ownerId === user.id } yield c

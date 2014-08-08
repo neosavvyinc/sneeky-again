@@ -13,6 +13,7 @@ import scala.concurrent.{ ExecutionContext, Future, future }
 trait S3Service {
 
   def saveImage(image : Array[Byte], conversationId : Long) : Future[String]
+  def saveProfileImage(image : Array[Byte]) : String
 
 }
 
@@ -27,9 +28,31 @@ object S3Service extends DSConfiguration {
       new RestS3Service(awsCredentials)
     }
 
-    private val bucketName = AWS.bucket
+    private val bucketName = AWS.profileBucket
 
     private lazy val bucket = s3.getBucket(bucketName)
+
+    override def saveProfileImage(image : Array[Byte]) : String = {
+
+      val randomImageName : String = MessageDigest.getInstance("MD5").digest(DateTime.now().toString().getBytes).map("%02X".format(_)).mkString
+      val imageUrl = randomImageName
+
+      val fileObject = s3.putObject(bucketName, {
+        val acl = s3.getBucketAcl(bucketName)
+        acl.grantPermission(GroupGrantee.ALL_USERS, Permission.PERMISSION_READ)
+
+        val tempObj = new S3Object(imageUrl)
+        tempObj.setDataInputStream(new ByteArrayInputStream(image))
+        tempObj.setAcl(acl)
+        tempObj.setContentType("image/jpg")
+        tempObj
+      })
+
+      s3.createUnsignedObjectUrl(bucketName,
+        fileObject.getKey,
+        false, false, false)
+
+    }
 
     override def saveImage(image : Array[Byte], conversationId : Long) : Future[String] = {
       future {

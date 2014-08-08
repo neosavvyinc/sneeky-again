@@ -117,7 +117,7 @@ case class ShoutoutUser(id : Option[Long],
                         settingSound : Boolean = true)
 
 case class ActiveShoutoutUser(
-  birthday : LocalDate,
+  birthday : Option[LocalDate],
   firstName : String,
   lastName : String,
   username : String,
