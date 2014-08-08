@@ -62,6 +62,13 @@ class GroupDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCont
     groupItemsByGroupIdQuery.delete
   }
 
+  def deleteGroup(groupId : Long)(implicit session : Session) : Int = {
+    val groupByGroupIdQuery = for {
+      gi <- GroupTable if gi.id === groupId
+    } yield gi
+    groupByGroupIdQuery.delete
+  }
+
   def findMembers(groupId : Long)(implicit session : Session) : List[ShoutoutUser] = {
     membersByGroupIdQuery(groupId).list
   }

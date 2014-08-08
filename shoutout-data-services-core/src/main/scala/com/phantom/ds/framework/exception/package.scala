@@ -26,6 +26,8 @@ package object exception {
     def contactNotUpdated = new ShoutoutException(301)
     def contactNotInserted = new ShoutoutException(302)
     def nonExistentContact = new ShoutoutException(303)
+    def friendIdMissing = new ShoutoutException(304)
+    def groupIdMissing = new ShoutoutException(305)
 
     def apnsError(msg : String) = new ShoutoutException(400, msg)
   }

@@ -18,12 +18,35 @@ trait ContactService {
   def findContacts(user : ShoutoutUser) : Future[List[AggregateContact]]
   def addContactByUsername(user : ShoutoutUser, request : ContactByUsernameRequest) : Future[Int]
   def addContactByFacebook(user : ShoutoutUser, request : ContactByFacebookIdsRequest) : Future[Int]
+  def deleteContact(user : ShoutoutUser, request : DeleteContactRequest) : Future[Int]
 
 }
 
 object ContactService extends BasicCrypto {
 
   def apply()(implicit ec : ExecutionContext) = new ContactService with DatabaseSupport with Logging {
+
+    def deleteContact(user : ShoutoutUser, request : DeleteContactRequest) : Future[Int] = {
+
+      def deleteFriendContact(user : ShoutoutUser, request : DeleteContactRequest)(implicit session : Session) : Int = {
+        contactsDao.deleteByFriendId(user, request.friendRefId.getOrElse(throw ShoutoutException.friendIdMissing))
+      }
+
+      def deleteGroupContact(user : ShoutoutUser, request : DeleteContactRequest)(implicit session : Session) : Int = {
+        contactsDao.deleteByGroupId(user, request.groupRefId.getOrElse(throw ShoutoutException.groupIdMissing))
+        groupDao.deleteMembersOperation(request.groupRefId.get)
+        groupDao.deleteGroup(request.groupRefId.get)
+      }
+
+      future {
+        db.withTransaction { implicit s =>
+          request.contactType match {
+            case FriendType => deleteFriendContact(user, request)
+            case GroupType  => deleteGroupContact(user, request)
+          }
+        }
+      }
+    }
 
     def addContactByUsername(user : ShoutoutUser, request : ContactByUsernameRequest) : Future[Int] = {
       future {
@@ -126,6 +149,7 @@ object ContactService extends BasicCrypto {
             case Some(u) => Some(Friend(
               u.id,
               u.username,
+              u.facebookID,
               u.firstName,
               u.lastName,
               u.profilePictureUrl))
@@ -149,6 +173,7 @@ object ContactService extends BasicCrypto {
                 m =>
                   Friend(m.id,
                     m.username,
+                    m.facebookID,
                     m.firstName,
                     m.lastName,
                     m.profilePictureUrl)

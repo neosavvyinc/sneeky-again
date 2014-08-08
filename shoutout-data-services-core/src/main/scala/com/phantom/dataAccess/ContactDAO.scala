@@ -46,6 +46,20 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
 
   }
 
+  def deleteByFriendId(user : ShoutoutUser, friendRefId : Long)(implicit session : Session) : Int = {
+
+    val q = for { c <- ContactTable if c.ownerId === user.id && c.friendId === friendRefId } yield c
+    q.delete
+
+  }
+
+  def deleteByGroupId(user : ShoutoutUser, groupRefId : Long)(implicit session : Session) : Int = {
+
+    val q = for { c <- ContactTable if c.ownerId === user.id && c.groupId === groupRefId } yield c
+    q.delete
+
+  }
+
   def findAllForUser(user : ShoutoutUser)(implicit session : Session) : List[Contact] = {
 
     val q = for {

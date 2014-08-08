@@ -71,6 +71,24 @@ trait ContactEndpoint extends DataHttpService with PhantomJsonProtocol with Basi
     }
   }
 
-  val contactRoute = saveContacts ~ findContacts ~ addContactByUsername ~ addContactsByFacebookId
+  def deleteContact = pathPrefix(contacts / "delete") {
+    authenticate(unverified _) { user =>
+      post {
+        respondWithMediaType(`application/json`) {
+          entity(as[DeleteContactRequest]) { request =>
+            complete {
+              contactService.deleteContact(user, request)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  val contactRoute = saveContacts ~
+    findContacts ~
+    addContactByUsername ~
+    addContactsByFacebookId ~
+    deleteContact
 
 }

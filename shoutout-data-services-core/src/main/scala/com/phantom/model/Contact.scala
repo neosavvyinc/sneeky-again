@@ -26,6 +26,10 @@ case class ContactByUsernameRequest(username : String)
 
 case class ContactByFacebookIdsRequest(facebookIds : List[String])
 
+case class DeleteContactRequest(contactType : ContactType,
+                                friendRefId : Option[Long],
+                                groupRefId : Option[Long])
+
 case class ContactsRequest(associations : List[ContactOrdering])
 
 case object FriendType extends ContactType
@@ -44,6 +48,7 @@ case class ContactOrdering(groupId : Option[Long],
 
 case class Friend(id : Option[Long],
                   username : String,
+                  facebookId : Option[String],
                   firstName : Option[String],
                   lastName : Option[String],
                   profilePictureUrl : Option[String])

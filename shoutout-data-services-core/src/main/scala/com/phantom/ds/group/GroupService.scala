@@ -28,7 +28,7 @@ object GroupService extends BasicCrypto {
         }
         val members = groupDao.findMembers(group.id.get)
         GroupResponse(group.id.get, user.id.get, group.name, members.map {
-          m => Friend(m.id, m.username, m.firstName, m.lastName, m.profilePictureUrl)
+          m => Friend(m.id, m.username, m.facebookID, m.firstName, m.lastName, m.profilePictureUrl)
         })
       }
 
@@ -47,7 +47,9 @@ object GroupService extends BasicCrypto {
             }
 
             val members = groupDao.findMembers(g.id.get)
-            GroupResponse(g.id.get, user.id.get, groupMembershipRequest.name, members.map { m => Friend(m.id, m.username, m.firstName, m.lastName, m.profilePictureUrl) })
+            GroupResponse(g.id.get, user.id.get, groupMembershipRequest.name, members.map {
+              m => Friend(m.id, m.username, m.facebookID, m.firstName, m.lastName, m.profilePictureUrl)
+            })
           }
         }
 
