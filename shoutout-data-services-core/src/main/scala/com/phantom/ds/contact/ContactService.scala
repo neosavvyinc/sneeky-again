@@ -16,7 +16,8 @@ trait ContactService {
 
   def saveContacts(user : ShoutoutUser, contactsRequest : ContactsRequest) : Future[Int]
   def findContacts(user : ShoutoutUser) : Future[List[AggregateContact]]
-  def addContact(user : ShoutoutUser, request : ContactByUsernameRequest) : Future[Int]
+  def addContactByUsername(user : ShoutoutUser, request : ContactByUsernameRequest) : Future[Int]
+  def addContactByFacebook(user : ShoutoutUser, request : ContactByFacebookIdsRequest) : Future[Int]
 
 }
 
@@ -24,12 +25,12 @@ object ContactService extends BasicCrypto {
 
   def apply()(implicit ec : ExecutionContext) = new ContactService with DatabaseSupport with Logging {
 
-    def addContact(user : ShoutoutUser, request : ContactByUsernameRequest) : Future[Int] = {
+    def addContactByUsername(user : ShoutoutUser, request : ContactByUsernameRequest) : Future[Int] = {
       future {
         db.withTransaction { implicit s =>
           //find the user to see if they exist
           shoutoutUsersDao.findByUsernameOperation(request.username) match {
-            case None => throw ShoutoutException.nonExistentUser
+            case None => throw ShoutoutException.contactNotUpdated
             case Some(persistentUser) => {
               contactsDao.findContactByUsernameForOwner(user, request.username) match {
                 case None => {
@@ -43,6 +44,46 @@ object ContactService extends BasicCrypto {
 
               }
             }
+          }
+        }
+      }
+    }
+
+    def addContactByFacebook(user : ShoutoutUser, request : ContactByFacebookIdsRequest) : Future[Int] = {
+
+      def insertOrUpdateEachUser(users : List[ShoutoutUser], owner : ShoutoutUser, acc : Int)(implicit session : Session) : Int = {
+
+        users match {
+          case Nil => acc
+          case h :: tail => {
+
+            val contact = contactsDao.findContactByFacebookIdForOwner(owner, h.facebookID.get)
+            contact match {
+              case None => {
+                //insert the contact
+                contactsDao.insertFriendAssociation(user, ContactOrdering(None, h.id, FriendType), None)
+
+                //recurse - with accumulation
+                insertOrUpdateEachUser(tail, owner, acc + 1)
+              }
+              case Some(contact) => {
+                //do not insert a new contact - it already exists
+
+                //recurse - without accumulating
+                insertOrUpdateEachUser(tail, owner, acc)
+              }
+            }
+          }
+        }
+
+      }
+
+      future {
+        db.withTransaction { implicit s =>
+          //find the user to see if they exist
+          shoutoutUsersDao.findByFacebookIds(request.facebookIds) match {
+            case Nil           => throw ShoutoutException.contactNotUpdated
+            case facebookUsers => insertOrUpdateEachUser(facebookUsers, user, 0)
           }
         }
       }

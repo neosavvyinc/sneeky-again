@@ -21,6 +21,16 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     q(username).firstOption
   }
 
+  def findContactByFacebookIdForOwner(owner : ShoutoutUser, facebookID : String)(implicit session : Session) : Option[Contact] = {
+    val q = for {
+      facebookId <- Parameters[String];
+      c <- ContactTable if c.ownerId === owner.id.get
+      u <- UserTable if u.id === c.friendId && facebookId.toLowerCase === u.facebookID.toLowerCase
+    } yield c
+
+    q(facebookID).firstOption
+  }
+
   def insertFriendAssociation(user : ShoutoutUser, ordering : ContactOrdering, sortOrder : Option[Long])(implicit session : Session) = {
     ContactTable.forInsert.insert(Contact(None, sortOrder, user.id.get, None, ordering.friendId, FriendType))
   }
