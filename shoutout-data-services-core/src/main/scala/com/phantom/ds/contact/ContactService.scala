@@ -58,7 +58,7 @@ object ContactService extends BasicCrypto {
               contactsDao.findContactByUsernameForOwner(user, request.username) match {
                 case None => {
                   val c = ContactOrdering(None, persistentUser.id, FriendType)
-                  contactsDao.insertFriendAssociation(user, c, Some(contactsDao.countContactsForUser(user)))
+                  contactsDao.insertFriendAssociation(user, c, contactsDao.countContactsForUser(user))
                   1 //?
                 }
                 case Some((contact, user)) => {
@@ -84,7 +84,7 @@ object ContactService extends BasicCrypto {
             contact match {
               case None => {
                 //insert the contact
-                contactsDao.insertFriendAssociation(user, ContactOrdering(None, h.id, FriendType), Some(contactsDao.countContactsForUser(user)))
+                contactsDao.insertFriendAssociation(user, ContactOrdering(None, h.id, FriendType), contactsDao.countContactsForUser(user))
 
                 //recurse - with accumulation
                 insertOrUpdateEachUser(tail, owner, acc + 1)
@@ -119,8 +119,8 @@ object ContactService extends BasicCrypto {
           case Nil => acc
           case h :: t => {
             h.contactType match {
-              case FriendType => contactsDao.insertFriendAssociation(user, h, Some(acc))
-              case GroupType  => contactsDao.insertGroupAssociation(user, h, Some(acc))
+              case FriendType => contactsDao.insertFriendAssociation(user, h, acc)
+              case GroupType  => contactsDao.insertGroupAssociation(user, h, acc)
             }
             saveAssociationStep(user, t, acc + 1)
           }

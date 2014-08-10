@@ -31,11 +31,11 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     q(facebookID).firstOption
   }
 
-  def insertFriendAssociation(user : ShoutoutUser, ordering : ContactOrdering, sortOrder : Option[Long])(implicit session : Session) = {
+  def insertFriendAssociation(user : ShoutoutUser, ordering : ContactOrdering, sortOrder : Int)(implicit session : Session) = {
     ContactTable.forInsert.insert(Contact(None, sortOrder, user.id.get, None, ordering.friendId, FriendType))
   }
 
-  def insertGroupAssociation(user : ShoutoutUser, ordering : ContactOrdering, sortOrder : Option[Long])(implicit session : Session) = {
+  def insertGroupAssociation(user : ShoutoutUser, ordering : ContactOrdering, sortOrder : Int)(implicit session : Session) = {
     ContactTable.forInsert.insert(Contact(None, sortOrder, user.id.get, ordering.groupId, None, GroupType))
   }
 

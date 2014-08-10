@@ -37,7 +37,7 @@ case object FriendType extends ContactType
 case object GroupType extends ContactType
 
 case class AggregateContact(
-  sortOrder : Option[Long],
+  sortOrder : Int,
   group : Option[GroupResponse],
   friend : Option[Friend],
   contactType : ContactType)
@@ -54,7 +54,7 @@ case class Friend(id : Option[Long],
                   profilePictureUrl : Option[String])
 
 case class Contact(id : Option[Long],
-                   sortOrder : Option[Long],
+                   sortOrder : Int,
                    ownerId : Long,
                    groupId : Option[Long],
                    friendId : Option[Long],
@@ -74,14 +74,14 @@ trait ContactComponent { this : Profile with UserComponent with GroupComponent =
   object ContactTable extends Table[Contact]("CONTACTS") {
 
     def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
-    def sortOrder = column[Long]("SORT_ORDER", O.Nullable)
+    def sortOrder = column[Int]("SORT_ORDER", O.Nullable)
     def ownerId = column[Long]("OWNER_ID")
     def friendId = column[Long]("USER_REF_ID")
 
     def groupId = column[Long]("GROUP_REF_ID")
     def contactType = column[ContactType]("CONTACT_TYPE")
 
-    def * = id.? ~ sortOrder.? ~ ownerId ~ groupId.? ~ friendId.? ~ contactType <> (Contact, Contact.unapply _)
+    def * = id.? ~ sortOrder ~ ownerId ~ groupId.? ~ friendId.? ~ contactType <> (Contact, Contact.unapply _)
     def forInsert = * returning id
 
     def owner = foreignKey("OWNER_FK", ownerId, UserTable)(_.id)
