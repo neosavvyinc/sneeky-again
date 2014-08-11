@@ -25,21 +25,33 @@ trait ShoutoutEndpoint extends DataHttpService with BasicCrypto {
   val shoutoutService = ShoutoutService(appleActor, s3Service)
   val shoutout = "shoutout"
 
-  val shoutoutRoute = pathPrefix(shoutout / "send") {
+  def sendShoutout = pathPrefix(shoutout / "send") {
     val ByteJsonFormat = null
     authenticate(unverified _) {
       user =>
         post {
-          formFields('image.as[Array[Byte]], 'imageText.as[String], 'groupIds.as[String], 'friendIds.as[String]) {
+          formFields('image.as[Array[Byte]], 'imageText.?, 'groupIds.?, 'friendIds.?) {
             (image, imageText, groupIds, friendIds) =>
               complete {
 
                 shoutoutService.saveImage(image).map { url =>
-                  shoutoutService.sendToRecipients(user, url, imageText, groupIds.split(',').toList, friendIds.split(',').toList)
+                  shoutoutService.sendToRecipients(user, url, imageText, groupIds, friendIds)
                 }
               }
           }
         }
     }
   }
+
+  //  def findShouts = pathPrefix(shoutout / "find") {
+  //    authenticate(unverified _) { user =>
+  //      {
+  //        get {
+  //          shoutoutService.findAllForUser(user)
+  //        }
+  //      }
+  //    }
+  //  }
+
+  val shoutoutRoute = sendShoutout
 }

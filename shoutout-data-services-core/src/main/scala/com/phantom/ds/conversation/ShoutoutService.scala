@@ -28,8 +28,8 @@ import com.phantom.ds.integration.amazon.S3Service
 trait ShoutoutService {
 
   def saveImage(image : Array[Byte]) : Future[String]
-  def sendToRecipients(sender : ShoutoutUser, url : String, imageText : String, groupIds : List[String], friendIds : List[String]) : Int
-
+  def sendToRecipients(sender : ShoutoutUser, url : String, imageText : Option[String], groupIds : Option[String], friendIds : Option[String]) : Int
+  def findAllForUser(user : ShoutoutUser) : Future[List[Shoutout]]
 }
 
 object ShoutoutService extends DSConfiguration with BasicCrypto {
@@ -41,16 +41,22 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
         s3Service.saveImage(image)
       }
 
-      def sendToRecipients(sender : ShoutoutUser, url : String, imageText : String, groupIds : List[String], friendIds : List[String]) : Int = {
+      def sendToRecipients(sender : ShoutoutUser, url : String, imageText : Option[String], groupIds : Option[String], friendIds : Option[String]) : Int = {
 
         db.withTransaction { implicit s : Session =>
 
           // find a unique list of shoutout users for each group provided
-          val uniqueGroupIds : Set[Long] = groupIds.map(x => x.toLong).toSet
+          val uniqueGroupIds : Set[Long] = groupIds match {
+            case None     => Set()
+            case Some(xs) => xs.split(',').toList.map(x => x.toLong).toSet
+          }
           val groupMembers = groupDao.findMembersForGroups(uniqueGroupIds)
 
           // find a unique list of shoutout user for each user id provided
-          val uniqueFriendIds : Set[Long] = friendIds.map(x => x.toLong).toSet
+          val uniqueFriendIds : Set[Long] = friendIds match {
+            case None     => Set()
+            case Some(xs) => xs.split(',').toList.map(x => x.toLong).toSet
+          }
           val providedUsers = shoutoutUsersDao.findByIds(uniqueFriendIds)
 
           // for each of the users make sure we don't have any duplicates
@@ -63,7 +69,7 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
             None,
             sender.id.get,
             0,
-            imageText,
+            imageText.getOrElse(""),
             url,
             false,
             None,
@@ -75,5 +81,12 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
         }
       }
 
+      def findAllForUser(user : ShoutoutUser) : Future[List[Shoutout]] = {
+        future {
+          db.withSession { implicit s : Session =>
+            shoutoutDao.findAllForUser(user)
+          }
+        }
+      }
     }
 }

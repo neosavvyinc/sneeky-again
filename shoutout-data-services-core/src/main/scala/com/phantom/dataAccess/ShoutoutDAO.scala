@@ -19,4 +19,6 @@ class ShoutoutDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
     recipients.map(rec => ShoutoutTable.forInsert.insert(shoutout.copy(recipient = rec.id.get)))
   }
 
+  def findAllForUser(user : ShoutoutUser) : List[Shoutout] = ???
+
 }
