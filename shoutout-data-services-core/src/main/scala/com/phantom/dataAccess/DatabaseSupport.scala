@@ -15,6 +15,7 @@ trait DatabaseSupport extends DSConfiguration with Logging {
   val dataAccessLayer = new DataAccessLayer(MySQLDriver)
 
   val shoutoutUsersDao = new ShoutoutUserDAO(dataAccessLayer, db)
+  val shoutoutDao = new ShoutoutDAO(dataAccessLayer, db)
   val contactsDao = new ContactDAO(dataAccessLayer, db)
   val sessionsDao = new SessionDAO(dataAccessLayer, db)
   val groupDao = new GroupDAO(dataAccessLayer, db)

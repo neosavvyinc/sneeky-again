@@ -8,7 +8,7 @@ class TestS3Service extends S3Service {
     "profileImageSaved"
   }
 
-  override def saveImage(image : Array[Byte], conversationId : Long) : Future[String] = {
-    Future.successful(s"imageName$conversationId")
+  override def saveImage(image : Array[Byte]) : Future[String] = {
+    Future.successful(s"imageName")
   }
 }

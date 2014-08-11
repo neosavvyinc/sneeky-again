@@ -12,8 +12,7 @@ trait Profile {
 
 class DataAccessLayer(override val profile : ExtendedProfile) extends Profile with Logging
     with UserComponent
-    with ConversationComponent
-    with ConversationItemComponent
+    with ShoutoutComponent
     with ContactComponent
     with GroupComponent
     with UserSessionComponent {
@@ -22,8 +21,6 @@ class DataAccessLayer(override val profile : ExtendedProfile) extends Profile wi
 
   def ddl =
     UserTable.ddl ++
-      ConversationTable.ddl ++
-      ConversationItemTable.ddl ++
       ContactTable.ddl ++
       SessionTable.ddl
 

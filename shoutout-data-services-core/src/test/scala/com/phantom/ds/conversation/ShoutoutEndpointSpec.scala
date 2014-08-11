@@ -30,11 +30,11 @@ import com.phantom.ds.integration.mock.TestS3Service
  * Date: 12/7/13
  * Time: 3:13 PM
  */
-class ConversationEndpointSpec extends Specification
+class ShoutoutEndpointSpec extends Specification
     with PhantomEndpointSpec
     with Specs2RouteTest
     with Logging
-    with ConversationEndpoint
+    with ShoutoutEndpoint
     with SuppliedUserRequestAuthenticator
     with BaseDAOSpec {
 
@@ -53,7 +53,7 @@ class ConversationEndpointSpec extends Specification
     implicit val routeTestTimeout = RouteTestTimeout(15 seconds span)
 
     "return a simple hello message" in withSetupTeardown {
-      Get("/conversation/hello") ~> conversationRoute ~> check {
+      Get("/shoutout/send") ~> shoutoutRoute ~> check {
         status == OK
       }
     }

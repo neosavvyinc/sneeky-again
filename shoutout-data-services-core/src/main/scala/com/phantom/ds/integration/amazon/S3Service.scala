@@ -12,7 +12,7 @@ import scala.concurrent.{ ExecutionContext, Future, future }
 
 trait S3Service {
 
-  def saveImage(image : Array[Byte], conversationId : Long) : Future[String]
+  def saveImage(image : Array[Byte]) : Future[String]
   def saveProfileImage(image : Array[Byte]) : String
 
 }
@@ -54,10 +54,10 @@ object S3Service extends DSConfiguration {
 
     }
 
-    override def saveImage(image : Array[Byte], conversationId : Long) : Future[String] = {
+    override def saveImage(image : Array[Byte]) : Future[String] = {
       future {
         val randomImageName : String = MessageDigest.getInstance("MD5").digest(DateTime.now().toString().getBytes).map("%02X".format(_)).mkString
-        val imageUrl = conversationId + "/" + randomImageName
+        val imageUrl = randomImageName
 
         val fileObject = s3.putObject(bucket, {
           val acl = s3.getBucketAcl(bucket)

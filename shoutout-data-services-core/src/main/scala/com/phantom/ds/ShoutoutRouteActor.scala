@@ -5,7 +5,7 @@ import com.phantom.ds.contact.ContactEndpoint
 import com.phantom.ds.group.GroupEndpoint
 import com.phantom.ds.user.UserEndpoint
 import com.phantom.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
-import com.phantom.ds.conversation.ConversationEndpoint
+import com.phantom.ds.conversation.ShoutoutEndpoint
 import com.phantom.dataAccess.DatabaseSupport
 import com.phantom.ds.registration.RegistrationEndpoint
 import com.phantom.ds.integration.amazon.S3Service
@@ -22,7 +22,7 @@ class ShoutoutRouteActor(val appleActor : ActorRef, val s3Service : S3Service) e
     with UserEndpoint
     with ContactEndpoint
     with RegistrationEndpoint
-    with ConversationEndpoint
+    with ShoutoutEndpoint
     with GroupEndpoint
     with DatabaseSupport {
   this : RequestAuthenticator with EntryPointAuthenticator =>
@@ -35,6 +35,6 @@ class ShoutoutRouteActor(val appleActor : ActorRef, val s3Service : S3Service) e
   // other things here, like request stream processing
   // or timeout handling
   def receive = runRoute(
-    userRoute ~ conversationRoute ~ registrationRoute ~ contactRoute ~ groupRoute
+    userRoute ~ shoutoutRoute ~ registrationRoute ~ contactRoute ~ groupRoute
   )
 }

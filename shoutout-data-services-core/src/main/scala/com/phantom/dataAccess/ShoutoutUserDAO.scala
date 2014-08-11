@@ -177,6 +177,16 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
+  def findByIds(ids : Set[Long]) : List[ShoutoutUser] = {
+    db.withSession { implicit session =>
+      val q = for {
+        u <- UserTable if u.id inSet ids
+      } yield u
+
+      q.list
+    }
+  }
+
   def update(persistentUser : ShoutoutUser, updateRequest : ShoutoutUserUpdateRequest) : Future[Int] = {
     future {
       db.withSession { implicit session =>

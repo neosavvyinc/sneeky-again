@@ -139,4 +139,41 @@
     <changeSet id="7" author="aparrish">
         <dropNotNullConstraint tableName="CONTACTS" columnName="SORT_ORDER" columnDataType="int"></dropNotNullConstraint>
     </changeSet>
+
+    <changeSet id="8" author="aparrish">
+        <createTable tableName="SHOUTOUT">
+            <column name="ID" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="SENDER_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="RECIPIENT_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="TEXT" type="varchar(1024)">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="IMAGE_URL" type="varchar(256)">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="IS_VIEWED" type="tinyint(1)" defaultValue="0">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="VIEWED_TIMESTAMP" type="datetime">
+                <constraints nullable="true"></constraints>
+            </column>
+
+            <column name="CREATED_TIMESTAMP" type="datetime">
+                <constraints nullable="false"></constraints>
+            </column>
+
+        </createTable>
+    </changeSet>
 </databaseChangeLog>

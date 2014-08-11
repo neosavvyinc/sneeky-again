@@ -73,6 +73,15 @@ class GroupDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCont
     membersByGroupIdQuery(groupId).list
   }
 
+  def findMembersForGroups(groupIds : Set[Long])(implicit session : Session) : List[ShoutoutUser] = {
+    val q = for {
+      gi <- GroupItemTable if gi.groupId inSet groupIds
+      u <- UserTable if gi.userRefId === u.id
+    } yield u
+
+    q.list
+  }
+
   def findById(id : Long) : Future[Group] = {
     future {
       db.withSession { implicit session =>
