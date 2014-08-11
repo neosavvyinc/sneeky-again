@@ -1,7 +1,7 @@
 package com.phantom.dataAccess
 
 import com.phantom.ds.framework.Logging
-import com.phantom.model.{ Shoutout, ShoutoutUser }
+import com.phantom.model.{ Friend, ShoutoutResponse, Shoutout, ShoutoutUser }
 
 import scala.concurrent.ExecutionContext
 import scala.slick.session.Database
@@ -22,10 +22,26 @@ class ShoutoutDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
   val unviewedByOwnerQuery = for {
     ownerId <- Parameters[Long]
     s <- ShoutoutTable if s.recipient === ownerId && s.isViewed === false
-  } yield s
+    u <- UserTable if s.sender === u.id
+  } yield (s, u)
 
-  def findAllForUser(user : ShoutoutUser)(implicit session : Session) : List[Shoutout] = {
-    unviewedByOwnerQuery(user.id.get).list
+  def findAllForUser(user : ShoutoutUser)(implicit session : Session) : List[ShoutoutResponse] = {
+    unviewedByOwnerQuery(user.id.get).list map (x => {
+      val s = x._1
+      val u = x._2
+      ShoutoutResponse(
+        s.id.get, Friend(
+          u.id,
+          u.username,
+          u.facebookID,
+          u.firstName,
+          u.lastName,
+          u.profilePictureUrl),
+        s.text,
+        s.imageUrl,
+        s.createdDate
+      )
+    })
   }
 
 }

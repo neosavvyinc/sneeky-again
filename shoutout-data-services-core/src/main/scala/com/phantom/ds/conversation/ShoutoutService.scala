@@ -29,7 +29,7 @@ trait ShoutoutService {
 
   def saveImage(image : Array[Byte]) : Future[String]
   def sendToRecipients(sender : ShoutoutUser, url : String, imageText : Option[String], groupIds : Option[String], friendIds : Option[String]) : Int
-  def findAllForUser(user : ShoutoutUser) : Future[List[Shoutout]]
+  def findAllForUser(user : ShoutoutUser) : Future[List[ShoutoutResponse]]
 }
 
 object ShoutoutService extends DSConfiguration with BasicCrypto {
@@ -81,7 +81,7 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
         }
       }
 
-      def findAllForUser(user : ShoutoutUser) : Future[List[Shoutout]] = {
+      def findAllForUser(user : ShoutoutUser) : Future[List[ShoutoutResponse]] = {
         future {
           db.withSession { implicit s : Session =>
             shoutoutDao.findAllForUser(user)

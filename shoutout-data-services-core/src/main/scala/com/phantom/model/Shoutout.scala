@@ -17,6 +17,12 @@ case class Shoutout(id : Option[Long],
                     viewedDate : Option[DateTime],
                     createdDate : DateTime)
 
+case class ShoutoutResponse(id : Long,
+                            sender : Friend,
+                            text : String,
+                            imageUrl : String,
+                            createdDate : DateTime)
+
 trait ShoutoutComponent { this : Profile =>
 
   import profile.simple._
