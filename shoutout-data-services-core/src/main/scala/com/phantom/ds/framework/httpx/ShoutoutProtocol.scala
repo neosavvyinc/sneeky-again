@@ -112,6 +112,15 @@ package object httpx {
       }
     }
 
+    implicit object ShoutoutListTypeFormat extends JF[List[Shoutout]] {
+      override def write(obj : List[Shoutout]) : JsValue = JsArray(obj.map(shoutout2json.write))
+
+      override def read(json : JsValue) : List[Shoutout] = json match {
+        case JsArray(x) => x.map(shoutout2json.read)
+        case _          => deserializationError("Expected String value for List[Shoutout]")
+      }
+    }
+
     implicit val failureFormat = jsonFormat2(Failure)
 
     implicit val shoutuser2json = jsonFormat11(ShoutoutUser)
@@ -134,6 +143,8 @@ package object httpx {
     implicit val groupResponse2json = jsonFormat4(GroupResponse)
     implicit val aggregateContact2json = jsonFormat4(AggregateContact)
     implicit val groupMembershipRequest2json = jsonFormat3(GroupMembershipRequest)
+
+    implicit val shoutout2json = jsonFormat8(Shoutout)
 
   }
 

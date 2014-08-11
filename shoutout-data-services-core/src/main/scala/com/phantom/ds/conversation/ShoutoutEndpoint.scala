@@ -43,15 +43,15 @@ trait ShoutoutEndpoint extends DataHttpService with BasicCrypto {
     }
   }
 
-  //  def findShouts = pathPrefix(shoutout / "find") {
-  //    authenticate(unverified _) { user =>
-  //      {
-  //        get {
-  //          shoutoutService.findAllForUser(user)
-  //        }
-  //      }
-  //    }
-  //  }
+  def findShouts = pathPrefix(shoutout / "find") {
+    authenticate(unverified _) { user =>
+      get {
+        respondWithMediaType(`application/json`) {
+          complete(shoutoutService.findAllForUser(user))
+        }
+      }
+    }
+  }
 
-  val shoutoutRoute = sendShoutout
+  val shoutoutRoute = sendShoutout ~ findShouts
 }

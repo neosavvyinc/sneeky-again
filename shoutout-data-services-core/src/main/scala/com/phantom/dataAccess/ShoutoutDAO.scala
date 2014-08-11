@@ -19,6 +19,13 @@ class ShoutoutDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
     recipients.map(rec => ShoutoutTable.forInsert.insert(shoutout.copy(recipient = rec.id.get)))
   }
 
-  def findAllForUser(user : ShoutoutUser) : List[Shoutout] = ???
+  val unviewedByOwnerQuery = for {
+    ownerId <- Parameters[Long]
+    s <- ShoutoutTable if s.recipient === ownerId && s.isViewed === false
+  } yield s
+
+  def findAllForUser(user : ShoutoutUser)(implicit session : Session) : List[Shoutout] = {
+    unviewedByOwnerQuery(user.id.get).list
+  }
 
 }
