@@ -1,6 +1,6 @@
 package com.phantom.dataAccess
 
-import com.phantom.ds.framework.Logging
+import com.phantom.ds.framework.{ Dates, Logging }
 import com.phantom.model.{ Friend, ShoutoutResponse, Shoutout, ShoutoutUser }
 
 import scala.concurrent.ExecutionContext
@@ -42,6 +42,14 @@ class ShoutoutDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
         s.createdDate
       )
     })
+  }
+
+  def setViewed(user : ShoutoutUser, id : Long)(implicit sessions : Session) : Int = {
+    val q = for {
+      s <- ShoutoutTable if s.recipient === user.id.get && s.id === id
+    } yield s.isViewed ~ s.viewedDate
+
+    q.update((true, Dates.nowDT))
   }
 
 }

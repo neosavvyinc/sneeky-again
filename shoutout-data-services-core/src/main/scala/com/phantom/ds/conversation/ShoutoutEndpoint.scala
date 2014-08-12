@@ -53,5 +53,20 @@ trait ShoutoutEndpoint extends DataHttpService with BasicCrypto {
     }
   }
 
-  val shoutoutRoute = sendShoutout ~ findShouts
+  def setShoutAsViewed = pathPrefix(shoutout / "viewed" / IntNumber) { id =>
+    authenticate(unverified _) { user =>
+      post {
+        respondWithMediaType(`application/json`) {
+          complete {
+            shoutoutService.updateShoutoutAsViewedForUser(user, id)
+          }
+        }
+      }
+    }
+  }
+
+  val shoutoutRoute =
+    sendShoutout ~
+      findShouts ~
+      setShoutAsViewed
 }
