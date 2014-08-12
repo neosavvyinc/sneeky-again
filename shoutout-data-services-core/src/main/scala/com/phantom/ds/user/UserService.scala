@@ -22,6 +22,7 @@ trait UserService {
   def logout(sessionId : String) : Future[Int]
   def updateUser(userId : Long, updateRequest : ShoutoutUserUpdateRequest) : Future[Int]
   def findFromSessionId(sessionId : String) : Future[ShoutoutSession]
+  def updatePushNotifier(sessionUUID : UUID, applePushToken : String, mobilePushType : MobilePushType) : Future[Boolean]
 
 }
 
@@ -95,6 +96,12 @@ object UserService extends BasicCrypto {
           sentCount = shoutoutDao.countSent(user))
       }
 
+    }
+
+    def updatePushNotifier(sessionUUID : UUID, applePushToken : String, mobilePushType : MobilePushType) : Future[Boolean] = {
+      future {
+        sessionsDao.updatePushNotifier(sessionUUID, applePushToken, mobilePushType)
+      }
     }
 
     private def doRegistration(registrationRequest : UserRegistrationRequest) : Future[RegistrationResponse] = {

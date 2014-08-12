@@ -42,6 +42,24 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
         s3Service.saveImage(image)
       }
 
+      private def sendAPNSNotificationsToRecipients(recipients : List[ShoutoutUser])(implicit session : Session) : Future[Unit] = {
+        future {
+
+          recipients.foreach {
+            recipient =>
+              val tokens = sessionsDao.findTokensByUserId(recipient.id.get :: Nil)
+              val unreadMessageCount = shoutoutDao.countUnread(recipient)
+              tokens.getOrElse(recipient.id.get, Set.empty).foreach {
+                token =>
+                  val note = AppleNotification(recipient.settingSound, Some(token), unreadMessageCount)
+                  appleActor ! note
+              }
+
+          }
+
+        }
+      }
+
       def sendToRecipients(sender : ShoutoutUser, url : String, imageText : Option[String], groupIds : Option[String], friendIds : Option[String]) : Int = {
 
         db.withTransaction { implicit s : Session =>
@@ -76,6 +94,8 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
             None,
             Dates.nowDT
           ))
+
+          sendAPNSNotificationsToRecipients(recipients)
 
           // return the number of shoutouts that were sent (inserted)
           uniqueRecipients.length
