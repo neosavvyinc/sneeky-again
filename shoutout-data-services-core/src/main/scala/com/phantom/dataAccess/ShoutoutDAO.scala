@@ -62,4 +62,9 @@ class ShoutoutDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
     q1.run
   }
 
+  def countUnread(user : ShoutoutUser)(implicit session : Session) : Int = {
+    val q1 = Query(ShoutoutTable).filter(_.recipient is user.id.get).filter(_.isViewed is false).length
+    q1.run
+  }
+
 }
