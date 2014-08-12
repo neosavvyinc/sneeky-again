@@ -132,11 +132,30 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
     }
   }
 
+  def updateSettings = pathPrefix("users" / "settings") {
+    authenticate(unverified _) { user =>
+      post {
+        entity(as[SettingsRequest]) { pushRequest =>
+          parameter('sessionId) { session =>
+            complete {
+              userService.updateSetting(
+                user.id.get,
+                pushRequest.settingType,
+                pushRequest.settingValue
+              )
+            }
+          }
+        }
+      }
+    }
+  }
+
   val userRoute = loginFacebook ~
     loginEmail ~
     registerEmail ~
     logout ~
     update ~
     activeUser ~
-    updateProfilePhoto
+    updateProfilePhoto ~
+    updateSettings
 }

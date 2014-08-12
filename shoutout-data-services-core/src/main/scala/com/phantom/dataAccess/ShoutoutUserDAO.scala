@@ -238,6 +238,18 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
       println("BLAH!" + q.selectStatement)
       q.update(updatedUser)
     }
+  }
+
+  def updateSetting(userId : Long, userSetting : SettingType, userValue : Boolean) : Boolean = {
+
+    userSetting match {
+      case SoundOnNewNotification => db.withSession { implicit session =>
+        val upQuery = for { u <- UserTable if u.id is userId } yield u.settingSound
+        val numRows = upQuery.update(userValue)
+        numRows > 0
+      }
+      case _ => false
+    }
 
   }
 }

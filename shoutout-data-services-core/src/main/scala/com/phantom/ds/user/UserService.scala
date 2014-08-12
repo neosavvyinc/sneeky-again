@@ -81,6 +81,12 @@ object UserService extends BasicCrypto {
 
     }
 
+    def updateSetting(userId : Long, pushSettingType : SettingType, value : Boolean) : Future[Boolean] = {
+      future {
+        shoutoutUsersDao.updateSetting(userId, pushSettingType, value)
+      }
+    }
+
     private def doRegistration(registrationRequest : UserRegistrationRequest) : Future[RegistrationResponse] = {
       future {
         db.withTransaction { implicit s =>

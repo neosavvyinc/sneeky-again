@@ -147,6 +147,8 @@ package object httpx {
     implicit val shoutout2json = jsonFormat8(Shoutout)
     implicit val shoutoutResponse2json = jsonFormat5(ShoutoutResponse)
 
+    implicit val settingsRequest2json = jsonFormat2(SettingsRequest)
+
   }
 
   trait PhantomResponseMarshaller extends PhantomJsonProtocol {
