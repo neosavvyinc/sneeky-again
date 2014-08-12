@@ -62,8 +62,8 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
           // for each of the users make sure we don't have any duplicates
           val recipients = providedUsers ::: groupMembers
           recipients.foreach(println)
-
           val uniqueRecipients = recipients.toSet.toList
+
           // insert a record for each user into the Shoutout table
           shoutoutDao.insertShoutouts(sender, uniqueRecipients, Shoutout(
             None,

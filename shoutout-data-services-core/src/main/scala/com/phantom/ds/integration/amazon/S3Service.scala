@@ -4,7 +4,7 @@ import com.phantom.ds.DSConfiguration
 import org.jets3t.service.security.AWSCredentials
 import org.jets3t.service.impl.rest.httpclient.RestS3Service
 import org.jets3t.service.acl.{ Permission, GroupGrantee }
-import org.jets3t.service.model.S3Object
+import org.jets3t.service.model.{ S3Bucket, S3Object }
 import java.io.ByteArrayInputStream
 import java.security.MessageDigest
 import org.joda.time.DateTime
@@ -28,23 +28,25 @@ object S3Service extends DSConfiguration {
       new RestS3Service(awsCredentials)
     }
 
-    private val bucketName = AWS.profileBucket
+    private val profileBucketName = AWS.profileBucket
+    private val shoutoutBucketName = AWS.shoutoutBucket
 
-    private lazy val bucket = s3.getBucket(bucketName)
+    private lazy val profileBucket = s3.getBucket(profileBucketName)
+    private lazy val shoutBucket = s3.getBucket(shoutoutBucketName)
 
-    override def saveProfileImage(image : Array[Byte]) : String = {
+    private def saveFileToBucket(file : Array[Byte], bucket : S3Bucket, bucketName : String, contentType : String) : String = {
 
       val randomImageName : String = MessageDigest.getInstance("MD5").digest(DateTime.now().toString().getBytes).map("%02X".format(_)).mkString
-      val imageUrl = randomImageName
+      val url = randomImageName
 
-      val fileObject = s3.putObject(bucketName, {
-        val acl = s3.getBucketAcl(bucketName)
+      val fileObject = s3.putObject(bucket, {
+        val acl = s3.getBucketAcl(bucket)
         acl.grantPermission(GroupGrantee.ALL_USERS, Permission.PERMISSION_READ)
 
-        val tempObj = new S3Object(imageUrl)
-        tempObj.setDataInputStream(new ByteArrayInputStream(image))
+        val tempObj = new S3Object(url)
+        tempObj.setDataInputStream(new ByteArrayInputStream(file))
         tempObj.setAcl(acl)
-        tempObj.setContentType("image/jpg")
+        tempObj.setContentType(contentType)
         tempObj
       })
 
@@ -54,25 +56,13 @@ object S3Service extends DSConfiguration {
 
     }
 
+    override def saveProfileImage(image : Array[Byte]) : String = {
+      saveFileToBucket(image, profileBucket, profileBucketName, "image/jpg")
+    }
+
     override def saveImage(image : Array[Byte]) : Future[String] = {
       future {
-        val randomImageName : String = MessageDigest.getInstance("MD5").digest(DateTime.now().toString().getBytes).map("%02X".format(_)).mkString
-        val imageUrl = randomImageName
-
-        val fileObject = s3.putObject(bucket, {
-          val acl = s3.getBucketAcl(bucket)
-          acl.grantPermission(GroupGrantee.ALL_USERS, Permission.PERMISSION_READ)
-
-          val tempObj = new S3Object(imageUrl)
-          tempObj.setDataInputStream(new ByteArrayInputStream(image))
-          tempObj.setAcl(acl)
-          tempObj.setContentType("image/jpg")
-          tempObj
-        })
-
-        s3.createUnsignedObjectUrl(bucketName,
-          fileObject.getKey,
-          false, false, false)
+        saveFileToBucket(image, shoutBucket, shoutoutBucketName, "image/jpg")
       }
     }
 

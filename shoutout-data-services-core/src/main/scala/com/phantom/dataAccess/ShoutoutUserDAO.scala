@@ -214,7 +214,7 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
             case None    => persistentUser.lastName
             case Some(x) => updateRequest.lastName
           },
-          updateRequest.username.getOrElse(persistentUser.username),
+          updateRequest.username.getOrElse(persistentUser.username).toLowerCase,
           persistentUser.profilePictureUrl,
           persistentUser.settingSound
         )
