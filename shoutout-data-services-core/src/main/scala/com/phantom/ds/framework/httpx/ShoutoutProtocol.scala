@@ -130,7 +130,7 @@ package object httpx {
     implicit val userRegistration2json = jsonFormat2(UserRegistrationRequest)
     implicit val registrationResponse2json = jsonFormat1(RegistrationResponse)
     implicit val userUpdateRequest2json = jsonFormat4(ShoutoutUserUpdateRequest)
-    implicit val activeUser2json = jsonFormat6(ActiveShoutoutUser)
+    implicit val activeUser2json = jsonFormat8(ActiveShoutoutUser)
 
     implicit val contact2json = jsonFormat6(Contact)
     implicit val contactOrdering2json = jsonFormat3(ContactOrdering)

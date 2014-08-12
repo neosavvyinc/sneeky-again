@@ -87,6 +87,16 @@ object UserService extends BasicCrypto {
       }
     }
 
+    def deriveExtraProperties(user : ShoutoutUser, activeUser : ActiveShoutoutUser) : ActiveShoutoutUser = {
+
+      db.withSession { implicit session : Session =>
+        activeUser.copy(
+          receivedCount = shoutoutDao.countReceived(user),
+          sentCount = shoutoutDao.countSent(user))
+      }
+
+    }
+
     private def doRegistration(registrationRequest : UserRegistrationRequest) : Future[RegistrationResponse] = {
       future {
         db.withTransaction { implicit s =>

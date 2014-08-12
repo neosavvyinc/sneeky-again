@@ -3,7 +3,7 @@ package com.phantom.dataAccess
 import com.phantom.ds.framework.{ Dates, Logging }
 import com.phantom.model.{ Friend, ShoutoutResponse, Shoutout, ShoutoutUser }
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContext, Future, future }
 import scala.slick.session.Database
 
 /**
@@ -50,6 +50,16 @@ class ShoutoutDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
     } yield s.isViewed ~ s.viewedDate
 
     q.update((true, Dates.nowDT))
+  }
+
+  def countSent(user : ShoutoutUser)(implicit session : Session) : Int = {
+    val q1 = Query(ShoutoutTable).filter(_.sender is user.id.get).length
+    q1.run
+  }
+
+  def countReceived(user : ShoutoutUser)(implicit session : Session) : Int = {
+    val q1 = Query(ShoutoutTable).filter(_.recipient is user.id.get).length
+    q1.run
   }
 
 }

@@ -122,7 +122,9 @@ case class ActiveShoutoutUser(
   lastName : String,
   username : String,
   profilePictureUrl : String,
-  settingSound : Boolean = true)
+  settingSound : Boolean = true,
+  sentCount : Int = 0,
+  receivedCount : Int = 0)
 
 case class ForgotPasswordRequest(email : String)
 

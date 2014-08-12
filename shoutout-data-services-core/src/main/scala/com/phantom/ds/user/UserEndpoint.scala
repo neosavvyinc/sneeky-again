@@ -87,7 +87,8 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
             val sessionObject = Await.result(userService.findFromSessionId(session), 1 seconds)
 
             complete(
-              Future.successful(
+              userService.deriveExtraProperties(
+                user,
                 ActiveShoutoutUser(
                   user.birthday,
                   user.firstName.getOrElse(""),
