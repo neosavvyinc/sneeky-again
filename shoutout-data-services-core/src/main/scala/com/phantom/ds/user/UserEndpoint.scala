@@ -171,6 +171,18 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
     }
   }
 
+  def forgotPassword = pathPrefix(users / "forgotPassword") {
+    post {
+      entity(as[ForgotPasswordRequest]) { forgotPasswordRequest =>
+        complete {
+          userService.forgotPassword(
+            forgotPasswordRequest.email
+          )
+        }
+      }
+    }
+  }
+
   val userRoute = loginFacebook ~
     loginEmail ~
     registerEmail ~
@@ -179,5 +191,6 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
     activeUser ~
     updateProfilePhoto ~
     updateSettings ~
-    updatePushNotifier
+    updatePushNotifier ~
+    forgotPassword
 }

@@ -104,6 +104,14 @@ object UserService extends BasicCrypto {
       }
     }
 
+    def forgotPassword(email : String) : Future[Boolean] = {
+      for {
+        status <- resetPassword(email)
+        results <- sendResetPasswordEmail(status)
+      } yield results
+
+    }
+
     private def doRegistration(registrationRequest : UserRegistrationRequest) : Future[RegistrationResponse] = {
       future {
         db.withTransaction { implicit s =>
@@ -114,6 +122,41 @@ object UserService extends BasicCrypto {
       }
     }
 
+    private def resetPassword(email : String) : Future[Option[ResetPasswordResults]] = {
+      future {
+        db.withTransaction { implicit session =>
+          val userOpt = shoutoutUsersDao.findByEmailOperation(email)
+          userOpt.map { user =>
+            val newPassword = Passwords.generateNewPassword().substring(0, 8)
+            val encrypted = Passwords.getSaltedHash(newPassword)
+            shoutoutUsersDao.updatePasswordForUserOperation(email, encrypted)
+            val invalidatedSessions = sessionsDao.invalidateAllForUser(user.id.get)
+            log.trace(s"There were $invalidatedSessions invalidated for user by email: $email ")
+            ResetPasswordResults(email, newPassword)
+          }
+        }
+      }
+    }
+
+    private def sendResetPasswordEmail(status : Option[ResetPasswordResults]) : Future[Boolean] = {
+      status match {
+        case None => Future.successful(false)
+        case Some(x) => {
+          future {
+            MandrillUtil.sendMailViaMandrill(
+              new MandrillConfiguration(
+                MandrillConfiguration.apiKey,
+                MandrillConfiguration.smtpPort,
+                MandrillConfiguration.smtpHost,
+                MandrillConfiguration.username
+              ), x.email, x.password)
+            true
+          }
+        }
+      }
+    }
+
+    private[this] case class ResetPasswordResults(email : String, password : String)
   }
 
 }

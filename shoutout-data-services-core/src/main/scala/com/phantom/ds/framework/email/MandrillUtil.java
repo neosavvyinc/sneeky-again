@@ -22,23 +22,20 @@ public class MandrillUtil {
         MandrillApi mandrillApi  = new MandrillApi(configuration.getApiKey());
 
         MandrillMessage message = new MandrillMessage();
-        message.setSubject("Sneeky Password Assistance");
-        message.setHtml("Subject: \n" +
-                "Sneeky Password Assistance\n" +
-                "\n" +
-                "Body: \n" +
+        message.setSubject("Shoutout Password Assistance");
+        message.setHtml(
                 "Hi,\n" +
                 "\n" +
                 "We received a notice that you forgot your password. Please use the password below as your new one:\n" +
                 "\n" +
                 newPassword + "\n" +
                 "\n" +
-                "Please email hello@sneekyapp.com if you have any further questions.\n" +
+                "Please email hello@shoutout.com if you have any further questions.\n" +
                 "\n" +
                 "- Sneeky Team\n");
         message.setAutoText(true);
         message.setFromEmail(configuration.getUsername());
-        message.setFromName("Team Sneeky");
+        message.setFromName("Team Shoutout");
 
 
         ArrayList<MandrillMessage.Recipient> recipients = new ArrayList<MandrillMessage.Recipient>();
