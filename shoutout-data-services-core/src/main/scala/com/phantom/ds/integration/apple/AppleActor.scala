@@ -55,12 +55,12 @@ object AppleService extends DSConfiguration {
 class AppleActor extends Actor with DSConfiguration with Logging {
 
   def receive : Actor.Receive = {
-    case AppleNotification(shouldPlaySound, token, unviewedMessages) => {
+    case AppleNotification(shouldPlaySound, token, unviewedMessages, messageText) => {
       log.trace(s"received push notification request with $token")
 
       val payloadBuilder = new ApnsPayloadBuilder()
       payloadBuilder.setBadgeNumber(unviewedMessages)
-      payloadBuilder.setAlertBody(ApplePushConfiguration.messageBody)
+      payloadBuilder.setAlertBody(messageText)
 
       if (shouldPlaySound) {
         log.trace(s"Turning ON sound since user user with $token prefers TO hear sound")
@@ -86,4 +86,4 @@ class AppleActor extends Actor with DSConfiguration with Logging {
   }
 }
 
-case class AppleNotification(shouldPlaySound : Boolean, token : Option[String], unreadMessageCount : Int)
+case class AppleNotification(shouldPlaySound : Boolean, token : Option[String], unreadMessageCount : Int, messageText : String)

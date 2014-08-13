@@ -25,6 +25,11 @@ class ShoutoutDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
     u <- UserTable if s.sender === u.id
   } yield (s, u)
 
+  val unreadMessageQuery = for {
+    ownerId <- Parameters[Long]
+    s <- ShoutoutTable if (s.recipient === ownerId && s.isViewed === false)
+  } yield s
+
   def findAllForUser(user : ShoutoutUser)(implicit session : Session) : List[ShoutoutResponse] = {
     unviewedByOwnerQuery(user.id.get).list map (x => {
       val s = x._1
@@ -63,8 +68,12 @@ class ShoutoutDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
   }
 
   def countUnread(user : ShoutoutUser)(implicit session : Session) : Int = {
-    val q1 = Query(ShoutoutTable).filter(_.recipient is user.id.get).filter(_.isViewed is false).length
-    q1.run
+    import scala.slick.jdbc.{ StaticQuery => Q }
+    import Q.interpolation
+
+    val id = user.id.get
+    def countQuery = sql"select count(*) from SHOUTOUT where RECIPIENT_ID = $id and IS_VIEWED = false".as[Int]
+    countQuery(id).first
   }
 
 }

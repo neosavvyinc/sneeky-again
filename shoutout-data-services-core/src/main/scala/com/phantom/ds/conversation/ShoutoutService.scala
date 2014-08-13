@@ -18,6 +18,8 @@ import java.util.UUID
 
 import com.phantom.ds.integration.amazon.S3Service
 
+import scala.util.Try
+
 /**
  * Created by Neosavvy
  *
@@ -42,16 +44,33 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
         s3Service.saveImage(image)
       }
 
-      private def sendAPNSNotificationsToRecipients(recipients : List[ShoutoutUser])(implicit session : Session) : Future[Unit] = {
+      private def sendAPNSNotificationsToRecipients(sender : ShoutoutUser, recipients : List[ShoutoutUser])(implicit session : Session) : Future[Unit] = {
         future {
+
+          val notificationMessage = (sender.firstName, sender.lastName, sender.username) match {
+            case (Some(f), Some(l), _) => {
+              val lastInitial = l.charAt(0)
+              s"$f $lastInitial. has sent you a photo"
+            }
+            case (Some(f), None, _) => s"$f has sent you a photo"
+            case (None, Some(l), _) => s"$l has sent you a photo"
+            case (None, None, u)    => s"$u sent you a photo"
+            case _                  => s"someone sent you a photo"
+          }
 
           recipients.foreach {
             recipient =>
+              val unreadMessageCount = shoutoutDao.countUnread(recipient);
               val tokens = sessionsDao.findTokensByUserId(recipient.id.get :: Nil)
-              val unreadMessageCount = shoutoutDao.countUnread(recipient)
+              log.trace(s"sending notification with message $notificationMessage")
+
               tokens.getOrElse(recipient.id.get, Set.empty).foreach {
                 token =>
-                  val note = AppleNotification(recipient.settingSound, Some(token), unreadMessageCount)
+                  val note = AppleNotification(
+                    recipient.settingSound,
+                    Some(token),
+                    unreadMessageCount,
+                    notificationMessage)
                   appleActor ! note
               }
 
@@ -95,7 +114,7 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
             Dates.nowDT
           ))
 
-          sendAPNSNotificationsToRecipients(recipients)
+          sendAPNSNotificationsToRecipients(sender, recipients)
 
           // return the number of shoutouts that were sent (inserted)
           uniqueRecipients.length

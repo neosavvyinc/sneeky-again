@@ -80,7 +80,6 @@ trait DSConfiguration {
     val keyStorePassword = applePushCfg.getString("keyStorePassword")
     val developmentCert = applePushCfg.getString("developmentCertPath")
     val productionCert = applePushCfg.getString("productionCertPath")
-    val messageBody = applePushCfg.getString("messageBody")
     val environment = applePushCfg.getString("environment")
     val connectionCount = applePushCfg.getInt("connectionCount")
 

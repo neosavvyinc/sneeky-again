@@ -235,7 +235,6 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
   def updateProfilePicUrl(updatedUser : ShoutoutUser) : Int = {
     db.withSession { implicit session =>
       val q = for { user <- UserTable if user.id === updatedUser.id } yield user
-      println("BLAH!" + q.selectStatement)
       q.update(updatedUser)
     }
   }

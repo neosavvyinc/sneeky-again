@@ -34,4 +34,5 @@
     <logger name="scala.slick.session" level="error"/>
     <!--<logger name="com.phantom.ds.framework" level="trace"/>-->
     <logger name="com.relayrides" level="trace"/>
+    <logger name="com.relayrides.pushy.apns" level="trace"/>
 </configuration>
