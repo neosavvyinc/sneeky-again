@@ -38,9 +38,24 @@ object UserService extends BasicCrypto {
     }
 
     def facebookLogin(loginRequest : FacebookUserLogin) : Future[LoginSuccess] = {
+
+      def insertFriendIfNotExists(user : ShoutoutUser, targetFriendId : Long) = {
+        db.withSession { implicit session : Session =>
+          val contactOption = contactsDao.findContactByUsernameForOwner(user, "shoutout")
+          contactOption match {
+            case None    => contactsDao.insertFriendAssociation(user, ContactOrdering(None, Some(1), FriendType), 0)
+            case Some(c) => log.debug(s"User $user is already friends with the shoutout team")
+          }
+
+        }
+      }
+
       for {
         user <- shoutoutUsersDao.loginByFacebook(loginRequest)
-        session <- sessionsDao.createSession(ShoutoutSession.newSession(user))
+        session <- {
+          insertFriendIfNotExists(user, 1)
+          sessionsDao.createSession(ShoutoutSession.newSession(user))
+        }
       } yield LoginSuccess(session.sessionId)
     }
 
@@ -139,6 +154,9 @@ object UserService extends BasicCrypto {
         db.withTransaction { implicit s =>
           val user = shoutoutUsersDao.registerOperation(registrationRequest)
           val session = sessionsDao.createSessionOperation(ShoutoutSession.newSession(user))
+
+          //This one liner adds an association to the team shoutout account
+          contactsDao.insertFriendAssociation(user, ContactOrdering(None, Some(1), FriendType), 0)
           RegistrationResponse(session.sessionId)
         }
       }
