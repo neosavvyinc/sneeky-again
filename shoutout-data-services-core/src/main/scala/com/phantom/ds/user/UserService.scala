@@ -118,10 +118,9 @@ object UserService extends BasicCrypto {
         db.withTransaction {
           implicit s =>
 
-            val encryptedOldPassword = Passwords.getSaltedHash(request.oldPassword)
             val userFromDB = shoutoutUsersDao.findByIdOperation(user.id.get)
             val isValid : Boolean = userFromDB match {
-              case Some(u) => Passwords.check(request.oldPassword, u.password.get)
+              case Some(u) => Passwords.check(request.oldPassword, u.password.getOrElse(throw ShoutoutException.genericPasswordException))
               case None    => throw ShoutoutException.genericPasswordException
             }
 
