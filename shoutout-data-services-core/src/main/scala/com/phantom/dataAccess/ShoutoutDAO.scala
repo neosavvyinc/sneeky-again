@@ -73,7 +73,7 @@ class ShoutoutDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
 
     val id = user.id.get
     def countQuery = sql"select count(*) from SHOUTOUT where RECIPIENT_ID = $id and IS_VIEWED = false".as[Int]
-    countQuery(id).first
+    countQuery.first
   }
 
 }

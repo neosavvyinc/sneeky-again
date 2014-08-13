@@ -127,6 +127,7 @@ case class ActiveShoutoutUser(
   receivedCount : Int = 0)
 
 case class ForgotPasswordRequest(email : String)
+case class ChangePasswordRequest(oldPassword : String, newPassword : String)
 
 object ShoutoutSession {
 

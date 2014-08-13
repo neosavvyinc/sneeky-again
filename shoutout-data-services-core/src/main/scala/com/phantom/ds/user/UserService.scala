@@ -2,7 +2,7 @@ package com.phantom.ds.user
 
 import com.phantom.ds.integration.amazon.S3Service
 
-import scala.concurrent.{ ExecutionContext, Future, future }
+import scala.concurrent.{ Await, ExecutionContext, Future, future }
 import com.phantom.model._
 import com.phantom.ds.framework.Logging
 import com.phantom.model.UserLogin
@@ -109,6 +109,29 @@ object UserService extends BasicCrypto {
         status <- resetPassword(email)
         results <- sendResetPasswordEmail(status)
       } yield results
+
+    }
+
+    def changePassword(user : ShoutoutUser, request : ChangePasswordRequest) : Future[Boolean] = {
+
+      future {
+        db.withTransaction {
+          implicit s =>
+
+            val encryptedOldPassword = Passwords.getSaltedHash(request.oldPassword)
+            val userFromDB = shoutoutUsersDao.findByIdOperation(user.id.get)
+            val isValid : Boolean = userFromDB match {
+              case Some(u) => Passwords.check(request.oldPassword, u.password.get)
+              case None    => throw ShoutoutException.genericPasswordException
+            }
+
+            if (isValid) {
+              shoutoutUsersDao.updatePasswordForUserOperation(user.id.get, Passwords.getSaltedHash(request.newPassword))
+            } else {
+              throw ShoutoutException.genericPasswordException
+            }
+        }
+      }
 
     }
 

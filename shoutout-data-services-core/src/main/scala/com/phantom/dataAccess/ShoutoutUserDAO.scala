@@ -81,6 +81,12 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     numRows > 0
   }
 
+  def updatePasswordForUserOperation(id : Long, newPassword : String)(implicit session : Session) : Boolean = {
+    val updateQuery = for { u <- UserTable if u.id === id } yield u.password
+    val numRows = updateQuery.update(newPassword)
+    numRows > 0
+  }
+
   private def insertNoTransact(user : ShoutoutUser)(implicit session : Session) : ShoutoutUser = {
     log.trace(s"inserting user: $user")
     val id = UserTable.forInsert.insert(user.copy(email = user.email.map(_.toLowerCase)))
