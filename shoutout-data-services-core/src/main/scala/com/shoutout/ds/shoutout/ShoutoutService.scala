@@ -33,6 +33,7 @@ trait ShoutoutService {
   def sendToRecipients(sender : ShoutoutUser, url : String, imageText : Option[String], groupIds : Option[String], friendIds : Option[String]) : Int
   def findAllForUser(user : ShoutoutUser) : Future[List[ShoutoutResponse]]
   def updateShoutoutAsViewedForUser(user : ShoutoutUser, id : Long) : Future[Int]
+
 }
 
 object ShoutoutService extends DSConfiguration with BasicCrypto {
@@ -52,8 +53,8 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
               val lastInitial = l.charAt(0)
               s"$f $lastInitial. has sent you a photo"
             }
-            case (Some(f), None, _) => s"$f has sent you a photo"
-            case (None, Some(l), _) => s"$l has sent you a photo"
+            case (Some(f), None, _) => s"$f sent you a photo"
+            case (None, Some(l), _) => s"$l sent you a photo"
             case (None, None, u)    => s"$u sent you a photo"
             case _                  => s"someone sent you a photo"
           }
@@ -99,10 +100,14 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
 
           // for each of the users make sure we don't have any duplicates
           val recipients = providedUsers ::: groupMembers
-          recipients.foreach(println)
-          val uniqueRecipients = recipients.toSet.toList
 
-          // insert a record for each user into the Shoutout table
+          // find the blocked recipients
+          val usersWhoBlockSender = blockUserDao.findUsersWhoBlockSender(recipients.toSet, sender)
+
+          // unblocked recipients are the diff
+          val uniqueRecipients = recipients.toSet.diff(usersWhoBlockSender).toList
+
+          // insert a record for each user into the Shoutout table that isn't blocked
           shoutoutDao.insertShoutouts(sender, uniqueRecipients, Shoutout(
             None,
             sender.id.get,
@@ -114,7 +119,21 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
             Dates.nowDT
           ))
 
-          sendAPNSNotificationsToRecipients(sender, recipients)
+          // insert a record for each blocked user into the Shoutout table
+          shoutoutDao.insertShoutouts(sender, usersWhoBlockSender.toList, Shoutout(
+            None,
+            sender.id.get,
+            0,
+            imageText.getOrElse(""),
+            url,
+            false,
+            None,
+            Dates.nowDT,
+            true
+          ))
+
+          // only send notifications to the non-blocked users
+          sendAPNSNotificationsToRecipients(sender, uniqueRecipients)
 
           // return the number of shoutouts that were sent (inserted)
           uniqueRecipients.length

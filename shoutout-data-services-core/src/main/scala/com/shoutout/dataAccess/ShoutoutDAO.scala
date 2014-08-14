@@ -21,7 +21,7 @@ class ShoutoutDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
 
   val unviewedByOwnerQuery = for {
     ownerId <- Parameters[Long]
-    s <- ShoutoutTable if s.recipient === ownerId && s.isViewed === false
+    s <- ShoutoutTable if s.recipient === ownerId && s.isViewed === false && s.isBlocked === false
     u <- UserTable if s.sender === u.id
   } yield (s, u)
 

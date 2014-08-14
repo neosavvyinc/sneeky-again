@@ -15,7 +15,8 @@ case class Shoutout(id : Option[Long],
                     imageUrl : String,
                     isViewed : Boolean,
                     viewedDate : Option[DateTime],
-                    createdDate : DateTime)
+                    createdDate : DateTime,
+                    isBlocked : Boolean = false)
 
 case class ShoutoutResponse(id : Long,
                             sender : Friend,
@@ -40,6 +41,7 @@ trait ShoutoutComponent { this : Profile =>
    * | IS_VIEWED         | tinyint(1)    | NO   |     | 0       |                |
    * | VIEWED_TIMESTAMP  | datetime      | YES  |     | NULL    |                |
    * | CREATED_TIMESTAMP | datetime      | NO   |     | NULL    |                |
+   * | IS_BLOCKED        | tinyint(1)    | NO   |     | 0       |                |
    * +-------------------+---------------+------+-----+---------+----------------+
    */
 
@@ -52,8 +54,9 @@ trait ShoutoutComponent { this : Profile =>
     def isViewed = column[Boolean]("IS_VIEWED", O.Default(false))
     def viewedDate = column[DateTime]("VIEWED_TIMESTAMP", DBType("DATETIME"))
     def createdDate = column[DateTime]("CREATED_TIMESTAMP", DBType("DATETIME"))
+    def isBlocked = column[Boolean]("IS_BLOCKED")
 
-    def * = id.? ~ sender ~ recipient ~ text ~ imageUrl ~ isViewed ~ viewedDate.? ~ createdDate <> (Shoutout, Shoutout.unapply _)
+    def * = id.? ~ sender ~ recipient ~ text ~ imageUrl ~ isViewed ~ viewedDate.? ~ createdDate ~ isBlocked <> (Shoutout, Shoutout.unapply _)
     def forInsert = * returning id
 
   }

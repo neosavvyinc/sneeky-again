@@ -1,7 +1,7 @@
 package com.shoutout.dataAccess
 
 import com.shoutout.ds.framework.Dates
-import com.shoutout.model.BlockedUser
+import com.shoutout.model.{ ShoutoutUser, BlockedUser }
 
 import scala.concurrent.ExecutionContext
 import scala.slick.session.Database
@@ -32,6 +32,18 @@ class BlockUserDAO(dal : DataAccessLayer, db : Database)(implicit ex : Execution
       block.firstOption
 
     }
+  }
+
+  def findUsersWhoBlockSender(recipients : Set[ShoutoutUser], sender : ShoutoutUser)(implicit session : Session) : Set[ShoutoutUser] = {
+
+    val recipientIds : Set[Long] = recipients.map(f => f.id.get)
+
+    val blockedIds = for {
+      b <- BlockedUserTable if (b.targetId === sender.id.get) && (b.ownerId inSet recipientIds)
+      u <- UserTable if b.ownerId === u.id
+    } yield u
+
+    blockedIds.list().toSet
   }
 
   def clearBlocksForOwner(ownerId : Long) : Int = {
