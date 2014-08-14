@@ -16,6 +16,7 @@ trait DatabaseSupport extends DSConfiguration with Logging {
 
   val shoutoutUsersDao = new ShoutoutUserDAO(dataAccessLayer, db)
   val shoutoutDao = new ShoutoutDAO(dataAccessLayer, db)
+  val blockUserDao = new BlockUserDAO(dataAccessLayer, db)
   val contactsDao = new ContactDAO(dataAccessLayer, db)
   val sessionsDao = new SessionDAO(dataAccessLayer, db)
   val groupDao = new GroupDAO(dataAccessLayer, db)

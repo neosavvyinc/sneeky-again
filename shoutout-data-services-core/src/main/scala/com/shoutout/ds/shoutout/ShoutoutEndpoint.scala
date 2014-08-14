@@ -1,4 +1,4 @@
-package com.shoutout.ds.conversation
+package com.shoutout.ds.shoutout
 
 import spray.http.MediaTypes._
 import com.shoutout.ds.{ BasicCrypto, DataHttpService }

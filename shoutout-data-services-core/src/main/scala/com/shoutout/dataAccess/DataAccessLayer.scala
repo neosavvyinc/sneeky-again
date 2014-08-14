@@ -14,6 +14,7 @@ class DataAccessLayer(override val profile : ExtendedProfile) extends Profile wi
     with UserComponent
     with ShoutoutComponent
     with ContactComponent
+    with BlockedUserComponent
     with GroupComponent
     with UserSessionComponent {
 

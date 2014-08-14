@@ -195,4 +195,25 @@
             </column>
         </addColumn>
     </changeSet>
+
+    <changeSet id="11" author="aparrish">
+        <createTable tableName="BLOCKED_USERS">
+            <column name="ID" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="OWNER_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+
+
+            <column name="TARGET_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="CREATED_TIMESTAMP" type="datetime">
+                <constraints nullable="false"></constraints>
+            </column>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>

@@ -1,9 +1,10 @@
-package com.shoutout.ds.registration
+package com.shoutout.ds.framework
 
 import java.util.UUID
-import scala.util.Try
+
 import com.shoutout.model.RegistrationVerification
-import com.shoutout.ds.framework.Logging
+
+import scala.util.Try
 
 object UUIDExtractor extends Logging {
 

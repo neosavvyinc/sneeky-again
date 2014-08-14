@@ -1,4 +1,4 @@
-package com.shoutout.ds.conversation
+package com.shoutout.ds.shoutout
 
 import scala.concurrent.{ Future, ExecutionContext, future }
 import com.shoutout.model._

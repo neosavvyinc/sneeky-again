@@ -1,9 +1,9 @@
-package com.shoutout.ds.registration
+package com.shoutout.ds.framework
 
-import org.specs2.mutable.Specification
 import java.util.UUID
+
 import com.shoutout.ds.TestUtils
-import com.shoutout.model.RegistrationVerification
+import org.specs2.mutable.Specification
 
 class UUIDExtractorSpec extends Specification with TestUtils {
 
