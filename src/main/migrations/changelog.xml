@@ -178,7 +178,7 @@
     </changeSet>
 
     <changeSet id="9" author="aparrish">
-        <insert tableName="USERs">
+        <insert tableName="USERS">
             <!--<column name="ID" value="0"></column>-->
             <column name="UUID" value="f59a6e4b-2018-430d-8156-3d3707d74dbd"></column>
             <!--<column name="FACEBOOK_ID" value=""></column>-->
