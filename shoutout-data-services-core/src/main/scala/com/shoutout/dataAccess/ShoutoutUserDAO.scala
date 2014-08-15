@@ -263,5 +263,15 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
 
   }
+
+  def isUserNameRestricted(username : String) : Boolean = {
+    db.withSession { implicit session =>
+      val q = for { restriction <- RestrictionTable if restriction.restrictedName === username } yield restriction
+      q.firstOption match {
+        case Some(r) => true
+        case None    => false
+      }
+    }
+  }
 }
 

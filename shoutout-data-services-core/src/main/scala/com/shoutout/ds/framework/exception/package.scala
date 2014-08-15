@@ -17,6 +17,7 @@ package object exception {
     def userNotUpdated = new ShoutoutException(106)
     def usernameNotAvailable = new ShoutoutException(107)
     def genericPasswordException = new ShoutoutException(108)
+    def restrictedUsernameException = new ShoutoutException(109)
 
     def groupNotFoundException = new ShoutoutException(120)
 

@@ -220,4 +220,16 @@
     <changeSet id="12" author="aparrish">
         <addUniqueConstraint tableName="USERS" columnNames="USERNAME"></addUniqueConstraint>
     </changeSet>
+
+    <changeSet id="13" author="aparrish">
+        <createTable tableName="USER_NAME_RESTRICTIONS">
+            <column name="ID" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="RESTRICTED_NAME" type="varchar(100)">
+                <constraints nullable="false"></constraints>
+            </column>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>

@@ -21,6 +21,8 @@ case class RegistrationVerification(messageSid : String,
 case class UserLogin(email : String,
                      password : String)
 
+case class Restriction(id : Option[Long], username : String)
+
 case class ShoutoutUserUpdateRequest(birthday : Option[LocalDate],
                                      firstName : Option[String],
                                      lastName : Option[String],
@@ -190,6 +192,21 @@ trait UserSessionComponent { this : Profile with UserComponent =>
 
     def owner = foreignKey("USER_FK", userId, UserTable)(_.id)
     //def userUnqiue = index("userUnique", userId, unique = true)
+  }
+
+}
+
+trait UserNameRestrictionsComponent { this : Profile =>
+
+  import profile.simple._
+
+  object RestrictionTable extends Table[Restriction]("USER_NAME_RESTRICTIONS") {
+
+    def id = column[Long]("ID")
+    def restrictedName = column[String]("RESTRICTED_NAME", O.Nullable)
+
+    def * = id.? ~ restrictedName <> (Restriction.apply _, Restriction.unapply _)
+
   }
 
 }

@@ -76,7 +76,25 @@ object UserService extends BasicCrypto {
 
     def updateUser(userId : Long, updateRequest : ShoutoutUserUpdateRequest) : Future[Int] = {
 
+      def validate() : Future[Boolean] = {
+        future {
+
+          updateRequest.username match {
+            case Some(x) => {
+              val isRestricted = shoutoutUsersDao.isUserNameRestricted(x)
+              if (isRestricted)
+                throw ShoutoutException.restrictedUsernameException
+              else
+                isRestricted
+            }
+            case _ => true
+          }
+
+        }
+      }
+
       for {
+        _ <- validate()
         persistentUser <- shoutoutUsersDao.findById(userId)
         rowsUpdated <- shoutoutUsersDao.update(persistentUser, updateRequest)
       } yield rowsUpdated
