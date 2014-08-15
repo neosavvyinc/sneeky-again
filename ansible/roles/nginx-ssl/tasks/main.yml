@@ -1,0 +1,20 @@
+
+- name: Install basic packages
+  action: apt pkg={{ item }} state=installed update_cache=yes
+  with_items:
+    - nginx
+
+- name: Set up nginx default site
+  template: src=nginx_default dest=/etc/nginx/sites-available/shoutout-api
+
+- name: enable the shoutout-api site
+  file: src=/etc/nginx/sites-available/shoutout-api dest=/etc/nginx/sites-enabled/shoutout-api state=link
+
+- name: Copy ubuntudev.local SSL cert
+  copy: src=shoutout.crt dest=/etc/nginx/shoutout.crt
+
+- name: Copy ubuntudev.local SSL key
+  copy: src=shoutout.key dest=/etc/nginx/shoutout.key
+
+- name: restart nginx
+  service: name=nginx state=restarted

@@ -216,4 +216,8 @@
             </column>
         </createTable>
     </changeSet>
+
+    <changeSet id="12" author="aparrish">
+        <addUniqueConstraint tableName="USERS" columnNames="USERNAME"></addUniqueConstraint>
+    </changeSet>
 </databaseChangeLog>

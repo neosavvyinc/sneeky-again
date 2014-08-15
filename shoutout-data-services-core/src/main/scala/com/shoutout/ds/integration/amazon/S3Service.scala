@@ -52,7 +52,7 @@ object S3Service extends DSConfiguration {
 
       s3.createUnsignedObjectUrl(bucketName,
         fileObject.getKey,
-        false, false, false)
+        false, true, false)
 
     }
 
