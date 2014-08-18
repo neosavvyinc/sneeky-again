@@ -97,7 +97,8 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
                     user.username,
                     user.profilePictureUrl.getOrElse(""),
                     user.settingSound
-                  )
+                  ),
+                  sessionObject
                 )
               )
             )

@@ -126,7 +126,8 @@ case class ActiveShoutoutUser(
   profilePictureUrl : String,
   settingSound : Boolean = true,
   sentCount : Int = 0,
-  receivedCount : Int = 0)
+  receivedCount : Int = 0,
+  sessionInvalid : Boolean = false)
 
 case class ForgotPasswordRequest(email : String)
 case class ChangePasswordRequest(oldPassword : String, newPassword : String)

@@ -29,9 +29,9 @@ public class MandrillUtil {
                 "\n" +
                 newPassword + "\n" +
                 "\n" +
-                "Please email hello@shoutout.com if you have any further questions.\n" +
+                "Please email hello@shoutoutwith.us if you have any further questions.\n" +
                 "\n" +
-                "- Sneeky Team\n");
+                "- Shoutout Team\n");
         message.setAutoText(true);
         message.setFromEmail(configuration.getUsername());
         message.setFromName("Team Shoutout");
