@@ -217,9 +217,9 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="12" author="aparrish">
-        <addUniqueConstraint tableName="USERS" columnNames="USERNAME"></addUniqueConstraint>
-    </changeSet>
+    <!--<changeSet id="12" author="aparrish">-->
+        <!--<addUniqueConstraint tableName="USERS" columnNames="USERNAME"></addUniqueConstraint>-->
+    <!--</changeSet>-->
 
     <changeSet id="13" author="aparrish">
         <createTable tableName="USER_NAME_RESTRICTIONS">
