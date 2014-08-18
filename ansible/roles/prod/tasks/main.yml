@@ -1,0 +1,8 @@
+#- name: Make sure mysql-python is installed
+#  easy_install: name=mysql-python
+
+- name: Set Up mysql shoutout database
+  mysql_db: login_host=sneekyinstance.caxmdib0aahl.us-east-1.rds.amazonaws.com login_user=sneekyroot login_password=Jef9vYNvyFbf6G name=shoutout state=present
+
+- name: Set up mysql user shoutout
+  mysql_user: login_host=sneekyinstance.caxmdib0aahl.us-east-1.rds.amazonaws.com login_user=sneekyroot login_password=Jef9vYNvyFbf6G name=shoutout password=i2C7AHRMCnTiAd priv=shoutout.*:ALL state=present

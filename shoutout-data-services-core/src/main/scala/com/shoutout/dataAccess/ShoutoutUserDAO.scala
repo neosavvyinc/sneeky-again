@@ -203,9 +203,17 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     future {
       db.withSession { implicit session =>
 
-        val userNameExists = for { user <- UserTable if user.username === updateRequest.username } yield user
-        if (userNameExists.list().length > 0) {
-          throw ShoutoutException.usernameNotAvailable
+        updateRequest.username match {
+          case Some(x) => {
+            val userNameExists = for { user <- UserTable if user.username.toLowerCase === updateRequest.username.get.toLowerCase } yield user
+            val userFromUsername = userNameExists.list()
+
+            //only throw the exception if the username isn't yours
+            if (userFromUsername.length > 0 && userFromUsername(0).id != persistentUser.id) {
+              throw ShoutoutException.usernameNotAvailable
+            }
+          }
+          case _ => //nothing happens
         }
 
         val updated = ShoutoutUser(
@@ -226,7 +234,7 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
             case None    => persistentUser.lastName
             case Some(x) => updateRequest.lastName
           },
-          updateRequest.username.getOrElse(persistentUser.username).toLowerCase,
+          updateRequest.username.getOrElse(persistentUser.username),
           persistentUser.profilePictureUrl,
           persistentUser.newMessagePush
         )

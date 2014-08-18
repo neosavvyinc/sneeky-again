@@ -68,7 +68,7 @@ object SettingType {
     case NewMessagePushNotifications => "newMessagePush"
   }
 
-  def fromStringRep(str : String) : SettingType = str.toLowerCase match {
+  def fromStringRep(str : String) : SettingType = str match {
     case "newMessagePush" => NewMessagePushNotifications
     case x                => throw new Exception(s"unrecognized push setting $x")
   }

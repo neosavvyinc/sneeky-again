@@ -1,0 +1,5 @@
+- hosts: node1
+  user: ubuntu
+  sudo: True
+  roles:
+    - prod

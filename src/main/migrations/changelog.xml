@@ -236,4 +236,13 @@
     <changeSet id="14" author="aparrish">
         <renameColumn tableName="USERS" oldColumnName="SOUND_NOTIF" newColumnName="PUSH_NOTIF" columnDataType="BOOLEAN"></renameColumn>
     </changeSet>
+
+    <changeSet id="15" author="aparrish">
+        <update tableName="USERS">
+            <column name="USERNAME" type="varchar(100)" value="Shoutout"/>
+            <where>
+                id = 1
+            </where>
+        </update>
+    </changeSet>
 </databaseChangeLog>

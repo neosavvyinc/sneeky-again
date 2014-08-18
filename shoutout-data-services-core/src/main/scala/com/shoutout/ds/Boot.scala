@@ -22,8 +22,7 @@ object Boot extends App with DSConfiguration with Logging {
 
   implicit val executor = scala.concurrent.ExecutionContext.Implicits.global
 
-  // start a new HTTP server on port 8080 with our service actor as the handler
-  IO(Http) ! Http.Bind(phantomService, interface = "0.0.0.0", port = 9090)
+  IO(Http) ! Http.Bind(phantomService, interface = ListenConfiguration.ipAddress, port = ListenConfiguration.port)
 
   private def getActor = {
     val mode = AuthConfiguration.mode
