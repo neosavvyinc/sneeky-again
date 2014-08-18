@@ -232,4 +232,8 @@
             </column>
         </createTable>
     </changeSet>
+
+    <changeSet id="14" author="aparrish">
+        <renameColumn tableName="USERS" oldColumnName="SOUND_NOTIF" newColumnName="PUSH_NOTIF" columnDataType="BOOLEAN"></renameColumn>
+    </changeSet>
 </databaseChangeLog>

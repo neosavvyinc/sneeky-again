@@ -68,7 +68,7 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
               tokens.getOrElse(recipient.id.get, Set.empty).foreach {
                 token =>
                   val note = AppleNotification(
-                    recipient.settingSound,
+                    recipient.newMessagePush,
                     Some(token),
                     unreadMessageCount,
                     notificationMessage)

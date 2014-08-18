@@ -65,17 +65,17 @@ sealed trait SettingType
 object SettingType {
 
   def toStringRep(pushSettingType : SettingType) : String = pushSettingType match {
-    case SoundOnNewNotification => "sound-on-new-item"
+    case NewMessagePushNotifications => "newMessagePush"
   }
 
   def fromStringRep(str : String) : SettingType = str.toLowerCase match {
-    case "sound-on-new-item" => SoundOnNewNotification
-    case x                   => throw new Exception(s"unrecognized push setting $x")
+    case "newMessagePush" => NewMessagePushNotifications
+    case x                => throw new Exception(s"unrecognized push setting $x")
   }
 
 }
 
-case object SoundOnNewNotification extends SettingType
+case object NewMessagePushNotifications extends SettingType
 
 sealed trait MobilePushType
 
@@ -116,7 +116,7 @@ case class ShoutoutUser(id : Option[Long],
                         lastName : Option[String],
                         username : String,
                         profilePictureUrl : Option[String],
-                        settingSound : Boolean = true)
+                        newMessagePush : Boolean = true)
 
 case class ActiveShoutoutUser(
   birthday : Option[LocalDate],
@@ -124,7 +124,7 @@ case class ActiveShoutoutUser(
   lastName : String,
   username : String,
   profilePictureUrl : String,
-  settingSound : Boolean = true,
+  newMessagePush : Boolean = true,
   sentCount : Int = 0,
   receivedCount : Int = 0,
   sessionInvalid : Boolean = false)
@@ -166,9 +166,9 @@ trait UserComponent { this : Profile =>
     def lastName = column[String]("LAST_NAME", O.Nullable)
     def username = column[String]("USERNAME")
     def profilePictureUrl = column[String]("PROFILE_URL")
-    def settingSound = column[Boolean]("SOUND_NOTIF")
+    def newMessagePush = column[Boolean]("PUSH_NOTIF")
 
-    def * = id.? ~ uuid ~ facebookID.? ~ email.? ~ password.? ~ birthday.? ~ firstName.? ~ lastName.? ~ username ~ profilePictureUrl.? ~ settingSound <> (ShoutoutUser, ShoutoutUser.unapply _)
+    def * = id.? ~ uuid ~ facebookID.? ~ email.? ~ password.? ~ birthday.? ~ firstName.? ~ lastName.? ~ username ~ profilePictureUrl.? ~ newMessagePush <> (ShoutoutUser, ShoutoutUser.unapply _)
     def forInsert = * returning id
 
   }

@@ -228,7 +228,7 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
           },
           updateRequest.username.getOrElse(persistentUser.username).toLowerCase,
           persistentUser.profilePictureUrl,
-          persistentUser.settingSound
+          persistentUser.newMessagePush
         )
 
         val q = for { user <- UserTable if user.id === persistentUser.id } yield user
@@ -254,8 +254,8 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
   def updateSetting(userId : Long, userSetting : SettingType, userValue : Boolean) : Boolean = {
 
     userSetting match {
-      case SoundOnNewNotification => db.withSession { implicit session =>
-        val upQuery = for { u <- UserTable if u.id is userId } yield u.settingSound
+      case NewMessagePushNotifications => db.withSession { implicit session =>
+        val upQuery = for { u <- UserTable if u.id is userId } yield u.newMessagePush
         val numRows = upQuery.update(userValue)
         numRows > 0
       }
