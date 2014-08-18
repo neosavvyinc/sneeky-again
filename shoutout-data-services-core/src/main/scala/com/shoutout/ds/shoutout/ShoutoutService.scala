@@ -29,7 +29,7 @@ import scala.util.Try
  */
 trait ShoutoutService {
 
-  def saveImage(image : Array[Byte]) : Future[String]
+  def saveData(data : Array[Byte], contentType : String) : Future[String]
   def sendToRecipients(sender : ShoutoutUser, url : String, imageText : Option[String], groupIds : Option[String], friendIds : Option[String]) : Int
   def findAllForUser(user : ShoutoutUser) : Future[List[ShoutoutResponse]]
   def updateShoutoutAsViewedForUser(user : ShoutoutUser, id : Long) : Future[Int]
@@ -41,8 +41,8 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
   def apply(appleActor : ActorRef, s3Service : S3Service)(implicit ec : ExecutionContext) =
     new ShoutoutService with DatabaseSupport with Logging {
 
-      def saveImage(image : Array[Byte]) : Future[String] = {
-        s3Service.saveImage(image)
+      def saveData(data : Array[Byte], contentType : String) : Future[String] = {
+        s3Service.saveData(data, contentType)
       }
 
       private def sendAPNSNotificationsToRecipients(sender : ShoutoutUser, recipients : List[ShoutoutUser])(implicit session : Session) : Future[Unit] = {
