@@ -9,9 +9,6 @@ import spray.http.MediaTypes._
 import spray.http.StatusCodes
 
 /**
- * Created by aparrish on 8/7/14.
- */
-/**
  * Created by aparrish on 8/6/14.
  */
 trait GroupEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCrypto {

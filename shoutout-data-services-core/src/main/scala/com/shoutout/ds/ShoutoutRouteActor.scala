@@ -4,6 +4,7 @@ import akka.actor.{ ActorRef, Actor }
 import com.shoutout.ds.block.BlockEndpoint
 import com.shoutout.ds.contact.ContactEndpoint
 import com.shoutout.ds.group.GroupEndpoint
+import com.shoutout.ds.health.HealthCheckEndpoint
 import com.shoutout.ds.user.UserEndpoint
 import com.shoutout.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 import com.shoutout.ds.shoutout.ShoutoutEndpoint
@@ -24,7 +25,9 @@ class ShoutoutRouteActor(val appleActor : ActorRef, val s3Service : S3Service) e
     with ShoutoutEndpoint
     with GroupEndpoint
     with BlockEndpoint
+    with HealthCheckEndpoint
     with DatabaseSupport {
+
   this : RequestAuthenticator with EntryPointAuthenticator =>
 
   // the HttpService trait defines only one abstract member, which
@@ -34,7 +37,6 @@ class ShoutoutRouteActor(val appleActor : ActorRef, val s3Service : S3Service) e
   // this actor only runs our route, but you could add
   // other things here, like request stream processing
   // or timeout handling
-  def receive = runRoute(
-    userRoute ~ shoutoutRoute ~ contactRoute ~ groupRoute ~ blockRoute
-  )
+  def receive = runRoute(userRoute ~ shoutoutRoute ~ contactRoute ~ groupRoute ~ blockRoute ~ healthCheckRoute)
+
 }

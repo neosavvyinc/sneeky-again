@@ -11,7 +11,7 @@ import com.shoutout.ds.framework.Dates
 //shamelessly stolen: http://stackoverflow.com/questions/2860943/suggestions-for-library-to-hash-passwords-in-java
 object Passwords {
 
-  val iterations = 10 //TODO: bring this back up to a respectable number
+  val iterations = 2 //TODO: bring this back up to a respectable number
   val saltLen = 32
   val desiredKeyLen = 256
 

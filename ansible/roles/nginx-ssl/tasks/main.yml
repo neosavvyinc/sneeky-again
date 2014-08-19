@@ -5,16 +5,19 @@
     - nginx
 
 - name: Set up nginx default site
-  template: src=nginx_default dest=/etc/nginx/sites-available/shoutout-api
+  template: src=shoutout-api dest=/opt/shoutout/shoutout-api owner=ubuntu group=ubuntu mode=644
 
 - name: enable the shoutout-api site
-  file: src=/etc/nginx/sites-available/shoutout-api dest=/etc/nginx/sites-enabled/shoutout-api state=link
+  file: src=/opt/shoutout/shoutout-api dest=/etc/nginx/sites-enabled/shoutout-api state=link
 
-- name: Copy ubuntudev.local SSL cert
-  copy: src=shoutout.crt dest=/etc/nginx/shoutout.crt
+- name: Make sure the /opt/shoutout/certificates directory exists
+  file: dest=/opt/shoutout/certificates mode=755 state=directory
 
-- name: Copy ubuntudev.local SSL key
-  copy: src=shoutout.key dest=/etc/nginx/shoutout.key
+- name: Copy Shoutout SSL cert
+  copy: src=shoutout.crt dest=/opt/shoutout/certificates/shoutout.crt
 
-- name: restart nginx
-  service: name=nginx state=restarted
+- name: Copy Shoutout SSL key
+  copy: src=shoutout.key dest=/opt/shoutout/certificates/shoutout.key
+#
+#- name: restart nginx
+#  service: name=nginx state=restarted
