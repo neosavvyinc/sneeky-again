@@ -187,7 +187,6 @@
             <column name="EMAIL" value="hello@shoutout.com"></column>
             <column name="PASSWORD" value="DeLqY04U1BZMuQnfArKqjrRw0teyVoIZEMZrcVLMopk=$tPz/SE2MgZu6tgZmFW4wKk3vKsHmWUNEjSNaqYyj5ns="></column>
             <column name="USERNAME" value="shoutout"></column>
-            <column name="SOUND_NOTIF" value="0"></column>
         </insert>
     </changeSet>
 
