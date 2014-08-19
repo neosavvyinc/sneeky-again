@@ -5,6 +5,10 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd
     http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 
+    <!--
+    This is a test of a simple commit!
+    -->
+
     <changeSet id="1" author="aparrish">
         <createTable tableName="USERS">
             <column name="ID" type="int" autoIncrement="true">
