@@ -16,7 +16,7 @@ object Boot extends App with DSConfiguration with Logging {
   DateTimeZone.setDefault(DateTimeZone.UTC)
 
   // we need an ActorSystem to host our application in
-  implicit val system = ActorSystem("on-spray-can")
+  implicit val system = ActorSystem("shoutout")
 
   val phantomService = getActor
 

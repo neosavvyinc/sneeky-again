@@ -18,6 +18,6 @@
 
 - name: Copy Shoutout SSL key
   copy: src=shoutout.key dest=/opt/shoutout/certificates/shoutout.key
-#
-#- name: restart nginx
-#  service: name=nginx state=restarted
+
+- name: restart nginx
+  service: name=nginx state=restarted

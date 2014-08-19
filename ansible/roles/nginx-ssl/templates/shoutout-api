@@ -7,6 +7,20 @@ server {
     }
 }
 
+server {
+
+	listen 80 default;
+	server_name _;
+
+    location /shoutout/health/check {
+        proxy_pass http://localhost:8090/health/check;
+    }
+
+    location /1.0/ {
+        proxy_pass http://localhost:9090/;
+        client_max_body_size 2M;
+    }
+}
 
 ###server {
 ###    listen 443;
