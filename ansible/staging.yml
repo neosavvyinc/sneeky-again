@@ -5,3 +5,12 @@
     - common
     - deploy
     - nginx-ssl
+  vars:
+      serverListenPort: "8090"
+      serverListenAddress: "0.0.0.0"
+      nginxProxyToAddress: "0.0.0.0"
+      nginxProxyToPort: "8090"
+      apiBackendDNSName: "api.phantom.neosavvy.com"
+      adminContact: "aparrish@neosavvy.com"
+      shoutoutUID: "root"
+      shoutoutGID: "root"
