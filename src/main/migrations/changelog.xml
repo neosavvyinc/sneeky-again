@@ -249,4 +249,12 @@
             </where>
         </update>
     </changeSet>
+
+
+    <changeSet id="16" author="aparrish">
+        <addColumn tableName="SHOUTOUTS">
+            <column name="CONTENT_TYPE" type="varchar(1024)"/>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

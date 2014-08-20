@@ -30,7 +30,7 @@ import scala.util.Try
 trait ShoutoutService {
 
   def saveData(data : Array[Byte], contentType : String) : Future[String]
-  def sendToRecipients(sender : ShoutoutUser, url : String, imageText : Option[String], groupIds : Option[String], friendIds : Option[String]) : Int
+  def sendToRecipients(sender : ShoutoutUser, url : String, imageText : Option[String], groupIds : Option[String], friendIds : Option[String], contentType : String) : Int
   def findAllForUser(user : ShoutoutUser) : Future[List[ShoutoutResponse]]
   def updateShoutoutAsViewedForUser(user : ShoutoutUser, id : Long) : Future[Int]
 
@@ -80,7 +80,7 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
         }
       }
 
-      def sendToRecipients(sender : ShoutoutUser, url : String, text : Option[String], groupIds : Option[String], friendIds : Option[String]) : Int = {
+      def sendToRecipients(sender : ShoutoutUser, url : String, text : Option[String], groupIds : Option[String], friendIds : Option[String], contentType : String) : Int = {
 
         db.withTransaction { implicit s : Session =>
 
@@ -116,7 +116,9 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
             url,
             false,
             None,
-            Dates.nowDT
+            Dates.nowDT,
+            false,
+            contentType
           ))
 
           // insert a record for each blocked user into the Shoutout table
@@ -129,7 +131,8 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
             false,
             None,
             Dates.nowDT,
-            true
+            true,
+            contentType
           ))
 
           // only send notifications to the non-blocked users

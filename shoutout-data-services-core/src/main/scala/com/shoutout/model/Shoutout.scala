@@ -16,13 +16,15 @@ case class Shoutout(id : Option[Long],
                     isViewed : Boolean,
                     viewedDate : Option[DateTime],
                     createdDate : DateTime,
-                    isBlocked : Boolean = false)
+                    isBlocked : Boolean = false,
+                    contentType : String)
 
 case class ShoutoutResponse(id : Long,
                             sender : Friend,
                             text : String,
                             imageUrl : String,
-                            createdDate : DateTime)
+                            createdDate : DateTime,
+                            contentType : String)
 
 trait ShoutoutComponent { this : Profile =>
 
@@ -55,8 +57,9 @@ trait ShoutoutComponent { this : Profile =>
     def viewedDate = column[DateTime]("VIEWED_TIMESTAMP", DBType("DATETIME"))
     def createdDate = column[DateTime]("CREATED_TIMESTAMP", DBType("DATETIME"))
     def isBlocked = column[Boolean]("IS_BLOCKED")
+    def contentType = column[String]("CONTENT_TYPE")
 
-    def * = id.? ~ sender ~ recipient ~ text ~ imageUrl ~ isViewed ~ viewedDate.? ~ createdDate ~ isBlocked <> (Shoutout, Shoutout.unapply _)
+    def * = id.? ~ sender ~ recipient ~ text ~ imageUrl ~ isViewed ~ viewedDate.? ~ createdDate ~ isBlocked ~ contentType <> (Shoutout, Shoutout.unapply _)
     def forInsert = * returning id
 
   }

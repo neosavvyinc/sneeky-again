@@ -44,7 +44,8 @@ class ShoutoutDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
           u.profilePictureUrl),
         s.text,
         s.imageUrl,
-        s.createdDate
+        s.createdDate,
+        s.contentType
       )
     })
   }
