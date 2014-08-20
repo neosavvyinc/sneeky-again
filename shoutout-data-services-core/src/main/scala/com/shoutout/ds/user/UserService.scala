@@ -134,6 +134,12 @@ object UserService extends BasicCrypto {
 
     def updatePushNotifier(sessionUUID : UUID, applePushToken : String, mobilePushType : MobilePushType) : Future[Boolean] = {
       future {
+
+        val sessions = sessionsDao.findFromPushNotifierAndType(applePushToken, mobilePushType)
+        sessions foreach (s => {
+          sessionsDao.updatePushNotifier(s.sessionId, null, s.pushNotifierType.getOrElse(NullType))
+        })
+
         sessionsDao.updatePushNotifier(sessionUUID, applePushToken, mobilePushType)
       }
     }
