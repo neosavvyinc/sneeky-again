@@ -1,5 +1,6 @@
 package com.shoutout.ds.shoutout
 
+import com.shoutout.ds.framework.exception.ShoutoutException
 import spray.http.MediaTypes._
 import com.shoutout.ds.{ BasicCrypto, DataHttpService }
 import com.shoutout.model.{ ConversationStartRequest, ConversationRespondRequest }
@@ -8,6 +9,8 @@ import akka.actor.ActorRef
 import com.shoutout.model.Paging
 import com.shoutout.ds.integration.amazon.S3Service
 import spray.http.StatusCodes
+
+import scala.concurrent.{ Future, future }
 
 /**
  * Created by Neosavvy
@@ -30,14 +33,31 @@ trait ShoutoutEndpoint extends DataHttpService with BasicCrypto {
     authenticate(unverified _) {
       user =>
         post {
-          formFields('image.as[Array[Byte]], 'imageText.?, 'groupIds.?, 'friendIds.?) {
-            (image, imageText, groupIds, friendIds) =>
-              complete {
+          respondWithMediaType(`application/json`) {
+            formFields('data.as[Array[Byte]], 'text.?, 'groupIds.?, 'friendIds.?, 'contentType) {
+              (data, text, groupIds, friendIds, contentType) =>
+                complete {
+                  contentType match {
 
-                shoutoutService.saveImage(image).map { url =>
-                  shoutoutService.sendToRecipients(user, url, imageText, groupIds, friendIds)
+                    case x if x == "video/quicktime" => shoutoutService.saveData(data, "video/quicktime").map { url =>
+                      shoutoutService.sendToRecipients(user, url, text, groupIds, friendIds, contentType)
+                    }
+                    case x if x == "video/mp4" => shoutoutService.saveData(data, "video/mp4").map { url =>
+                      shoutoutService.sendToRecipients(user, url, text, groupIds, friendIds, contentType)
+                    }
+                    case x if x == "audio/mp4" => shoutoutService.saveData(data, "audio/mp4").map { url =>
+                      shoutoutService.sendToRecipients(user, url, text, groupIds, friendIds, contentType)
+                    }
+                    case x if x == "image/jpg" => shoutoutService.saveData(data, "image/jpg").map { url =>
+                      shoutoutService.sendToRecipients(user, url, text, groupIds, friendIds, contentType)
+                    }
+                    case _ => future {
+                      ShoutoutException.shoutoutContentTypeInvalid
+                    }
+
+                  }
                 }
-              }
+            }
           }
         }
     }

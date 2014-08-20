@@ -7,9 +7,9 @@ import spray.routing._
 import spray.http.StatusCodes._
 import com.shoutout.ds.framework.Dates
 
-class PhantomEntryPointAuthenticatorSpec extends Specification
+class SessionDateHashEntryPointAuthenticatorSpec extends Specification
     with AuthTestPoint
-    with PhantomRequestAuthenticator
+    with SessionDateHashRequestAuthenticator
     with PhantomEntryPointAuthenticator
     with Specs2RouteTest
     with AuthenticatedSpec {

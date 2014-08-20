@@ -21,7 +21,7 @@ trait RequestAuthenticator extends Authenticator {
   def unverified(ctx : RequestContext)(implicit ec : ExecutionContext) = request(Unverified, ctx)
 }
 
-trait PhantomRequestAuthenticator extends RequestAuthenticator with DSConfiguration with DatabaseSupport with Logging {
+trait SessionDateHashRequestAuthenticator extends RequestAuthenticator with DSConfiguration with DatabaseSupport with Logging {
 
   def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]] = {
     log.debug(s"authenticating request ${ctx.request.uri}")
@@ -52,7 +52,7 @@ trait PhantomRequestAuthenticator extends RequestAuthenticator with DSConfigurat
   }
 }
 
-trait NonHashingRequestAuthenticator extends PhantomRequestAuthenticator {
+trait NonHashingRequestAuthenticator extends SessionDateHashRequestAuthenticator {
   override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]] = {
 
     future {
@@ -67,7 +67,7 @@ trait NonHashingRequestAuthenticator extends PhantomRequestAuthenticator {
 
 trait DebugAuthenticator extends NonHashingRequestAuthenticator {
 
-  private object FullAuth extends PhantomRequestAuthenticator
+  private object FullAuth extends SessionDateHashRequestAuthenticator
 
   override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]] = {
     log.debug(s"DEBUG auth for request ${ctx.request.uri}")

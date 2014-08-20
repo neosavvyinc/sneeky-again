@@ -21,9 +21,7 @@ package object exception {
 
     def groupNotFoundException = new ShoutoutException(120)
 
-    def noFeedFound = new ShoutoutException(201)
-    def nonExistentConversation = new ShoutoutException(203)
-    def unableToUpdateConversationLastChanged = new ShoutoutException(204)
+    def shoutoutContentTypeInvalid = new ShoutoutException(201)
 
     def contactNotUpdated = new ShoutoutException(301)
     def contactNotInserted = new ShoutoutException(302)
