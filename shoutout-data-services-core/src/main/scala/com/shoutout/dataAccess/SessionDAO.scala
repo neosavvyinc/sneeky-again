@@ -34,6 +34,13 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     }
   }
 
+  def findFromPushNotifierAndType(pushNotifier : String, pushType : MobilePushType) : List[ShoutoutSession] = {
+    db.withSession { implicit s =>
+      val q = for { s <- SessionTable if (s.pushNotifierToken === pushNotifier && s.pushNotifierType === pushType) } yield s
+      q.list()
+    }
+  }
+
   def findTokensByUserId(userIds : Seq[Long]) : Map[Long, Set[String]] = {
     db.withSession { implicit s =>
       userIds.foreach { userId =>

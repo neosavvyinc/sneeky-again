@@ -82,17 +82,21 @@ sealed trait MobilePushType
 object MobilePushType {
 
   def toStringRep(pushType : MobilePushType) : String = pushType match {
-    case Apple   => "apple"
-    case Android => "android"
+    case NullType => null
+    case Apple    => "apple"
+    case Android  => "android"
   }
 
-  def fromStringRep(str : String) : MobilePushType = str.toLowerCase match {
+  def fromStringRep(str : String) : MobilePushType = str match {
+    case null      => NullType
     case "apple"   => Apple
     case "android" => Android
     case x         => throw new Exception(s"unrecognized push type $x")
   }
 
 }
+
+case object NullType extends MobilePushType
 
 case object Apple extends MobilePushType
 
