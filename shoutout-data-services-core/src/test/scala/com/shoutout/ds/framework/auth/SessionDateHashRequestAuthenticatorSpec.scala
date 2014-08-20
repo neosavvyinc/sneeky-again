@@ -10,8 +10,8 @@ import com.shoutout.model._
 import com.shoutout.model.ShoutoutUser
 import com.shoutout.ds.framework.Dates
 
-class PhantomRequestAuthenticatorSpec extends Specification
-    with PhantomRequestAuthenticator
+class SessionDateHashRequestAuthenticatorSpec extends Specification
+    with SessionDateHashRequestAuthenticator
     with PhantomEntryPointAuthenticator
     with AuthTestPoint
     with Specs2RouteTest
