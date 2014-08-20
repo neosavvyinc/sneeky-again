@@ -23,12 +23,16 @@
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>
     </root>
-    <logger name="com.phantom.ds" level="error"/>
-    <logger name="com.phantom.ds.conversation" level="error"/>
-    <logger name="com.phantom.ds.framework.auth" level="error"/>
-    <logger name="com.phantom.dataAccess" level="error"/>
-    <logger name="scala.slick.session" level="error"/>
-    <logger name="com.phantom.ds.framework" level="error"/>
-    <logger name="com.phantom.ds.integration.apple" level="trace"/>
+    <logger name="com.shoutout.ds" level="info"/>
+    <!--<logger name="com.phantom.dataAccess" level="trace"/>-->
+    <logger name="com.shoutout.ds.integration.twilio" level="debug"/>
+    <logger name="com.shoutout.ds.integration.apple" level="trace"/>
+    <!--<logger name="com.phantom.ds.conversation" level="trace"/>-->
+    <!--<logger name="com.phantom.ds.user" level="debug"/>-->
+    <logger name="com.shoutout.ds.framework.auth" level="debug"/>
     <logger name="com.relayrides" level="trace"/>
+    <logger name="scala.slick.session" level="error"/>
+    <!--<logger name="com.phantom.ds.framework" level="trace"/>-->
+    <logger name="com.relayrides" level="trace"/>
+    <logger name="com.relayrides.pushy.apns" level="trace"/>
 </configuration>

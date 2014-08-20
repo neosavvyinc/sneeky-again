@@ -1,1 +1,0 @@
-mysqldump --no-data --add-drop-table -u root -p phantom > phantom.sql

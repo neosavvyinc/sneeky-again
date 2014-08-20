@@ -1,0 +1,26 @@
+#- name: Make sure mysql-python is installed
+#  easy_install: name=mysql-python
+
+- name: Set Up mysql shoutout database
+  mysql_db: login_host=shoutout-prod.caxmdib0aahl.us-east-1.rds.amazonaws.com login_user=shoutoutroot login_password=VNYHho6xNWjR2U name=shoutout state=present
+
+- name: Set up mysql user shoutout
+  mysql_user: login_host=shoutout-prod.caxmdib0aahl.us-east-1.rds.amazonaws.com login_user=shoutoutroot login_password=VNYHho6xNWjR2U name=shoutout password=CshE4zdgjYr4hb host="%" priv=shoutout.*:ALL state=present
+
+- name: checkout the services for liquibase updates
+  git: repo=ssh://git@stash.neosavvy.com:7999/phan/shoutout-services.git dest=/opt/shoutout/shoutout-database-updates accept_hostkey=True version=feature-basic-api
+
+- name: download liquibase executable
+  get_url: url=http://downloads.sourceforge.net/project/liquibase/Liquibase%20Core/liquibase-2.0.5-bin.tar.gz?r=http%3A%2F%2Fwww.liquibase.org%2Fdownload%2Findex.html&ts=1408478101&use_mirror=iweb dest=/tmp/liquibase.tar.gz
+
+- name: untar that thang
+  unarchive: src=/tmp/liquibase.tar.gz dest=/tmp/ copy=no
+
+- name: download the mysql connector
+  get_url: url=http://central.maven.org/maven2/mysql/mysql-connector-java/5.1.22/mysql-connector-java-5.1.22.jar dest=/tmp/mysql-connector.jar
+
+- name: copy the liquibase properties file
+  template: src=liquibase.properties dest=/tmp/liquibase.properties
+
+- name: run liquibase change log
+  command: chdir=/tmp/ java -jar /tmp/liquibase.jar --changeLogFile=/opt/shoutout/shoutout-database-updates/src/main/migrations/changelog.xml update

@@ -1,5 +1,5 @@
-import com.phantom.ds.framework.email.MandrillConfiguration;
-import com.phantom.ds.framework.email.MandrillUtil;
+import com.shoutout.ds.framework.email.MandrillConfiguration;
+import com.shoutout.ds.framework.email.MandrillUtil;
 import junit.framework.TestCase;
 import org.junit.Test;
 

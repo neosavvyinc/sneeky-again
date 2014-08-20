@@ -1,0 +1,260 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd
+    http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <!--
+    This is a test of a simple commit!
+    -->
+
+    <changeSet id="1" author="aparrish">
+        <createTable tableName="USERS">
+            <column name="ID" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="UUID" type="CHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="FACEBOOK_ID" type="VARCHAR(64)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="EMAIL" type="VARCHAR(256)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="PASSWORD" type="varchar(1024)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="BIRTHDAY" type="DATE">
+                <constraints nullable="true"/>
+            </column>
+            <column name="FIRST_NAME" type="varchar(1024)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="LAST_NAME" type="varchar(1024)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="USERNAME" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SOUND_NOTIF" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2" author="aparrish">
+        <createTable tableName="SESSIONS">
+            <column name="SESSIONID" type="CHAR(36)" >
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="USERID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CREATED" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="LASTACCESSED" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="PUSH_NOTIFIER_TOKEN" type="varchar(254)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="PUSH_NOTIFIER_TYPE" type="VARCHAR(254)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="SESSION_INVALID" type="BOOLEAN" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="3" author="aparrish">
+        <addColumn tableName="USERS">
+            <column name="PROFILE_URL" type="VARCHAR(2048)">
+                <constraints nullable="true"></constraints>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="4" author="aparrish">
+        <createTable tableName="CONTACTS">
+            <column name="ID" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="SORT_ORDER" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="OWNER_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="GROUP_REF_ID" type="int">
+                <constraints nullable="true"></constraints>
+            </column>
+
+            <column name="USER_REF_ID" type="int">
+                <constraints nullable="true"></constraints>
+            </column>
+
+            <column name="CONTACT_TYPE" type="varchar(36)">
+                <constraints nullable="false"></constraints>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="5" author="aparrish">
+        <createTable tableName="GROUPS">
+            <column name="ID" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="OWNER_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="GROUP_NAME" type="varchar(256)">
+                <constraints nullable="false"></constraints>
+            </column>
+        </createTable>
+
+        <createTable tableName="GROUP_ITEM">
+            <column name="ID" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="GROUP_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="USER_REF_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="6" author="aparrish">
+        <renameTable oldTableName="GROUP_ITEM" newTableName="GROUP_ITEMS"></renameTable>
+    </changeSet>
+
+    <changeSet id="7" author="aparrish">
+        <dropNotNullConstraint tableName="CONTACTS" columnName="SORT_ORDER" columnDataType="int"></dropNotNullConstraint>
+    </changeSet>
+
+    <changeSet id="8" author="aparrish">
+        <createTable tableName="SHOUTOUT">
+            <column name="ID" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="SENDER_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="RECIPIENT_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="TEXT" type="varchar(1024)">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="IMAGE_URL" type="varchar(256)">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="IS_VIEWED" type="tinyint(1)" defaultValue="0">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="VIEWED_TIMESTAMP" type="datetime">
+                <constraints nullable="true"></constraints>
+            </column>
+
+            <column name="CREATED_TIMESTAMP" type="datetime">
+                <constraints nullable="false"></constraints>
+            </column>
+
+        </createTable>
+    </changeSet>
+
+    <changeSet id="9" author="aparrish">
+        <insert tableName="USERS">
+            <column name="UUID" value="f59a6e4b-2018-430d-8156-3d3707d74dbd"></column>
+            <column name="EMAIL" value="hello@shoutout.com"></column>
+            <column name="PASSWORD" value="DeLqY04U1BZMuQnfArKqjrRw0teyVoIZEMZrcVLMopk=$tPz/SE2MgZu6tgZmFW4wKk3vKsHmWUNEjSNaqYyj5ns="></column>
+            <column name="USERNAME" value="shoutout"></column>
+            <column name="SOUND_NOTIF" value="0"></column>
+        </insert>
+    </changeSet>
+
+    <changeSet id="10" author="aparrish">
+        <renameTable oldTableName="SHOUTOUT" newTableName="SHOUTOUTS"></renameTable>
+        <addColumn tableName="SHOUTOUTS">
+            <column name="IS_BLOCKED" type="tinyint(1)" defaultValue="0">
+                <constraints nullable="false"></constraints>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="11" author="aparrish">
+        <createTable tableName="BLOCKED_USERS">
+            <column name="ID" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="OWNER_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+
+
+            <column name="TARGET_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="CREATED_TIMESTAMP" type="datetime">
+                <constraints nullable="false"></constraints>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!--<changeSet id="12" author="aparrish">-->
+        <!--<addUniqueConstraint tableName="USERS" columnNames="USERNAME"></addUniqueConstraint>-->
+    <!--</changeSet>-->
+
+    <changeSet id="13" author="aparrish">
+        <createTable tableName="USER_NAME_RESTRICTIONS">
+            <column name="ID" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="RESTRICTED_NAME" type="varchar(100)">
+                <constraints nullable="false"></constraints>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="14" author="aparrish">
+        <renameColumn tableName="USERS" oldColumnName="SOUND_NOTIF" newColumnName="PUSH_NOTIF" columnDataType="BOOLEAN"></renameColumn>
+    </changeSet>
+
+    <changeSet id="15" author="aparrish">
+        <update tableName="USERS">
+            <column name="USERNAME" type="varchar(100)" value="Shoutout"/>
+            <where>
+                id = 1
+            </where>
+        </update>
+    </changeSet>
+
+
+    <changeSet id="16" author="aparrish">
+        <addColumn tableName="SHOUTOUTS">
+            <column name="CONTENT_TYPE" type="varchar(1024)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

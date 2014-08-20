@@ -1,0 +1,5 @@
+- name: Copy the configuration for production
+  template: src=production.conf dest=/opt/shoutout/production.conf
+
+- name: Copy logback xml file for production
+  copy: src=logback.xml dest=/opt/shoutout/logback.xml
