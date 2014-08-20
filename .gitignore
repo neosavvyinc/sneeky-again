@@ -12,3 +12,4 @@ logback.properties
 *.log
 tags
 currantOut.log
+ansible/roles/deploy/files/shoutout.jar
