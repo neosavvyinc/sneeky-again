@@ -9,8 +9,8 @@
   vars:
       serverListenPort: "8090"
       serverListenAddress: "0.0.0.0"
-      nginxProxyToAddress: ""
-      nginxProxyToPort: ""
+      nginxProxyToAddress: "0.0.0.0"
+      nginxProxyToPort: "8090"
       apiBackendDNSName: "api.shoutoutwith.us"
       adminContact: "aparrish@neosavvy.com"
       shoutoutUID: "ubuntu"
