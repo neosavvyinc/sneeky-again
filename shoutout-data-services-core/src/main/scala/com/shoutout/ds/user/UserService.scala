@@ -121,12 +121,13 @@ object UserService extends BasicCrypto {
       }
     }
 
-    def deriveExtraProperties(user : ShoutoutUser, activeUser : ActiveShoutoutUser) : ActiveShoutoutUser = {
+    def deriveExtraProperties(user : ShoutoutUser, activeUser : ActiveShoutoutUser, shoutoutSession : ShoutoutSession) : ActiveShoutoutUser = {
 
       db.withSession { implicit session : Session =>
         activeUser.copy(
           receivedCount = shoutoutDao.countReceived(user),
-          sentCount = shoutoutDao.countSent(user))
+          sentCount = shoutoutDao.countSent(user),
+          sessionInvalid = shoutoutSession.sessionInvalid)
       }
 
     }

@@ -1,7 +1,7 @@
 
 package com.shoutout.ds.dataAccess
 
-import com.shoutout.model.{ SoundOnNewNotification, ShoutoutUser }
+import com.shoutout.model.{ NewMessagePushNotifications, ShoutoutUser }
 
 class PhantomUsersDAOSpec extends BaseDAOSpec {
 

@@ -20,6 +20,13 @@ trait DSConfiguration {
     private def dbCfg = cfg.getConfig("db")
   }
 
+  object ListenConfiguration {
+    val ipAddress = listenCfg.getString("ip")
+    val port = listenCfg.getInt("port")
+
+    private def listenCfg = cfg.getConfig("listen")
+  }
+
   object AuthConfiguration {
 
     val secret = authCfg.getString("secret")

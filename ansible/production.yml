@@ -1,0 +1,17 @@
+- hosts: prod
+  user: ubuntu
+  sudo: True
+  roles:
+    - ubuntu
+    - deploy
+    - prod-deploy
+    - nginx-ssl
+  vars:
+      serverListenPort: "8090"
+      serverListenAddress: "0.0.0.0"
+      nginxProxyToAddress: "0.0.0.0"
+      nginxProxyToPort: "8090"
+      apiBackendDNSName: "api.shoutoutwith.us"
+      adminContact: "aparrish@neosavvy.com"
+      shoutoutUID: "ubuntu"
+      shoutoutGID: "ubuntu"

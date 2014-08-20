@@ -55,30 +55,28 @@ object AppleService extends DSConfiguration {
 class AppleActor extends Actor with DSConfiguration with Logging {
 
   def receive : Actor.Receive = {
-    case AppleNotification(shouldPlaySound, token, unviewedMessages, messageText) => {
+    case AppleNotification(sendPushNotifications, token, unviewedMessages, messageText) => {
       log.trace(s"received push notification request with $token")
 
       val payloadBuilder = new ApnsPayloadBuilder()
       payloadBuilder.setBadgeNumber(unviewedMessages)
       payloadBuilder.setAlertBody(messageText)
-
-      if (shouldPlaySound) {
-        log.trace(s"Turning ON sound since user user with $token prefers TO hear sound")
-        payloadBuilder.setSoundFileName("default")
-      }
+      payloadBuilder.setSoundFileName("default")
 
       val payload = payloadBuilder.buildWithDefaultMaximumLength()
 
-      AppleService.pushManager match {
-        case Failure(ex) => {
-          log.trace(s"Error pushing message for $token caused by: $ex")
-          throw ShoutoutException.apnsError(ex.toString())
-        }
-        case Success(pm) => {
-          log.trace(s"Successful push for $token")
-          token match {
-            case Some(t) => pm.enqueuePushNotification(new SimpleApnsPushNotification(TokenUtil.tokenStringToByteArray(t), payload))
-            case None    => log.error(s"tried to send push notification via APNS but received an empty token.")
+      if (sendPushNotifications) {
+        AppleService.pushManager match {
+          case Failure(ex) => {
+            log.trace(s"Error pushing message for $token caused by: $ex")
+            throw ShoutoutException.apnsError(ex.toString())
+          }
+          case Success(pm) => {
+            log.trace(s"Successful push for $token")
+            token match {
+              case Some(t) => pm.enqueuePushNotification(new SimpleApnsPushNotification(TokenUtil.tokenStringToByteArray(t), payload))
+              case None    => log.error(s"tried to send push notification via APNS but received an empty token.")
+            }
           }
         }
       }
@@ -86,4 +84,4 @@ class AppleActor extends Actor with DSConfiguration with Logging {
   }
 }
 
-case class AppleNotification(shouldPlaySound : Boolean, token : Option[String], unreadMessageCount : Int, messageText : String)
+case class AppleNotification(sendPushNotifications : Boolean, token : Option[String], unreadMessageCount : Int, messageText : String)

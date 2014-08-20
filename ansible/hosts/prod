@@ -1,0 +1,12 @@
+[prod-db]
+sneekyinstance.caxmdib0aahl.us-east-1.rds.amazonaws.com
+
+[prod]
+54.84.143.115
+54.84.104.183
+
+[node1]
+54.84.143.115
+
+[node2]
+54.84.104.183

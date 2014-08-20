@@ -18,7 +18,7 @@ trait BlockEndpoint extends DataHttpService with PhantomJsonProtocol with BasicC
 
   def blockContact = pathPrefix(block / IntNumber) { targetUserId =>
     authenticate(unverified _) { user =>
-      put {
+      post {
         respondWithMediaType(`application/json`) {
           complete {
             blockService.blockUserById(user, targetUserId)

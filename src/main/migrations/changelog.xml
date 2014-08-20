@@ -5,6 +5,10 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd
     http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 
+    <!--
+    This is a test of a simple commit!
+    -->
+
     <changeSet id="1" author="aparrish">
         <createTable tableName="USERS">
             <column name="ID" type="int" autoIncrement="true">
@@ -217,9 +221,9 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="12" author="aparrish">
-        <addUniqueConstraint tableName="USERS" columnNames="USERNAME"></addUniqueConstraint>
-    </changeSet>
+    <!--<changeSet id="12" author="aparrish">-->
+        <!--<addUniqueConstraint tableName="USERS" columnNames="USERNAME"></addUniqueConstraint>-->
+    <!--</changeSet>-->
 
     <changeSet id="13" author="aparrish">
         <createTable tableName="USER_NAME_RESTRICTIONS">
@@ -231,5 +235,18 @@
                 <constraints nullable="false"></constraints>
             </column>
         </createTable>
+    </changeSet>
+
+    <changeSet id="14" author="aparrish">
+        <renameColumn tableName="USERS" oldColumnName="SOUND_NOTIF" newColumnName="PUSH_NOTIF" columnDataType="BOOLEAN"></renameColumn>
+    </changeSet>
+
+    <changeSet id="15" author="aparrish">
+        <update tableName="USERS">
+            <column name="USERNAME" type="varchar(100)" value="Shoutout"/>
+            <where>
+                id = 1
+            </where>
+        </update>
     </changeSet>
 </databaseChangeLog>
