@@ -80,7 +80,7 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
         }
       }
 
-      def sendToRecipients(sender : ShoutoutUser, url : String, imageText : Option[String], groupIds : Option[String], friendIds : Option[String]) : Int = {
+      def sendToRecipients(sender : ShoutoutUser, url : String, text : Option[String], groupIds : Option[String], friendIds : Option[String]) : Int = {
 
         db.withTransaction { implicit s : Session =>
 
@@ -112,7 +112,7 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
             None,
             sender.id.get,
             0,
-            imageText.getOrElse(""),
+            text.getOrElse(""),
             url,
             false,
             None,
@@ -124,7 +124,7 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
             None,
             sender.id.get,
             0,
-            imageText.getOrElse(""),
+            text.getOrElse(""),
             url,
             false,
             None,
