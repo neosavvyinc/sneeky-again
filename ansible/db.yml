@@ -3,3 +3,5 @@
   sudo: True
   roles:
     - prod-db
+  vars:
+    deploymentBranch: "master"
