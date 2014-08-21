@@ -27,3 +27,10 @@ I added the following to my $PATH in ~/.bash_profile:
 The following command is used to generate the Launch Configuration:
 
 as-create-launch-config shoutout-launch-configuration --instance-id i-484fae6b -I AKIAIFVHJNAMIMPCY56Q -S qyDIdmLEnpFTXxmXZMVV+AYfRwwe0DuFqXHNnJPs
+
+
+### DROP TABLE:
+
+```
+DROP TABLE BLOCKED_USERS; DROP TABLE CONTACTS; DROP TABLE DATABASECHANGELOG; DROP TABLE DATABASECHANGELOGLOCK; DROP TABLE GROUPS; DROP TABLE GROUP_ITEMS; DROP TABLE SESSIONS; DROP TABLE SHOUTOUTS; DROP TABLE USERS; DROP TABLE USER_NAME_RESTRICTIONS;
+```

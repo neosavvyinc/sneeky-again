@@ -186,7 +186,7 @@
             <column name="UUID" value="f59a6e4b-2018-430d-8156-3d3707d74dbd"></column>
             <column name="EMAIL" value="hello@shoutoutwith.us"></column>
             <column name="PASSWORD" value="bQ489PUT52vM/YOC8sKNynaO66lwSbgDfZJrvybNdpE=$nW8ASg3cozb2LSAxc/nrbylZ8j2Q9q40QtsAiuGWTK0="></column>
-            <column name="USERNAME" value="Shoutout"></column>
+            <column name="USERNAME" value="TeamShoutout"></column>
             <column name="SOUND_NOTIF" value="0"></column>
         </insert>
     </changeSet>
