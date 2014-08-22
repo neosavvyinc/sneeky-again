@@ -27,10 +27,10 @@ object AppleService extends DSConfiguration {
    * We always use a production APNS environment.
    */
   private val environment : ApnsEnvironment = ApnsEnvironment.getProductionEnvironment
-//  ApplePushConfiguration.environment match {
-//    case "production" => ApnsEnvironment.getProductionEnvironment
-//    case _            => ApnsEnvironment.getSandboxEnvironment
-//  }
+  //  ApplePushConfiguration.environment match {
+  //    case "production" => ApnsEnvironment.getProductionEnvironment
+  //    case _            => ApnsEnvironment.getSandboxEnvironment
+  //  }
 
   private val certificate : String = ApplePushConfiguration.environment match {
     case "production" => ApplePushConfiguration.productionCert

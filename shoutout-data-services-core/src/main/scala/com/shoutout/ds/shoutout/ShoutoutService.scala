@@ -146,7 +146,15 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
       def findAllForUser(user : ShoutoutUser) : Future[List[ShoutoutResponse]] = {
         future {
           db.withSession { implicit s : Session =>
-            shoutoutDao.findAllForUser(user)
+            shoutoutDao.findAllForUser(user) map { resp =>
+              resp.copy(
+                imageUrl = encryptField(resp.imageUrl),
+                sender = resp.sender.copy(
+                  facebookId = encryptOption(resp.sender.facebookId),
+                  profilePictureUrl = encryptOption(resp.sender.profilePictureUrl)
+                )
+              )
+            }
           }
         }
       }

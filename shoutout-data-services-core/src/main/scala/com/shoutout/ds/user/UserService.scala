@@ -32,7 +32,10 @@ object UserService extends BasicCrypto {
 
     def login(loginRequest : UserLogin) : Future[LoginSuccess] = {
       for {
-        user <- shoutoutUsersDao.login(loginRequest)
+        user <- shoutoutUsersDao.login(UserLogin(
+          decryptField(loginRequest.email),
+          decryptField(loginRequest.password)
+        ))
         session <- sessionsDao.createSession(ShoutoutSession.newSession(user))
       } yield LoginSuccess(session.sessionId)
     }
@@ -41,7 +44,7 @@ object UserService extends BasicCrypto {
 
       def insertFriendIfNotExists(user : ShoutoutUser, targetFriendId : Long) = {
         db.withSession { implicit session : Session =>
-          val contactOption = contactsDao.findContactByUsernameForOwner(user, "shoutout")
+          val contactOption = contactsDao.findContactByIdForOwner(user, 1)
           contactOption match {
             case None    => contactsDao.insertFriendAssociation(user, ContactOrdering(None, Some(1), FriendType), 0)
             case Some(c) => log.debug(s"User $user is already friends with the shoutout team")
@@ -50,8 +53,15 @@ object UserService extends BasicCrypto {
         }
       }
 
+      var decryptedLoginRequest = FacebookUserLogin(
+        decryptField(loginRequest.facebookId),
+        loginRequest.firstName,
+        loginRequest.lastName,
+        loginRequest.birthdate
+      )
+
       for {
-        user <- shoutoutUsersDao.loginByFacebook(loginRequest)
+        user <- shoutoutUsersDao.loginByFacebook(decryptedLoginRequest)
         session <- {
           insertFriendIfNotExists(user, 1)
           sessionsDao.createSession(ShoutoutSession.newSession(user))
@@ -60,9 +70,14 @@ object UserService extends BasicCrypto {
     }
 
     def register(registrationRequest : UserRegistrationRequest) : Future[RegistrationResponse] = {
+      val decryptedRequest = UserRegistrationRequest(
+        decryptField(registrationRequest.email),
+        decryptField(registrationRequest.password)
+      )
+
       for {
-        _ <- Passwords.validate(registrationRequest.password)
-        registrationResponse <- doRegistration(registrationRequest)
+        _ <- Passwords.validate(decryptedRequest.password)
+        registrationResponse <- doRegistration(decryptedRequest)
       } yield registrationResponse
     }
 
@@ -125,6 +140,7 @@ object UserService extends BasicCrypto {
 
       db.withSession { implicit session : Session =>
         activeUser.copy(
+          profilePictureUrl = encryptField(activeUser.profilePictureUrl),
           receivedCount = shoutoutDao.countReceived(user),
           sentCount = shoutoutDao.countSent(user),
           sessionInvalid = shoutoutSession.sessionInvalid)
@@ -146,7 +162,7 @@ object UserService extends BasicCrypto {
 
     def forgotPassword(email : String) : Future[Boolean] = {
       for {
-        status <- resetPassword(email)
+        status <- resetPassword(decryptField(email))
         results <- sendResetPasswordEmail(status)
       } yield results
 
@@ -160,12 +176,12 @@ object UserService extends BasicCrypto {
 
             val userFromDB = shoutoutUsersDao.findByIdOperation(user.id.get)
             val isValid : Boolean = userFromDB match {
-              case Some(u) => Passwords.check(request.oldPassword, u.password.getOrElse(throw ShoutoutException.genericPasswordException))
+              case Some(u) => Passwords.check(decryptField(request.oldPassword), decryptField(u.password.getOrElse(throw ShoutoutException.genericPasswordException)))
               case None    => throw ShoutoutException.genericPasswordException
             }
 
             if (isValid) {
-              shoutoutUsersDao.updatePasswordForUserOperation(user.id.get, Passwords.getSaltedHash(request.newPassword))
+              shoutoutUsersDao.updatePasswordForUserOperation(user.id.get, Passwords.getSaltedHash(decryptField(request.newPassword)))
             } else {
               throw ShoutoutException.genericPasswordException
             }

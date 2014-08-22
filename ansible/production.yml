@@ -6,6 +6,7 @@
     - deploy
     - prod-deploy
     - nginx-ssl
+#    - autoscale
   vars:
       serverListenPort: "8090"
       serverListenAddress: "0.0.0.0"

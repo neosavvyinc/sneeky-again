@@ -1,0 +1,23 @@
+#- local_action:
+#    module: ec2_ami
+#    aws_access_key: AKIAIFVHJNAMIMPCY56Q
+#    aws_secret_key: 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
+#    region: us-east-1
+#    instance_id: blah
+#    wait: yes
+#    name: shoutout-version-1.0.0
+#    register: instance
+
+- name: backup node1 for auto scaling groups
+  local_action: ec2-create-image i-484fae6b --name "Shoutout v1.0.0 Release Image" --description "Copy of Node 1 for Auto Scaling"
+  sudo: False
+
+#- name: create a launch configuration from the backup above
+
+#Create a launch configuration
+#- ec2_lc:
+#    name: special
+#    image_id: ami-XXX
+#    key_name: default
+#    security_groups: 'group,group2'
+#    instance_type: t1.micro

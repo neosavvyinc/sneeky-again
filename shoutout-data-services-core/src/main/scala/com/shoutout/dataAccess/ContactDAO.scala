@@ -11,6 +11,16 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
   import dal._
   import dal.profile.simple._
 
+  def findContactByIdForOwner(owner : ShoutoutUser, id : Long)(implicit session : Session) : Option[(Contact, ShoutoutUser)] = {
+    val q = for {
+      id <- Parameters[Long];
+      c <- ContactTable if c.ownerId === owner.id.get
+      u <- UserTable if u.id === c.friendId && id === u.id
+    } yield (c, u)
+
+    q(id).firstOption
+  }
+
   def findContactByUsernameForOwner(owner : ShoutoutUser, username : String)(implicit session : Session) : Option[(Contact, ShoutoutUser)] = {
     val q = for {
       username <- Parameters[String];

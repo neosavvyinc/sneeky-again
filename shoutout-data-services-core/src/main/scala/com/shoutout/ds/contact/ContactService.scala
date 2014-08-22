@@ -52,10 +52,11 @@ object ContactService extends BasicCrypto {
       future {
         db.withTransaction { implicit s =>
           //find the user to see if they exist
-          shoutoutUsersDao.findByUsernameOperation(request.username) match {
+          val decryptedUserName = decryptField(request.username)
+          shoutoutUsersDao.findByUsernameOperation(decryptedUserName) match {
             case None => throw ShoutoutException.contactNotUpdated
             case Some(persistentUser) => {
-              contactsDao.findContactByUsernameForOwner(user, request.username) match {
+              contactsDao.findContactByUsernameForOwner(user, decryptedUserName) match {
                 case None => {
                   val c = ContactOrdering(None, persistentUser.id, FriendType)
                   contactsDao.insertFriendAssociation(user, c, contactsDao.countContactsForUser(user))
@@ -104,7 +105,7 @@ object ContactService extends BasicCrypto {
       future {
         db.withTransaction { implicit s =>
           //find the user to see if they exist
-          shoutoutUsersDao.findByFacebookIds(request.facebookIds) match {
+          shoutoutUsersDao.findByFacebookIds(request.facebookIds map { fId => decryptField(fId) }) match {
             case Nil           => throw ShoutoutException.contactNotUpdated
             case facebookUsers => insertOrUpdateEachUser(facebookUsers, user, 0)
           }
@@ -149,10 +150,10 @@ object ContactService extends BasicCrypto {
             case Some(u) => Some(Friend(
               u.id,
               u.username,
-              u.facebookID,
+              encryptOption(u.facebookID),
               u.firstName,
               u.lastName,
-              u.profilePictureUrl))
+              encryptOption(u.profilePictureUrl)))
           }
         }
 
@@ -173,10 +174,10 @@ object ContactService extends BasicCrypto {
                 m =>
                   Friend(m.id,
                     m.username,
-                    m.facebookID,
+                    encryptOption(m.facebookID),
                     m.firstName,
                     m.lastName,
-                    m.profilePictureUrl)
+                    encryptOption(m.profilePictureUrl))
               }
               val groupResponse = GroupResponse(group.id.get, group.ownerId, group.name, friends)
 

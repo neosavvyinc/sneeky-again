@@ -3,3 +3,41 @@
 
 - name: Copy logback xml file for production
   copy: src=logback.xml dest=/opt/shoutout/logback.xml
+
+- name: Install supervisord
+  easy_install: name=supervisor
+
+- name: Initialize our supervisor directory
+  file: path=/etc/supervisor owner=root group=root state=directory
+
+- name: Fresh Supervisor Sneeky Conf
+  copy: src=supervisord.sneeky.conf dest=/etc/supervisor/supervisord.sneeky.conf
+
+- name: Copy the Supervisord Startup Script
+  copy: src=supervisord.shoutout dest=/etc/init.d/supervisord.shoutout mode=0755
+
+- name: Fresh Supervisor Shoutout Conf
+  copy: src=supervisord.shoutout.conf dest=/etc/supervisor/supervisord.shoutout.conf
+
+- name: Copy the Supervisord Shoutout Startup Script
+  copy: src=supervisord.sneeky dest=/etc/init.d/supervisord.sneeky mode=0755
+
+- name: Ensure both are in default run levels
+  command: update-rc.d supervisord.{{ item }} defaults
+  with_items:
+    - sneeky
+    - shoutout
+
+- name: Kill all Supervisord
+  command: killall supervisord
+  ignore_errors: yes
+
+- name: Kill all Java
+  command: killall java
+  ignore_errors: yes
+
+- name: Restart the Supervisord Script
+  command: /etc/init.d/supervisord.shoutout restart
+
+- name: Restart the Supervisord Script
+  command: /etc/init.d/supervisord.sneeky restart
