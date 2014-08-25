@@ -51,7 +51,7 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
           val notificationMessage = (sender.firstName, sender.lastName, sender.username) match {
             case (Some(f), Some(l), _) => {
               val lastInitial = l.charAt(0)
-              s"$f $lastInitial. has sent you a photo"
+              s"$f $lastInitial. sent you a photo"
             }
             case (Some(f), None, _) => s"$f sent you a photo"
             case (None, Some(l), _) => s"$l sent you a photo"
@@ -108,7 +108,7 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
           val uniqueRecipients = recipients.toSet.diff(usersWhoBlockSender).toList
 
           // insert a record for each user into the Shoutout table that isn't blocked
-          shoutoutDao.insertShoutouts(sender, uniqueRecipients, Shoutout(
+          shoutoutDao.insertShoutouts(uniqueRecipients, Shoutout(
             None,
             sender.id.get,
             0,
@@ -122,7 +122,7 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
           ))
 
           // insert a record for each blocked user into the Shoutout table
-          shoutoutDao.insertShoutouts(sender, usersWhoBlockSender.toList, Shoutout(
+          shoutoutDao.insertShoutouts(usersWhoBlockSender.toList, Shoutout(
             None,
             sender.id.get,
             0,

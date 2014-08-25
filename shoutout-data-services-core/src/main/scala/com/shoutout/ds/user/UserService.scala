@@ -4,7 +4,7 @@ import com.shoutout.ds.integration.amazon.S3Service
 
 import scala.concurrent.{ Await, ExecutionContext, Future, future }
 import com.shoutout.model._
-import com.shoutout.ds.framework.Logging
+import com.shoutout.ds.framework.{ Dates, Logging }
 import com.shoutout.model.UserLogin
 import com.shoutout.model.ShoutoutUser
 import com.shoutout.dataAccess.DatabaseSupport
@@ -30,6 +30,19 @@ object UserService extends BasicCrypto {
 
   def apply(s3Service : S3Service)(implicit ec : ExecutionContext) = new UserService with DatabaseSupport with Logging {
 
+    private def insertWelcomeRow(user : ShoutoutUser)(implicit session : Session) = {
+      shoutoutDao.insertShoutouts(user :: Nil, Shoutout(None,
+        1,
+        user.id.get,
+        "Welcome to Shoutout",
+        "https://s3.amazonaws.com/shoutout-prod-system/firstimage_640x1136.png",
+        false,
+        None,
+        Dates.nowDT,
+        false,
+        "image/jpg"))
+    }
+
     def login(loginRequest : UserLogin) : Future[LoginSuccess] = {
       for {
         user <- shoutoutUsersDao.login(UserLogin(
@@ -46,7 +59,10 @@ object UserService extends BasicCrypto {
         db.withSession { implicit session : Session =>
           val contactOption = contactsDao.findContactByIdForOwner(user, 1)
           contactOption match {
-            case None    => contactsDao.insertFriendAssociation(user, ContactOrdering(None, Some(1), FriendType), 0)
+            case None => {
+              contactsDao.insertFriendAssociation(user, ContactOrdering(None, Some(1), FriendType), 0)
+              insertWelcomeRow(user)
+            }
             case Some(c) => log.debug(s"User $user is already friends with the shoutout team")
           }
 
@@ -198,6 +214,8 @@ object UserService extends BasicCrypto {
 
           //This one liner adds an association to the team shoutout account
           contactsDao.insertFriendAssociation(user, ContactOrdering(None, Some(1), FriendType), 0)
+          insertWelcomeRow(user)
+
           RegistrationResponse(session.sessionId)
         }
       }

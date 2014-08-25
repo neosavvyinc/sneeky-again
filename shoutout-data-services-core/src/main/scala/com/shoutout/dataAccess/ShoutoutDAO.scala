@@ -15,7 +15,7 @@ class ShoutoutDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
   import dal._
   import dal.profile.simple._
 
-  def insertShoutouts(owner : ShoutoutUser, recipients : List[ShoutoutUser], shoutout : Shoutout)(implicit session : Session) = {
+  def insertShoutouts(recipients : List[ShoutoutUser], shoutout : Shoutout)(implicit session : Session) = {
     recipients.map(rec => ShoutoutTable.forInsert.insert(shoutout.copy(recipient = rec.id.get)))
   }
 

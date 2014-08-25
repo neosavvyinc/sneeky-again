@@ -1,3 +1,5 @@
+# This runs against 127.0.0.1 as it only runs to manage AWS not all nodes in AWS
+
 - hosts: dev
   roles:
     - autoscale
