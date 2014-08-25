@@ -28,7 +28,7 @@ class StatsDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCont
   }
 
   def sentAllCount(implicit session : Session) : Option[Int] = {
-    def countQuery = sql"select count(*) from SHOUTOUTS where DATE_FORMAT(CREATED_TIMESTAMP, '%y-%m-%d') = DATE_FORMAT(DATE(NOW()), '%y-%m-%d')".as[Int]
+    def countQuery = sql"select count(*) from SHOUTOUTS".as[Int]
     try {
       val result = countQuery.firstOption
       result
