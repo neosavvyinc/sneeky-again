@@ -5,6 +5,7 @@ import com.shoutout.ds.block.BlockEndpoint
 import com.shoutout.ds.contact.ContactEndpoint
 import com.shoutout.ds.group.GroupEndpoint
 import com.shoutout.ds.health.HealthCheckEndpoint
+import com.shoutout.ds.stats.StatsEndpoint
 import com.shoutout.ds.user.UserEndpoint
 import com.shoutout.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
 import com.shoutout.ds.shoutout.ShoutoutEndpoint
@@ -26,7 +27,8 @@ class ShoutoutRouteActor(val appleActor : ActorRef, val s3Service : S3Service) e
     with GroupEndpoint
     with BlockEndpoint
     with HealthCheckEndpoint
-    with DatabaseSupport {
+    with DatabaseSupport
+    with StatsEndpoint {
 
   this : RequestAuthenticator with EntryPointAuthenticator =>
 
@@ -37,6 +39,6 @@ class ShoutoutRouteActor(val appleActor : ActorRef, val s3Service : S3Service) e
   // this actor only runs our route, but you could add
   // other things here, like request stream processing
   // or timeout handling
-  def receive = runRoute(userRoute ~ shoutoutRoute ~ contactRoute ~ groupRoute ~ blockRoute ~ healthCheckRoute)
+  def receive = runRoute(userRoute ~ shoutoutRoute ~ contactRoute ~ groupRoute ~ blockRoute ~ healthCheckRoute ~ statsRoute)
 
 }
