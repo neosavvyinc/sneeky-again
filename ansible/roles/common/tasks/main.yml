@@ -1,5 +1,6 @@
 - name: Make sure mysql-python is installed
   easy_install: name=mysql-python
+  sudo: True
 
 - name: Set up mysql user shoutout
   mysql_user: name=shoutout password=shoutout priv=*.*:ALL state=present

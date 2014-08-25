@@ -34,7 +34,7 @@ object UserService extends BasicCrypto {
       shoutoutDao.insertShoutouts(user :: Nil, Shoutout(None,
         1,
         user.id.get,
-        "Welcome to Shoutout",
+        "Welcome to Shoutout! Start by adding some friends to your friends list",
         "https://s3.amazonaws.com/shoutout-prod-system/firstimage_640x1136.png",
         false,
         None,
