@@ -13,8 +13,9 @@ echo "Created Launch Configuration with ID: " $LAUNCH_ID
 
 as-create-auto-scaling-group shoutout-autoscaling-group --launch-configuration shoutout-launch-config --availability-zones us-east-1c --min-size 1 --max-size 10 --desired-capacity 1 --load-balancers ShoutoutHttpsLoadBalancer
 
-
 #as-put-scaling-policy one for high one for low
-as-put-scaling-policy increase-nodes-cpu-threshhold --auto-scaling-group shoutout-autoscaling-group --adjustment=1 --type ChangeInCapacity --cooldown 300 --region us-east-1
-mon-put-metric-alarm shoutout-high-cpu-alarm --comparison-operator GreaterThanThreshold --evaluation-periods 3 --metric-name CPUUtilization --namespace "AWS/EC2" --period 60 --statistic Average --threshold 10 --alarm-actions increase-nodes-cpu-threshhold --dimensions "AutoScalingGroupName=shoutout-autoscaling-group" --region $REGION
-as-put-scaling-policy decrease-nodes-cpu-threshhold --auto-scaling-group shoutout-autoscaling-group --adjustment=-1 --type ChangeInCapacity --cooldown 300 --region us-east-1
+increaseAlarm=`as-put-scaling-policy ShoutoutIncreaseNodes --auto-scaling-group shoutout-autoscaling-group --adjustment=1 --type ChangeInCapacity --cooldown 300 --region us-east-1`
+mon-put-metric-alarm shoutout-high-cpu-alarm --comparison-operator GreaterThanThreshold --evaluation-periods 3 --metric-name CPUUtilization --namespace "AWS/EC2" --period 60 --statistic Average --threshold 10 --alarm-actions $increaseAlarm --dimensions "AutoScalingGroupName=shoutout-autoscaling-group" --region us-east-1
+
+decreaseAlarm=`as-put-scaling-policy ShoutoutDecreaseNodes --auto-scaling-group shoutout-autoscaling-group --adjustment=-1 --type ChangeInCapacity --cooldown 300 --region us-east-1`
+mon-put-metric-alarm shoutout-low-cpu-alarm --comparison-operator LessThanThreshold --evaluation-periods 3 --metric-name CPUUtilization --namespace "AWS/EC2" --period 60 --statistic Average --threshold 5 --alarm-actions $decreaseAlarm --dimensions "AutoScalingGroupName=shoutout-autoscaling-group" --region us-east-1
