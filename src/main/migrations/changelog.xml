@@ -257,4 +257,10 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="17" author="aparrish">
+        <addColumn tableName="USERS">
+            <column name="CREATED_TIMESTAMP" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>
