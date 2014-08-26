@@ -18,8 +18,8 @@ class StatsDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCont
   //Sent Count
   def sentCountForDate(date : Option[LocalDate])(implicit session : Session) : Option[Int] = {
     val dtf = DateTimeFormat.forPattern("yy-MM-dd")
-    val dateSqlString = dtf.print(date.get)
-    def countQuery = sql"select count(*) from SHOUTOUTS where DATE_FORMAT(CREATED_TIMESTAMP, '%y-%m-%d') = $dateSqlString".as[Int]
+    val dateSqlString = "'" + dtf.print(date.get) + "'"
+    def countQuery = sql"select count(*) from SHOUTOUTS where DATE_FORMAT(CREATED_TIMESTAMP, '%y-%m-%d') = #$dateSqlString".as[Int]
     //println(dateSqlString)
     try {
       val result = countQuery.firstOption
@@ -47,10 +47,12 @@ class StatsDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCont
 
   //Email Registration
   def registrationByEmailTotalCountForDate(date : Option[LocalDate])(implicit session : Session) : Option[Int] = {
+    import scala.slick.jdbc.{ GetResult, StaticQuery => Q }
+
     val dtf = DateTimeFormat.forPattern("yy-MM-dd")
-    val dateSqlString = dtf.print(date.get)
-    def countQuery = sql"select count(*) from USERS WHERE FACEBOOK_ID IS NULL AND DATE_FORMAT(CREATED_TIMESTAMP, '%y-%m-%d') = $dateSqlString".as[Int]
-    //println(dateSqlString)
+    val dateSqlString = "'" + dtf.print(date.get) + "'"
+    def countQuery = sql"select count(*) from USERS WHERE FACEBOOK_ID IS NULL AND DATE_FORMAT(CREATED_TIMESTAMP, '%y-%m-%d') = #$dateSqlString".as[Int]
+
     try {
       val result = countQuery.firstOption
       result
@@ -78,8 +80,8 @@ class StatsDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCont
   //Facebook Registration
   def registrationByFacebookTotalCountForDate(date : Option[LocalDate])(implicit session : Session) : Option[Int] = {
     val dtf = DateTimeFormat.forPattern("yy-MM-dd")
-    val dateSqlString = dtf.print(date.get)
-    def countQuery = sql"select count(*) from USERS WHERE FACEBOOK_ID IS NOT NULL AND DATE_FORMAT(CREATED_TIMESTAMP, '%y-%m-%d') = $dateSqlString".as[Int]
+    val dateSqlString = "'" + dtf.print(date.get) + "'"
+    def countQuery = sql"select count(*) from USERS WHERE FACEBOOK_ID IS NOT NULL AND DATE_FORMAT(CREATED_TIMESTAMP, '%y-%m-%d') = #$dateSqlString".as[Int]
     //println(dateSqlString)
     try {
       val result = countQuery.firstOption
