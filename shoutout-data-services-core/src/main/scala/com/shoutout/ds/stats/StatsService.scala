@@ -23,16 +23,22 @@ object StatsService extends BasicCrypto {
 
       def getStats(request : StatsRequest) : Future[StatsResponse] = {
         future {
-          if (request.password == "m02I7XkTFx") {
+          if (request.password == "k4WxG9ySYz3nhZjuQrwFm2sn") {
             db.withSession { implicit session : Session =>
-              val unreadMessageCount = statsDao.sentAllCount
-              val totalRegisterEmail = statsDao.registrationByEmailTotalCount
-              val totalRegisterFacbeook = statsDao.registrationByFacebookTotalCount
+              val sentTodayCount = statsDao.sentCountForDate(request.date)
+              val sentAllCount = statsDao.sentAllCount
+              val todayRegisterEmailCount = statsDao.registrationByEmailTotalCountForDate(request.date)
+              val totalRegisterEmailCount = statsDao.registrationByEmailTotalCount
+              val todayRegisterFacebookCount = statsDao.registrationByFacebookTotalCountForDate(request.date)
+              val totalRegisterFacebookCount = statsDao.registrationByFacebookTotalCount
 
               StatsResponse(
-                sentAll = unreadMessageCount,
-                regAllEmail = totalRegisterEmail,
-                regAllFB = totalRegisterFacbeook
+                sentToday = sentTodayCount,
+                sentAll = sentAllCount,
+                regTodayEmail = todayRegisterEmailCount,
+                regAllEmail = totalRegisterEmailCount,
+                regTodayFB = todayRegisterFacebookCount,
+                regAllFB = totalRegisterFacebookCount
               )
             }
           } else {
