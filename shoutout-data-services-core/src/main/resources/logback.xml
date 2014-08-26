@@ -30,6 +30,7 @@
     <!--<logger name="com.phantom.ds.conversation" level="trace"/>-->
     <!--<logger name="com.phantom.ds.user" level="debug"/>-->
     <logger name="com.shoutout.ds.framework.auth" level="debug"/>
+    <logger name="com.shoutout.dataAccess" level="debug"/>
     <logger name="com.relayrides" level="trace"/>
     <logger name="scala.slick.session" level="error"/>
     <!--<logger name="com.phantom.ds.framework" level="trace"/>-->

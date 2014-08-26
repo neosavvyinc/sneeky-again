@@ -73,13 +73,16 @@ class ShoutoutDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
       import scala.slick.jdbc.{ StaticQuery => Q }
       import Q.interpolation
       val id = user.id.get
+      val userName = user.username
+
       def countQuery = sql"select count(*) from SHOUTOUTS where RECIPIENT_ID = $id and IS_VIEWED = false and IS_BLOCKED = false".as[Int]
       try {
         val result = countQuery.first
-        result
+        debug(s"Executing a count query for user: $userName and the result was $result")
+        if (result == 0) { 1 } else { result }
       } catch {
         case e : Exception => {
-          println("Error occurred:  " + e.toString)
+          log.error(s"Something went bad wrong while counting a user's shoutouts: $e")
           1 //something happened so let's at least return one
         }
       }
