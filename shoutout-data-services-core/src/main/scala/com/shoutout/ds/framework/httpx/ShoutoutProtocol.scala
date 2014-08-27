@@ -153,7 +153,7 @@ package object httpx {
 
     implicit val settingsRequest2json = jsonFormat2(SettingsRequest)
 
-    implicit val statsRequest2json = jsonFormat2(StatsRequest)
+    implicit val statsRequest2json = jsonFormat3(StatsRequest)
     implicit val statsResponse2json = jsonFormat6(StatsResponse)
   }
 

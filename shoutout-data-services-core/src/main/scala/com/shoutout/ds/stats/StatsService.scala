@@ -25,11 +25,11 @@ object StatsService extends BasicCrypto {
         future {
           if (request.password == "k4WxG9ySYz3nhZjuQrwFm2sn") {
             db.withSession { implicit session : Session =>
-              val sentTodayCount = statsDao.sentCountForDate(request.date)
+              val sentTodayCount = statsDao.sentCountForDate(request.date, request.timezone)
               val sentAllCount = statsDao.sentAllCount
-              val todayRegisterEmailCount = statsDao.registrationByEmailTotalCountForDate(request.date)
+              val todayRegisterEmailCount = statsDao.registrationByEmailTotalCountForDate(request.date, request.timezone)
               val totalRegisterEmailCount = statsDao.registrationByEmailTotalCount
-              val todayRegisterFacebookCount = statsDao.registrationByFacebookTotalCountForDate(request.date)
+              val todayRegisterFacebookCount = statsDao.registrationByFacebookTotalCountForDate(request.date, request.timezone)
               val totalRegisterFacebookCount = statsDao.registrationByFacebookTotalCount
 
               StatsResponse(

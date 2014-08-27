@@ -129,13 +129,20 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
-  def loginByFacebook(loginRequest : FacebookUserLogin) : Future[ShoutoutUser] = {
+  def loginByFacebook(loginRequest : FacebookUserLogin) : Future[(ShoutoutUser, Boolean)] = {
     future {
       db.withSession { implicit session =>
+        var userExists = false;
+
         log.trace(s"logging in $loginRequest")
         val userOpt = for {
           user <- findByFacebookOperation(loginRequest.facebookId)
         } yield user
+
+        userOpt match {
+          case Some(_) => userExists = true
+          case None    => userExists = false
+        }
 
         val user = userOpt.getOrElse(insertNoTransact(ShoutoutUser(
           None,
@@ -158,7 +165,7 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
           "",
           None)))
 
-        user
+        (user, userExists)
       }
     }
   }

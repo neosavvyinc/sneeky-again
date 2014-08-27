@@ -77,10 +77,12 @@ object UserService extends BasicCrypto {
       )
 
       for {
-        user <- shoutoutUsersDao.loginByFacebook(decryptedLoginRequest)
+        userTuple <- shoutoutUsersDao.loginByFacebook(decryptedLoginRequest)
         session <- {
-          insertFriendIfNotExists(user, 1)
-          sessionsDao.createSession(ShoutoutSession.newSession(user))
+          if (userTuple._2 == false) {
+            insertFriendIfNotExists(userTuple._1, 1)
+          }
+          sessionsDao.createSession(ShoutoutSession.newSession(userTuple._1))
         }
       } yield LoginSuccess(session.sessionId)
     }

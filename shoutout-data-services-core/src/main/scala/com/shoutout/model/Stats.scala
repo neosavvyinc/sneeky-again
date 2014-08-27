@@ -7,7 +7,8 @@ import org.joda.time.LocalDate
  */
 
 case class StatsRequest(password : String,
-                        date : Option[LocalDate])
+                        date : Option[LocalDate],
+                        timezone : Option[String])
 
 case class StatsResponse(sentToday : Option[Int] = None,
                          sentAll : Option[Int] = None,
