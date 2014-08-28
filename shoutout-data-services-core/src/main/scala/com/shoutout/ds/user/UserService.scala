@@ -61,6 +61,7 @@ object UserService extends BasicCrypto {
           contactOption match {
             case None => {
               contactsDao.insertFriendAssociation(user, ContactOrdering(None, Some(1), FriendType), 0)
+              contactsDao.insertFriendAssociation(user, ContactOrdering(None, user.id, FriendType), 1)
               insertWelcomeRow(user)
             }
             case Some(c) => log.debug(s"User $user is already friends with the shoutout team")
@@ -216,6 +217,7 @@ object UserService extends BasicCrypto {
 
           //This one liner adds an association to the team shoutout account
           contactsDao.insertFriendAssociation(user, ContactOrdering(None, Some(1), FriendType), 0)
+          contactsDao.insertFriendAssociation(user, ContactOrdering(None, user.id, FriendType), 1)
           insertWelcomeRow(user)
 
           RegistrationResponse(session.sessionId)
