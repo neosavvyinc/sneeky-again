@@ -17,7 +17,8 @@ case class Shoutout(id : Option[Long],
                     viewedDate : Option[DateTime],
                     createdDate : DateTime,
                     isBlocked : Boolean = false,
-                    contentType : String)
+                    contentType : String,
+                    isCleaned : Boolean = false)
 
 case class ShoutoutResponse(id : Long,
                             sender : Friend,
@@ -58,8 +59,9 @@ trait ShoutoutComponent { this : Profile =>
     def createdDate = column[DateTime]("CREATED_TIMESTAMP", DBType("DATETIME"))
     def isBlocked = column[Boolean]("IS_BLOCKED")
     def contentType = column[String]("CONTENT_TYPE")
+    def isCleaned = column[Boolean]("IS_CLEANED")
 
-    def * = id.? ~ sender ~ recipient ~ text ~ imageUrl ~ isViewed ~ viewedDate.? ~ createdDate ~ isBlocked ~ contentType <> (Shoutout, Shoutout.unapply _)
+    def * = id.? ~ sender ~ recipient ~ text ~ imageUrl ~ isViewed ~ viewedDate.? ~ createdDate ~ isBlocked ~ contentType ~ isCleaned <> (Shoutout, Shoutout.unapply _)
     def forInsert = * returning id
 
   }

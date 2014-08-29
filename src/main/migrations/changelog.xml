@@ -5,9 +5,6 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd
     http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 
-    <!--
-    This is a test of a simple commit!
-    -->
 
     <changeSet id="1" author="aparrish">
         <createTable tableName="USERS">
@@ -260,6 +257,12 @@
     <changeSet id="17" author="aparrish">
         <addColumn tableName="USERS">
             <column name="CREATED_TIMESTAMP" type="datetime" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="18" author="aparrish">
+        <addColumn tableName="SHOUTOUTS">
+            <column name="IS_CLEANED" type="tinyint(1)" defaultValue="0"/>
         </addColumn>
     </changeSet>
 

@@ -147,7 +147,7 @@ package object httpx {
     implicit val aggregateContact2json = jsonFormat4(AggregateContact)
     implicit val groupMembershipRequest2json = jsonFormat3(GroupMembershipRequest)
 
-    implicit val shoutout2json = jsonFormat10(Shoutout)
+    implicit val shoutout2json = jsonFormat11(Shoutout)
     implicit val shoutoutResponse2json = jsonFormat6(ShoutoutResponse)
     implicit val updatePushToken2json = jsonFormat2(UpdatePushTokenRequest)
 

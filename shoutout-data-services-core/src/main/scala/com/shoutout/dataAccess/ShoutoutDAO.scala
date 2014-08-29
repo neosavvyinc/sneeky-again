@@ -21,13 +21,13 @@ class ShoutoutDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
 
   val unviewedByOwnerQuery = for {
     ownerId <- Parameters[Long]
-    s <- ShoutoutTable if s.recipient === ownerId && s.isViewed === false && s.isBlocked === false
+    s <- ShoutoutTable if s.recipient === ownerId && s.isViewed === false && s.isBlocked === false && s.isCleaned === false
     u <- UserTable if s.sender === u.id
   } yield (s, u)
 
   val unreadMessageQuery = for {
     ownerId <- Parameters[Long]
-    s <- ShoutoutTable if (s.recipient === ownerId && s.isViewed === false)
+    s <- ShoutoutTable if (s.recipient === ownerId && s.isViewed === false && s.isCleaned === false)
   } yield s
 
   def findAllForUser(user : ShoutoutUser)(implicit session : Session) : List[ShoutoutResponse] = {
@@ -75,7 +75,7 @@ class ShoutoutDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
       val id = user.id.get
       val userName = user.username
 
-      def countQuery = sql"select count(*) from SHOUTOUTS where RECIPIENT_ID = $id and IS_VIEWED = false and IS_BLOCKED = false".as[Int]
+      def countQuery = sql"select count(*) from SHOUTOUTS where RECIPIENT_ID = $id and IS_VIEWED = false and IS_BLOCKED = false and IS_CLEANED = false".as[Int]
       try {
         val result = countQuery.first
         debug(s"Executing a count query for user: $userName and the result was $result")
