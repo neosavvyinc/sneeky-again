@@ -17,7 +17,10 @@ trait ContactEndpoint extends DataHttpService with PhantomJsonProtocol with Basi
   val contacts = "contacts"
 
   def findContacts = pathPrefix(contacts) {
-    authenticate(unverified _) { user =>
+    authenticate(unverified _) { authenticationResult =>
+
+      val (user, sessionId) = authenticationResult
+
       get {
         respondWithMediaType(`application/json`) {
           complete {
@@ -29,7 +32,10 @@ trait ContactEndpoint extends DataHttpService with PhantomJsonProtocol with Basi
   }
 
   def saveContacts = pathPrefix(contacts / "save") {
-    authenticate(unverified _) { user =>
+    authenticate(unverified _) { authenticationResult =>
+
+      val (user, sessionId) = authenticationResult
+
       post {
         respondWithMediaType(`application/json`) {
           entity(as[ContactsRequest]) { request =>
@@ -44,7 +50,10 @@ trait ContactEndpoint extends DataHttpService with PhantomJsonProtocol with Basi
   }
 
   def addContactByUsername = pathPrefix(contacts / "add" / "username") {
-    authenticate(unverified _) { user =>
+    authenticate(unverified _) { authenticationResult =>
+
+      val (user, sessionId) = authenticationResult
+
       post {
         respondWithMediaType(`application/json`) {
           entity(as[ContactByUsernameRequest]) { request =>
@@ -58,7 +67,10 @@ trait ContactEndpoint extends DataHttpService with PhantomJsonProtocol with Basi
   }
 
   def addContactsByFacebookId = pathPrefix(contacts / "add" / "facebook") {
-    authenticate(unverified _) { user =>
+    authenticate(unverified _) { authenticationResult =>
+
+      val (user, sessionId) = authenticationResult
+
       post {
         respondWithMediaType(`application/json`) {
           entity(as[ContactByFacebookIdsRequest]) { request =>
@@ -72,7 +84,10 @@ trait ContactEndpoint extends DataHttpService with PhantomJsonProtocol with Basi
   }
 
   def deleteContact = pathPrefix(contacts / "delete") {
-    authenticate(unverified _) { user =>
+    authenticate(unverified _) { authenticationResult =>
+
+      val (user, sessionId) = authenticationResult
+
       post {
         respondWithMediaType(`application/json`) {
           entity(as[DeleteContactRequest]) { request =>

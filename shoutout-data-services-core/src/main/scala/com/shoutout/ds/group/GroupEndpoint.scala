@@ -18,7 +18,10 @@ trait GroupEndpoint extends DataHttpService with PhantomJsonProtocol with BasicC
   val groups = "groups"
 
   def findGroups = pathPrefix(groups) {
-    authenticate(unverified _) { user =>
+    authenticate(unverified _) { authenticationResult =>
+
+      val (user, sessionId) = authenticationResult
+
       get {
         respondWithMediaType(`application/json`) {
           complete {
@@ -30,7 +33,10 @@ trait GroupEndpoint extends DataHttpService with PhantomJsonProtocol with BasicC
   }
 
   def createOrUpdateGroup = pathPrefix(groups) {
-    authenticate(unverified _) { user =>
+    authenticate(unverified _) { authenticationResult =>
+
+      val (user, sessionId) = authenticationResult
+
       post {
         respondWithMediaType(`application/json`) {
           entity(as[GroupMembershipRequest]) { groupMembership =>

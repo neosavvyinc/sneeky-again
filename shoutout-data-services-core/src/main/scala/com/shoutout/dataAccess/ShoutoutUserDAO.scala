@@ -3,7 +3,7 @@ package com.shoutout.dataAccess
 import org.joda.time.LocalDate
 
 import scala.slick.session.Database
-import com.shoutout.ds.framework.Logging
+import com.shoutout.ds.framework.{ Dates, Logging }
 import com.shoutout.ds.framework.exception.ShoutoutException
 import com.shoutout.model._
 import scala.concurrent.{ ExecutionContext, Future, future }
@@ -78,6 +78,12 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
   def updatePasswordForUserOperation(email : String, newPassword : String)(implicit session : Session) : Boolean = {
     val updateQuery = for { u <- UserTable if u.email === email.toLowerCase } yield u.password
     val numRows = updateQuery.update(newPassword)
+    numRows > 0
+  }
+
+  def updateLastAccessedOperation(user : ShoutoutUser)(implicit session : Session) : Boolean = {
+    val updateQuery = for { u <- UserTable if u.id === user.id } yield u.lastAccessed
+    val numRows = updateQuery.update(Dates.nowDT)
     numRows > 0
   }
 

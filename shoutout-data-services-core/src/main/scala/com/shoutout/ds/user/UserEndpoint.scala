@@ -67,50 +67,55 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
   }
 
   def logout = pathPrefix(users / "logout") {
-    get { //todo:  authenticate should return case class of User/Session
-      parameter('sessionId) { session =>
+    authenticate(unverified _) { authenticationResult =>
+      val (user, sessionId) = authenticationResult
+      get {
         respondWithMediaType(`application/json`) {
-          complete(userService.logout(session))
+          complete(userService.logout(sessionId.toString))
         }
       }
     }
   }
 
   def activeUser = pathPrefix(users / "active") {
-    authenticate(unverified _) { user =>
-      parameter('sessionId) { session =>
-        get {
-          respondWithMediaType(`application/json`) {
-            log.trace(s"identify function invoked : $user")
+    authenticate(unverified _) { authenticationResult =>
 
-            import scala.concurrent.duration._
-            val sessionObject = Await.result(userService.findFromSessionId(session), 1 seconds)
+      val (user, sessionId) = authenticationResult
 
-            complete(
-              Future.successful(
-                userService.deriveExtraProperties(
-                  user,
-                  ActiveShoutoutUser(
-                    user.birthday,
-                    user.firstName.getOrElse(""),
-                    user.lastName.getOrElse(""),
-                    user.username,
-                    user.profilePictureUrl.getOrElse(""),
-                    user.newMessagePush
-                  ),
-                  sessionObject
-                )
+      get {
+        respondWithMediaType(`application/json`) {
+          log.trace(s"identify function invoked : $user")
+
+          import scala.concurrent.duration._
+          val sessionObject = Await.result(userService.findFromSessionId(sessionId.toString), 1 seconds)
+
+          complete(
+            Future.successful(
+              userService.deriveExtraProperties(
+                user,
+                ActiveShoutoutUser(
+                  user.birthday,
+                  user.firstName.getOrElse(""),
+                  user.lastName.getOrElse(""),
+                  user.username,
+                  user.profilePictureUrl.getOrElse(""),
+                  user.newMessagePush
+                ),
+                sessionObject
               )
             )
+          )
 
-          }
         }
       }
     }
   }
 
   def update = pathPrefix(users / "update") {
-    authenticate(unverified _) { user =>
+    authenticate(unverified _) { authenticationResult =>
+
+      val (user, sessionId) = authenticationResult
+
       parameter('sessionId) { session =>
         {
           respondWithMediaType(`application/json`) {
@@ -125,7 +130,10 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
 
   def updateProfilePhoto = pathPrefix(users / "update" / "photo") {
     val ByteJsonFormat = null
-    authenticate(unverified _) { user =>
+    authenticate(unverified _) { authenticationResult =>
+
+      val (user, sessionId) = authenticationResult
+
       post {
         formFields('image.as[Array[Byte]]) { (image) =>
           complete {
@@ -137,7 +145,10 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
   }
 
   def updateSettings = pathPrefix(users / "settings") {
-    authenticate(unverified _) { user =>
+    authenticate(unverified _) { authenticationResult =>
+
+      val (user, sessionId) = authenticationResult
+
       post {
         entity(as[SettingsRequest]) { pushRequest =>
           parameter('sessionId) { session =>
@@ -155,7 +166,10 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
   }
 
   def updatePushNotifier = pathPrefix(users / "pushNotifier") {
-    authenticate(unverified _) { user =>
+    authenticate(unverified _) { authenticationResult =>
+
+      val (user, sessionId) = authenticationResult
+
       post {
         entity(as[UpdatePushTokenRequest]) { pushTokenRequest =>
           parameter('sessionId) { session =>
@@ -185,7 +199,10 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
   }
 
   def changePassword = pathPrefix(users / "changePassword") {
-    authenticate(unverified _) { user =>
+    authenticate(unverified _) { authenticationResult =>
+
+      val (user, sessionId) = authenticationResult
+
       post {
         entity(as[ChangePasswordRequest]) { changePasswordRequest =>
           complete {

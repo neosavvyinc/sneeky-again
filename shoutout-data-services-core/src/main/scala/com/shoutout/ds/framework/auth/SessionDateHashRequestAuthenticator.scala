@@ -16,14 +16,14 @@ import spray.routing.RequestContext
 //since we have no real roles or permissioning yet..just being a user opens up all doors
 //hence, for every request, we opted for just one authenticator which we could use to identify a user
 trait RequestAuthenticator extends Authenticator {
-  def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]]
+  def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[(ShoutoutUser, UUID)]]
 
   def unverified(ctx : RequestContext)(implicit ec : ExecutionContext) = request(Unverified, ctx)
 }
 
 trait SessionDateHashRequestAuthenticator extends RequestAuthenticator with DSConfiguration with DatabaseSupport with Logging {
 
-  def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]] = {
+  def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[(ShoutoutUser, UUID)]] = {
     log.debug(s"authenticating request ${ctx.request.uri}")
     future {
       val result = for {
@@ -33,7 +33,7 @@ trait SessionDateHashRequestAuthenticator extends RequestAuthenticator with DSCo
         _ <- validateHash(h, d, s, ctx)
         dt <- validateTime(d, ctx)
         user <- validateSession(s, ctx)
-      } yield user
+      } yield (user, UUID.fromString(s))
       logAuthFailure(result, s"auth failed", ctx)
       toAuthentication(logAuthFailure(result, s"request was valid but the user's status was rejected", ctx))
     }
@@ -50,16 +50,17 @@ trait SessionDateHashRequestAuthenticator extends RequestAuthenticator with DSCo
     val opt = sessionsDao.findFromSession(UUID.fromString(sessionId))
     logAuthFailure(opt, s"cannot find session from $sessionId", ctx)
   }
+
 }
 
 trait NonHashingRequestAuthenticator extends SessionDateHashRequestAuthenticator {
-  override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]] = {
+  override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[(ShoutoutUser, UUID)]] = {
 
     future {
       val result = for {
         s <- extractParameter(sessionIdP, ctx)
         user <- validateSession(s, ctx)
-      } yield user
+      } yield (user, UUID.fromString(s))
       toAuthentication(result)
     }
   }
@@ -69,45 +70,18 @@ trait DebugAuthenticator extends NonHashingRequestAuthenticator {
 
   private object FullAuth extends SessionDateHashRequestAuthenticator
 
-  override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]] = {
+  override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[(ShoutoutUser, UUID)]] = {
     log.debug(s"DEBUG auth for request ${ctx.request.uri}")
     val actualResults = super.request(status, ctx)
     actualResults
   }
 }
 
-trait PassThroughRequestAuthenticator extends RequestAuthenticator {
-
-  override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]] = {
-
-    log.debug("hash: " + ctx.request.uri.query.get(hashP))
-    log.debug("date: " + ctx.request.uri.query.get(dateP))
-    log.debug("sessionId: " + ctx.request.uri.query.get(sessionIdP))
-
-    val user = Some(ShoutoutUser(
-      None,
-      UUID.randomUUID,
-      Some("fbid"),
-      Some("nsauro@sauron.com"),
-      Some("password"),
-      Some(new LocalDate(2003, 12, 21)),
-      Some("firstName"),
-      Some("lastName"),
-      "username",
-      Some("blah"),
-      true)
-    )
-
-    Future.successful(user.toRight(AuthenticationFailedRejection(CredentialsRejected, Nil)))
-  }
-
-}
-
 trait SuppliedUserRequestAuthenticator extends RequestAuthenticator {
   // :( this hurts..cannot run in parallel w/ this ever
-  var authedUser : Option[ShoutoutUser] = Option.empty
+  var authedUser : Option[(ShoutoutUser, UUID)] = Option.empty
 
-  override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[ShoutoutUser]] = {
+  override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[(ShoutoutUser, UUID)]] = {
     Future.successful(authedUser.toRight(AuthenticationFailedRejection(CredentialsRejected, Nil)))
   }
 }

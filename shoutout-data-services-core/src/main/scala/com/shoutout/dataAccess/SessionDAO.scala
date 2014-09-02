@@ -1,7 +1,7 @@
 package com.shoutout.dataAccess
 
 import scala.slick.session.Database
-import com.shoutout.ds.framework.Logging
+import com.shoutout.ds.framework.{ Dates, Logging }
 import java.util.UUID
 import com.shoutout.model.{ ShoutoutSession, ShoutoutUser, MobilePushType }
 import scala.concurrent.{ ExecutionContext, Future, future }
@@ -106,6 +106,16 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     db.withSession { implicit session =>
       val upQuery = for { s <- SessionTable if s.sessionId is sessionId } yield s.pushNotifierToken ~ s.pushNotifierType
       val numRows = upQuery.update(pushNotifier, pushNotifierType)
+      numRows > 0
+    }
+
+  }
+
+  def updateLastAccessed(sessionId : UUID) : Boolean = {
+
+    db.withSession { implicit session =>
+      val upQuery = for { s <- SessionTable if s.sessionId is sessionId } yield s.lastAccessed
+      val numRows = upQuery.update(Dates.nowDT)
       numRows > 0
     }
 

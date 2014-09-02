@@ -31,7 +31,7 @@ trait ShoutoutService {
 
   def saveData(data : Array[Byte], contentType : String) : Future[String]
   def sendToRecipients(sender : ShoutoutUser, url : String, imageText : Option[String], groupIds : Option[String], friendIds : Option[String], contentType : String) : Int
-  def findAllForUser(user : ShoutoutUser) : Future[List[ShoutoutResponse]]
+  def findAllForUser(user : ShoutoutUser, sessionId : UUID) : Future[List[ShoutoutResponse]]
   def updateShoutoutAsViewedForUser(user : ShoutoutUser, id : Long) : Future[Int]
 
 }
@@ -143,7 +143,19 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
         }
       }
 
-      def findAllForUser(user : ShoutoutUser) : Future[List[ShoutoutResponse]] = {
+      def findAllForUser(user : ShoutoutUser, sessionId : UUID) : Future[List[ShoutoutResponse]] = {
+        future {
+          db.withSession { implicit s : Session =>
+            sessionsDao.updateLastAccessed(sessionId)
+          }
+        }
+
+        future {
+          db.withSession { implicit s : Session =>
+            shoutoutUsersDao.updateLastAccessedOperation(user)
+          }
+        }
+
         future {
           db.withSession { implicit s : Session =>
             shoutoutDao.findAllForUser(user) map { resp =>

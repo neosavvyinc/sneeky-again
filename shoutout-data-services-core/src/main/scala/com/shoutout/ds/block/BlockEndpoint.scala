@@ -17,7 +17,10 @@ trait BlockEndpoint extends DataHttpService with PhantomJsonProtocol with BasicC
   val block = "block"
 
   def blockContact = pathPrefix(block / IntNumber) { targetUserId =>
-    authenticate(unverified _) { user =>
+    authenticate(unverified _) { authenticationResult =>
+
+      val (user, sessionId) = authenticationResult
+
       post {
         respondWithMediaType(`application/json`) {
           complete {
@@ -29,7 +32,10 @@ trait BlockEndpoint extends DataHttpService with PhantomJsonProtocol with BasicC
   }
 
   def resetBlockList = pathPrefix(block / "reset") {
-    authenticate(unverified _) { user =>
+    authenticate(unverified _) { authenticationResult =>
+
+      val (user, sessionId) = authenticationResult
+
       delete {
         respondWithMediaType(`application/json`) {
           complete {

@@ -31,12 +31,16 @@ trait ShoutoutEndpoint extends DataHttpService with BasicCrypto {
   def sendShoutout = pathPrefix(shoutout / "send") {
     val ByteJsonFormat = null
     authenticate(unverified _) {
-      user =>
+      authenticationResult =>
+
+        val (user, sessionId) = authenticationResult
+
         post {
           respondWithMediaType(`application/json`) {
             formFields('data.as[Array[Byte]], 'text.?, 'groupIds.?, 'friendIds.?, 'contentType) {
               (data, text, groupIds, friendIds, contentType) =>
                 complete {
+
                   contentType match {
 
                     case x if x == "video/quicktime" => shoutoutService.saveData(data, "video/quicktime").map { url =>
@@ -64,17 +68,23 @@ trait ShoutoutEndpoint extends DataHttpService with BasicCrypto {
   }
 
   def findShouts = pathPrefix(shoutout / "find") {
-    authenticate(unverified _) { user =>
+    authenticate(unverified _) { authenticationResult =>
+
+      val (user, sessionId) = authenticationResult
+
       get {
         respondWithMediaType(`application/json`) {
-          complete(shoutoutService.findAllForUser(user))
+          complete(shoutoutService.findAllForUser(user, sessionId))
         }
       }
     }
   }
 
   def setShoutAsViewed = pathPrefix(shoutout / "viewed" / IntNumber) { id =>
-    authenticate(unverified _) { user =>
+    authenticate(unverified _) { authenticationResult =>
+
+      val (user, sessionId) = authenticationResult
+
       post {
         respondWithMediaType(`application/json`) {
           complete {

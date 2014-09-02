@@ -123,7 +123,7 @@ package object httpx {
 
     implicit val failureFormat = jsonFormat2(Failure)
 
-    implicit val shoutuser2json = jsonFormat11(ShoutoutUser)
+    implicit val shoutuser2json = jsonFormat12(ShoutoutUser)
     implicit val loginWithEmail2json = jsonFormat2(UserLogin)
     implicit val loginWithFacebook2json = jsonFormat4(FacebookUserLogin)
     implicit val loginSuccess2json = jsonFormat1(LoginSuccess)

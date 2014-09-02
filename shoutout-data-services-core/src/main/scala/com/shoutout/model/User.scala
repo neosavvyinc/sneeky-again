@@ -120,7 +120,8 @@ case class ShoutoutUser(id : Option[Long],
                         lastName : Option[String],
                         username : String,
                         profilePictureUrl : Option[String],
-                        newMessagePush : Boolean = true)
+                        newMessagePush : Boolean = true,
+                        lastAccessed : DateTime = Dates.nowDT)
 
 case class ActiveShoutoutUser(
   birthday : Option[LocalDate],
@@ -171,8 +172,9 @@ trait UserComponent { this : Profile =>
     def username = column[String]("USERNAME")
     def profilePictureUrl = column[String]("PROFILE_URL")
     def newMessagePush = column[Boolean]("PUSH_NOTIF")
+    def lastAccessed = column[DateTime]("LASTACCESSED", O.Nullable)
 
-    def * = id.? ~ uuid ~ facebookID.? ~ email.? ~ password.? ~ birthday.? ~ firstName.? ~ lastName.? ~ username ~ profilePictureUrl.? ~ newMessagePush <> (ShoutoutUser, ShoutoutUser.unapply _)
+    def * = id.? ~ uuid ~ facebookID.? ~ email.? ~ password.? ~ birthday.? ~ firstName.? ~ lastName.? ~ username ~ profilePictureUrl.? ~ newMessagePush ~ lastAccessed <> (ShoutoutUser, ShoutoutUser.unapply _)
     def forInsert = * returning id
 
   }
