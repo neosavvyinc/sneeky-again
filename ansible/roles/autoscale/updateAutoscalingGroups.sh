@@ -19,3 +19,5 @@ mon-put-metric-alarm shoutout-high-cpu-alarm --comparison-operator GreaterThanTh
 
 decreaseAlarm=`as-put-scaling-policy ShoutoutDecreaseNodes --auto-scaling-group shoutout-autoscaling-group --adjustment=-1 --type ChangeInCapacity --cooldown 300 --region us-east-1`
 mon-put-metric-alarm shoutout-low-cpu-alarm --comparison-operator LessThanThreshold --evaluation-periods 3 --metric-name CPUUtilization --namespace "AWS/EC2" --period 60 --statistic Average --threshold 30 --alarm-actions $decreaseAlarm --dimensions "AutoScalingGroupName=shoutout-autoscaling-group" --region us-east-1
+
+

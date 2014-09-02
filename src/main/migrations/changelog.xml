@@ -291,4 +291,16 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="21" author="aparrish">
+        <addNotNullConstraint
+                tableName="USERS"
+                columnName="LASTACCESSED"
+                columnDataType="datetime"
+                defaultNullValue="CURRENT_TIMESTAMP"></addNotNullConstraint>
+
+        <sql>
+            ALTER TABLE USERS CHANGE `LASTACCESSED` `LASTACCESSED` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

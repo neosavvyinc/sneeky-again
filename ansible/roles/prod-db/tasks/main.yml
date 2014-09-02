@@ -7,9 +7,9 @@
 - name: Set up mysql user shoutout
   mysql_user: login_host=shoutout-prod.caxmdib0aahl.us-east-1.rds.amazonaws.com login_user=shoutoutroot login_password=VNYHho6xNWjR2U name=shoutout password=CshE4zdgjYr4hb host="%" priv=shoutout.*:ALL state=present
 
-- name: checkout the services for liquibase updates
-  git: repo=ssh://git@shiva.neosavvy.com:7999/phan/shoutout-services.git dest=/opt/shoutout/shoutout-database-updates accept_hostkey=True version={{ deploymentBranch }}
-  sudo: True
+#- name: checkout the services for liquibase updates
+#  git: repo=ssh://git@shiva.neosavvy.com:7999/phan/shoutout-services.git dest=/opt/shoutout/shoutout-database-updates accept_hostkey=True version={{ deploymentBranch }}
+#  sudo: True
 
 - name: download liquibase executable
   get_url: url=http://downloads.sourceforge.net/project/liquibase/Liquibase%20Core/liquibase-2.0.5-bin.tar.gz?r=http%3A%2F%2Fwww.liquibase.org%2Fdownload%2Findex.html&ts=1408478101&use_mirror=iweb dest=/tmp/liquibase.tar.gz
