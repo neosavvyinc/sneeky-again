@@ -266,4 +266,29 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="19" author="aparrish">
+        <createTable tableName="JANITOR_STATS">
+            <column name="ID" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="ACTION_PERFORMED" type="varchar(1024)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="ACTION_DATE" type="datetime">
+                <constraints nullable="true"/>
+            </column>
+            <column name="ACTION_UPDATE_COUNT" type="int">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20" author="aparrish">
+        <addColumn tableName="USERS">
+            <column name="LASTACCESSED" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>
