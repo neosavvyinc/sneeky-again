@@ -303,4 +303,54 @@
         </sql>
     </changeSet>
 
+    <changeSet id="22" author="aparrish">
+        <createTable tableName="JANITOR_FLAT_STATS">
+            <column name="ID" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="PROFILE_CLEANUP" type="int" defaultValue="0">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="OLD_SHOUTOUTS_CLEANUP" type="int" defaultValue="0">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="FULLY_VIEWED_CLEANUP" type="int" defaultValue="0">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="ORPHANED_SHOUTS_CLEANUP" type="int" defaultValue="0">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="ALLTIME_PROFILE_CLEANUP" type="int" defaultValue="0">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="ALLTIME_OLD_SHOUTOUTS_CLEANUP" type="int" defaultValue="0">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="ALLTIME_FULLY_VIEWED_CLEANUP" type="int" defaultValue="0">
+                <constraints nullable="false"></constraints>
+            </column>
+
+            <column name="ALLTIME_ORPHANED_SHOUTS_CLEANUP" type="int" defaultValue="0">
+                <constraints nullable="false"></constraints>
+            </column>
+        </createTable>
+        <insert tableName="JANITOR_FLAT_STATS">
+            <column name="PROFILE_CLEANUP" value="0"></column>
+            <column name="OLD_SHOUTOUTS_CLEANUP" value="0"></column>
+            <column name="FULLY_VIEWED_CLEANUP" value="0"></column>
+            <column name="ORPHANED_SHOUTS_CLEANUP" value="0"></column>
+            <column name="ALLTIME_PROFILE_CLEANUP" value="0"></column>
+            <column name="ALLTIME_OLD_SHOUTOUTS_CLEANUP" value="0"></column>
+            <column name="ALLTIME_FULLY_VIEWED_CLEANUP" value="0"></column>
+            <column name="ALLTIME_ORPHANED_SHOUTS_CLEANUP" value="0"></column>
+        </insert>
+    </changeSet>
+
 </databaseChangeLog>
