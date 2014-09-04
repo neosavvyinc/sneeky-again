@@ -1,6 +1,9 @@
 - name: Make sure the /opt/shoutout directory exists
   file: dest=/opt/shoutout mode=755 state=directory owner={{ shoutoutUID }} group={{ shoutoutGID }}
 
+- name: Make sure the /opt/shoutout/logs directory exists
+  file: dest=/opt/shoutout mode=755 state=directory owner={{ shoutoutUID }} group={{ shoutoutGID }}
+
 - name: Copy the deployable jar file to the target server
   copy: src=shoutout.jar dest=/opt/shoutout/shoutout.jar
 
