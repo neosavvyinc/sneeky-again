@@ -48,14 +48,4 @@ class ShoutoutEndpointSpec extends Specification
   val appleActor : ActorRef = appleProbe.ref
   def s3Service : S3Service = new TestS3Service()
 
-  "Conversation Service" should {
-
-    implicit val routeTestTimeout = RouteTestTimeout(15 seconds span)
-
-    "return a simple hello message" in withSetupTeardown {
-      Get("/shoutout/send") ~> shoutoutRoute ~> check {
-        status == OK
-      }
-    }
-  }
 }

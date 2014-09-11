@@ -29,14 +29,4 @@ class UserEndpointSpec extends Specification
 
   sequential
 
-  "User Service" should {
-
-    "return a simple hello message" in withSetupTeardown {
-      Get("/users") ~> userRoute ~> check {
-        status == StatusCodes.OK
-      }
-    }
-
-  }
-
 }
