@@ -50,11 +50,11 @@ class GroupDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCont
     group.copy(id = Some(id))
   }
 
-  def groupExistsOperation(id : Long)(implicit session : Session) : Boolean = {
+  def groupExistsOperation(id : Long)(implicit session : Session) : Option[Boolean] = {
     val groupExistsQuery = for {
       g <- GroupTable if g.id === id
     } yield g.exists
-    groupExistsQuery.first
+    groupExistsQuery.firstOption
   }
 
   def isGroupValid(id : Long)(implicit session : Session) : Option[Group] = {

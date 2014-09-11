@@ -24,8 +24,10 @@ object GroupService extends BasicCrypto {
       def createGroup(user : ShoutoutUser, groupMembershipRequest : GroupMembershipRequest)(implicit session : Session) : GroupResponse = {
         val group : Group = groupDao.insertGroupOperation(Group(id = groupMembershipRequest.id, ownerId = user.id.get, name = groupMembershipRequest.name))
         for (m : Int <- groupMembershipRequest.members.toSet toList) {
-          if (shoutoutUsersDao.userExistsOperation(m))
-            groupDao.insertGroupItemOperation(GroupItem(None, group.id.get, m))
+          shoutoutUsersDao.userExistsOperation(m) match {
+            case Some(x) => groupDao.insertGroupItemOperation(GroupItem(None, group.id.get, m))
+            case None    => //do nothing
+          }
         }
         val members = groupDao.findMembers(group.id.get)
         contactsDao.insertGroupAssociation(user, ContactOrdering(group.id, None, GroupType), contactsDao.countContactsForUser(user))
@@ -45,8 +47,10 @@ object GroupService extends BasicCrypto {
             groupDao.deleteMembersOperation(g.id.get)
 
             for (m : Int <- groupMembershipRequest.members.toSet toList) {
-              if (shoutoutUsersDao.userExistsOperation(m))
-                groupDao.insertGroupItemOperation(GroupItem(None, g.id.get, m))
+              shoutoutUsersDao.userExistsOperation(m) match {
+                case Some(x) => groupDao.insertGroupItemOperation(GroupItem(None, g.id.get, m))
+                case None    => //do nothing
+              }
             }
 
             val members = groupDao.findMembers(g.id.get)

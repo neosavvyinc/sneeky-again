@@ -51,11 +51,11 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     u <- UserTable if u.id === id
   } yield u
 
-  def userExistsOperation(id : Long)(implicit session : Session) : Boolean = {
+  def userExistsOperation(id : Long)(implicit session : Session) : Option[Boolean] = {
     val userExistsQuery = for {
       u <- UserTable if u.id === id
     } yield u.exists
-    userExistsQuery.first
+    userExistsQuery.firstOption
   }
 
   def findByEmailOperation(email : String)(implicit session : Session) : Option[ShoutoutUser] = {
