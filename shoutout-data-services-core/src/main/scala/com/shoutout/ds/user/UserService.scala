@@ -217,7 +217,7 @@ object UserService extends BasicCrypto {
 
             val userFromDB = shoutoutUsersDao.findByIdOperation(user.id.get)
             val isValid : Boolean = userFromDB match {
-              case Some(u) => Passwords.check(decryptField(request.oldPassword), decryptField(u.password.getOrElse(throw ShoutoutException.genericPasswordException)))
+              case Some(u) => Passwords.check(decryptField(request.oldPassword), u.password.getOrElse(throw ShoutoutException.genericPasswordException))
               case None    => throw ShoutoutException.genericPasswordException
             }
 

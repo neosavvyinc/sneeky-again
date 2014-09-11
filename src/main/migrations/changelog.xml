@@ -353,4 +353,11 @@
         </insert>
     </changeSet>
 
+    <changeSet id="23" author="aparrish">
+        <addColumn tableName="JANITOR_FLAT_STATS">
+            <column name="CLEANED_S3_IMAGES" value="0" type="int"></column>
+            <column name="ALLTIME_CLEANED_S3_IMAGES" value="0" type="int"></column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

@@ -38,7 +38,7 @@
   sudo: True
 
 - name: Kill any running Sneeky Supervisord scripts
-  shell: kill -9 $(ps aux | grep '[s]upervisord' | grep server | awk '{print $2}')
+  shell: kill -9 $(ps aux | grep '[s]upervisord' | grep sneeky | awk '{print $2}')
   ignore_errors: yes
   sudo: True
 
@@ -50,7 +50,7 @@
 
 
 - name: Kill any running Sneeky Java Processes
-  shell: kill -9 $(ps aux | grep '[j]ava' | grep sneeky | awk '{print $2}')
+  shell: kill -9 $(ps aux | grep '[j]ava' | grep server | awk '{print $2}')
   ignore_errors: yes
   sudo: True
 #
