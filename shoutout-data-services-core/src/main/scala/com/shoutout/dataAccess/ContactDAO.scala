@@ -93,9 +93,7 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
     db.withSession { implicit session : Session =>
       val q = for { c <- ContactTable if c.ownerId === ownerUser.id && c.friendId === targetUser.id } yield c.exists
       val isFriend = q.firstOption()
-      val rValue = isFriend.getOrElse(false)
-      println("TargetUser: " + targetUser.id.get + " is a friend of " + ownerUser.id.get + " if " + rValue)
-      rValue
+      isFriend.getOrElse(false)
     }
   }
 
@@ -116,10 +114,7 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
               ORDER BY USER_REF_ID)""".as[MemberShip]
 
       val memberShip = isAssociatedByGroupQuery.firstOption
-      println("Membership: " + memberShip)
-      val rValue = memberShip.getOrElse(MemberShip(0)).count > 0
-      println("TargetUser: " + targetUser.id.get + " is in a group of " + ownerUser.id.get + " if " + rValue)
-      rValue
+      memberShip.getOrElse(MemberShip(0)).count > 0
     }
   }
 

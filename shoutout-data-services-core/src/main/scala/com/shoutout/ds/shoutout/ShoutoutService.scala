@@ -94,7 +94,7 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
           val (uniqueOwnedGroupIds, uniqueRejectedGroupIds) = uniqueGroupIds partition { g =>
             groupDao.isOwnerOfGroup(g, sender.id.get)
           }
-          uniqueRejectedGroupIds foreach (item => println("User tried to send to a group they are not an owner of: " + item))
+          uniqueRejectedGroupIds foreach (item => log.error(s"User tried to send to a group they are not an owner of: $item"))
 
           val groupMembers = groupDao.findMembersForGroups(uniqueOwnedGroupIds)
 
@@ -121,11 +121,9 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
           //filter collection based on isFriend and isGroupOfOwner
           //partition this out so we can see how often it is happening
           val (filteredUniqueRecipients, filteredUniqueNonAssociations) = uniqueRecipients.partition(u => {
-            val predicate = contactsDao.isFriendOfOwner(sender, u) || contactsDao.isInGroupOfOwner(sender, u)
-            println("U: " + u.id.get + " is " + predicate)
-            predicate
+            contactsDao.isFriendOfOwner(sender, u) || contactsDao.isInGroupOfOwner(sender, u)
           })
-          filteredUniqueNonAssociations foreach (item => println("Non associated item found: " + item))
+          filteredUniqueNonAssociations foreach (item => log.error(s"Non associated item found: $item"))
 
           // insert a record for each user into the Shoutout table that isn't blocked
           shoutoutDao.insertShoutouts(filteredUniqueRecipients, Shoutout(
