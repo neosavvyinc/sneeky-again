@@ -25,7 +25,7 @@ object GroupService extends BasicCrypto {
         val group : Group = groupDao.insertGroupOperation(Group(id = groupMembershipRequest.id, ownerId = user.id.get, name = groupMembershipRequest.name))
         for (m : Int <- groupMembershipRequest.members.toSet toList) {
           shoutoutUsersDao.userExistsOperation(m) match {
-            case Some(x) => groupDao.insertGroupItemOperation(GroupItem(None, group.id.get, m))
+            case Some(x) => if (x) { groupDao.insertGroupItemOperation(GroupItem(None, group.id.get, m)) }
             case None    => //do nothing
           }
         }
@@ -48,7 +48,7 @@ object GroupService extends BasicCrypto {
 
             for (m : Int <- groupMembershipRequest.members.toSet toList) {
               shoutoutUsersDao.userExistsOperation(m) match {
-                case Some(x) => groupDao.insertGroupItemOperation(GroupItem(None, g.id.get, m))
+                case Some(x) => if (x) { groupDao.insertGroupItemOperation(GroupItem(None, g.id.get, m)) }
                 case None    => //do nothing
               }
             }

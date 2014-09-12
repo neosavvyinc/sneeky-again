@@ -97,6 +97,21 @@ class GroupDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCont
     q.list
   }
 
+  def isOwnerOfGroup(groupId : Long, ownerId : Long) : Boolean = {
+    db.withSession { implicit session =>
+
+      val ownerCheck = for {
+        g <- GroupTable if g.ownerId === ownerId && g.id === groupId
+      } yield g
+
+      val group = ownerCheck.firstOption
+      group match {
+        case Some(g) => true
+        case None    => false
+      }
+    }
+  }
+
   def findById(id : Long) : Future[Group] = {
     future {
       db.withSession { implicit session =>
