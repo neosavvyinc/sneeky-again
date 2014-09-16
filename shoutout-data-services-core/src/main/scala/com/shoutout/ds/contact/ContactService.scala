@@ -120,8 +120,19 @@ object ContactService extends BasicCrypto {
           case Nil => acc
           case h :: t => {
             h.contactType match {
-              case FriendType => contactsDao.insertFriendAssociation(user, h, acc)
-              case GroupType  => contactsDao.insertGroupAssociation(user, h, acc)
+              case FriendType => {
+                shoutoutUsersDao.userExistsOperation(h.friendId.get) match {
+                  case Some(x) => if (x) { contactsDao.insertFriendAssociation(user, h, acc) }
+                  case None    => //do nothing
+                }
+              }
+              case GroupType => {
+                groupDao.groupExistsOperation(h.groupId.get) match {
+                  case Some(x) => if (x) { contactsDao.insertGroupAssociation(user, h, acc) }
+                  case None    => // do nothing
+                }
+
+              }
             }
             saveAssociationStep(user, t, acc + 1)
           }

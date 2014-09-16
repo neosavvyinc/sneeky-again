@@ -50,6 +50,21 @@ class GroupDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCont
     group.copy(id = Some(id))
   }
 
+  def groupExistsOperation(id : Long)(implicit session : Session) : Option[Boolean] = {
+    val groupExistsQuery = for {
+      g <- GroupTable if g.id === id
+    } yield g.exists
+    groupExistsQuery.firstOption
+  }
+
+  def isGroupValid(id : Long)(implicit session : Session) : Option[Group] = {
+    val groupByGroupIdQuery = for {
+      gi <- GroupTable if gi.id === id
+    } yield gi
+
+    groupByGroupIdQuery.firstOption
+  }
+
   def insertGroupItemOperation(item : GroupItem)(implicit session : Session) : GroupItem = {
     val id = GroupItemTable.forInsert.insert(item)
     item.copy(id = Some(id))
@@ -80,6 +95,21 @@ class GroupDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCont
     } yield u
 
     q.list
+  }
+
+  def isOwnerOfGroup(groupId : Long, ownerId : Long) : Boolean = {
+    db.withSession { implicit session =>
+
+      val ownerCheck = for {
+        g <- GroupTable if g.ownerId === ownerId && g.id === groupId
+      } yield g
+
+      val group = ownerCheck.firstOption
+      group match {
+        case Some(g) => true
+        case None    => false
+      }
+    }
   }
 
   def findById(id : Long) : Future[Group] = {

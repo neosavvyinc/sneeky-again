@@ -6,8 +6,17 @@ import scala.slick.lifted.ColumnOption.DBType
 import java.util.UUID
 import com.shoutout.ds.framework.Dates
 
+case class DeviceInfo(screenWidth : Option[Int] = None,
+                      screenHeight : Option[Int] = None,
+                      deviceModel : Option[String] = None,
+                      deviceLocale : Option[String] = None)
+
 case class UserRegistrationRequest(email : String,
-                                   password : String)
+                                   password : String,
+                                   screenWidth : Option[Int] = None,
+                                   screenHeight : Option[Int] = None,
+                                   deviceModel : Option[String] = None,
+                                   deviceLocale : Option[String] = None)
 
 case class RegistrationResponse(sessionUUID : UUID)
 
@@ -19,7 +28,11 @@ case class RegistrationVerification(messageSid : String,
                                     numMedia : Int)
 
 case class UserLogin(email : String,
-                     password : String)
+                     password : String,
+                     screenWidth : Option[Int] = None,
+                     screenHeight : Option[Int] = None,
+                     deviceModel : Option[String] = None,
+                     deviceLocale : Option[String] = None)
 
 case class Restriction(id : Option[Long], username : String)
 
@@ -31,7 +44,11 @@ case class ShoutoutUserUpdateRequest(birthday : Option[LocalDate],
 case class FacebookUserLogin(facebookId : String,
                              firstName : Option[String],
                              lastName : Option[String],
-                             birthdate : Option[LocalDate])
+                             birthdate : Option[LocalDate],
+                             screenWidth : Option[Int] = None,
+                             screenHeight : Option[Int] = None,
+                             deviceModel : Option[String] = None,
+                             deviceLocale : Option[String] = None)
 
 case class LoginSuccess(sessionUUID : UUID)
 
@@ -139,9 +156,14 @@ case class ChangePasswordRequest(oldPassword : String, newPassword : String)
 
 object ShoutoutSession {
 
-  def newSession(user : ShoutoutUser, token : Option[String] = None) : ShoutoutSession = {
+  def newSession(user : ShoutoutUser, token : Option[String] = None, deviceInfo : DeviceInfo) : ShoutoutSession = {
     val now = Dates.nowDT
-    ShoutoutSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now, token, None)
+    ShoutoutSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now, token, None,
+      screenWidth = deviceInfo.screenWidth,
+      screenHeight = deviceInfo.screenHeight,
+      deviceModel = deviceInfo.deviceModel,
+      deviceLocale = deviceInfo.deviceLocale
+    )
   }
 }
 
@@ -151,7 +173,11 @@ case class ShoutoutSession(sessionId : UUID,
                            lastAccessed : DateTime,
                            pushNotifierToken : Option[String] = None,
                            pushNotifierType : Option[MobilePushType] = None,
-                           sessionInvalid : Boolean = false)
+                           sessionInvalid : Boolean = false,
+                           screenWidth : Option[Int] = None,
+                           screenHeight : Option[Int] = None,
+                           deviceModel : Option[String] = None,
+                           deviceLocale : Option[String] = None)
 
 trait UserComponent { this : Profile =>
 
@@ -174,7 +200,18 @@ trait UserComponent { this : Profile =>
     def newMessagePush = column[Boolean]("PUSH_NOTIF")
     def lastAccessed = column[DateTime]("LASTACCESSED", O.Nullable)
 
-    def * = id.? ~ uuid ~ facebookID.? ~ email.? ~ password.? ~ birthday.? ~ firstName.? ~ lastName.? ~ username ~ profilePictureUrl.? ~ newMessagePush ~ lastAccessed <> (ShoutoutUser, ShoutoutUser.unapply _)
+    def * = id.? ~
+      uuid ~
+      facebookID.? ~
+      email.? ~
+      password.? ~
+      birthday.? ~
+      firstName.? ~
+      lastName.? ~
+      username ~
+      profilePictureUrl.? ~
+      newMessagePush ~
+      lastAccessed <> (ShoutoutUser, ShoutoutUser.unapply _)
     def forInsert = * returning id
 
   }
@@ -195,7 +232,22 @@ trait UserSessionComponent { this : Profile with UserComponent =>
     def pushNotifierToken = column[String]("PUSH_NOTIFIER_TOKEN", O.Nullable)
     def pushNotifierType = column[MobilePushType]("PUSH_NOTIFIER_TYPE", O.Nullable)
     def sessionInvalidated = column[Boolean]("SESSION_INVALID")
-    def * = sessionId ~ userId ~ created ~ lastAccessed ~ pushNotifierToken.? ~ pushNotifierType.? ~ sessionInvalidated <> (ShoutoutSession.apply _, ShoutoutSession.unapply _)
+    def screenHeight = column[Int]("SCREEN_HEIGHT", O.Nullable)
+    def screenWidth = column[Int]("SCREEN_WIDTH", O.Nullable)
+    def deviceModel = column[String]("DEVICE_MODEL", O.Nullable)
+    def locale = column[String]("LOCALE", O.Nullable)
+
+    def * = sessionId ~
+      userId ~
+      created ~
+      lastAccessed ~
+      pushNotifierToken.? ~
+      pushNotifierType.? ~
+      sessionInvalidated ~
+      screenHeight.? ~
+      screenWidth.? ~
+      deviceModel.? ~
+      locale.? <> (ShoutoutSession.apply _, ShoutoutSession.unapply _)
 
     def owner = foreignKey("USER_FK", userId, UserTable)(_.id)
     //def userUnqiue = index("userUnique", userId, unique = true)

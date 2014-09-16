@@ -1,5 +1,6 @@
 package com.shoutout.dataAccess
 
+import scala.slick.jdbc.StaticQuery
 import scala.slick.session.Database
 import com.shoutout.ds.framework.exception.ShoutoutException
 import com.shoutout.model._
@@ -88,8 +89,33 @@ class ContactDAO(dal : DataAccessLayer, db : Database)(implicit ex : ExecutionCo
 
   }
 
-  /**
-   * select U.ID, G.ID from CONTACTS C LEFT OUTER JOIN USERS U ON C.USER_REF_ID = U.ID LEFT OUTER JOIN GROUPS G ON C.GROUP_REF_ID = G.ID
-   */
+  def isFriendOfOwner(ownerUser : ShoutoutUser, targetUser : ShoutoutUser) : Boolean = {
+    db.withSession { implicit session : Session =>
+      val q = for { c <- ContactTable if c.ownerId === ownerUser.id && c.friendId === targetUser.id } yield c.exists
+      val isFriend = q.firstOption()
+      isFriend.getOrElse(false)
+    }
+  }
+
+  def isInGroupOfOwner(ownerUser : ShoutoutUser, targetUser : ShoutoutUser) : Boolean = {
+    import scala.slick.jdbc.{ GetResult, StaticQuery => Q }
+    import Q.interpolation
+
+    val ownerId = ownerUser.id.get
+    val targetFriendId = targetUser.id.get
+
+    db.withSession { implicit session : Session =>
+
+      implicit val associationCountQueryResult = GetResult(r => MemberShip(r.<<))
+      val isAssociatedByGroupQuery =
+        sql"""select $targetFriendId in (select DISTINCT USER_REF_ID
+              from GROUPS G join GROUP_ITEMS GI
+              on G.ID = GI.GROUP_ID where OWNER_ID = $ownerId
+              ORDER BY USER_REF_ID)""".as[MemberShip]
+
+      val memberShip = isAssociatedByGroupQuery.firstOption
+      memberShip.getOrElse(MemberShip(0)).count > 0
+    }
+  }
 
 }

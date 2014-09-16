@@ -89,7 +89,14 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
             case None     => Set()
             case Some(xs) => xs.split(',').toList.map(x => x.toLong).toSet
           }
-          val groupMembers = groupDao.findMembersForGroups(uniqueGroupIds)
+
+          //remove all the groups that you do not own
+          val (uniqueOwnedGroupIds, uniqueRejectedGroupIds) = uniqueGroupIds partition { g =>
+            groupDao.isOwnerOfGroup(g, sender.id.get)
+          }
+          uniqueRejectedGroupIds foreach (item => log.error(s"User tried to send to a group they are not an owner of: $item"))
+
+          val groupMembers = groupDao.findMembersForGroups(uniqueOwnedGroupIds)
 
           // find a unique list of shoutout user for each user id provided
           val uniqueFriendIds : Set[Long] = friendIds match {
@@ -107,8 +114,19 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
           // unblocked recipients are the diff
           val uniqueRecipients = recipients.toSet.diff(usersWhoBlockSender).toList
 
+          /**
+           * This really could be quite expensive to do, we may want to figure out
+           * why we think this needs to happen rather than do this check
+           */
+          //filter collection based on isFriend and isGroupOfOwner
+          //partition this out so we can see how often it is happening
+          val (filteredUniqueRecipients, filteredUniqueNonAssociations) = uniqueRecipients.partition(u => {
+            contactsDao.isFriendOfOwner(sender, u) || contactsDao.isInGroupOfOwner(sender, u)
+          })
+          filteredUniqueNonAssociations foreach (item => log.error(s"Non associated item found: $item"))
+
           // insert a record for each user into the Shoutout table that isn't blocked
-          shoutoutDao.insertShoutouts(uniqueRecipients, Shoutout(
+          shoutoutDao.insertShoutouts(filteredUniqueRecipients, Shoutout(
             None,
             sender.id.get,
             0,
@@ -136,10 +154,10 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
           ))
 
           // only send notifications to the non-blocked users
-          sendAPNSNotificationsToRecipients(sender, uniqueRecipients)
+          sendAPNSNotificationsToRecipients(sender, filteredUniqueRecipients)
 
           // return the number of shoutouts that were sent (inserted)
-          uniqueRecipients.length
+          filteredUniqueRecipients.length
         }
       }
 

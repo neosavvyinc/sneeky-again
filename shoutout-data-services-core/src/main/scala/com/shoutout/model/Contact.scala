@@ -64,6 +64,8 @@ case class GroupMembershipRequest(id : Option[Long],
                                   name : String,
                                   members : List[Int])
 
+case class MemberShip(count : Int)
+
 trait ContactComponent { this : Profile with UserComponent with GroupComponent =>
 
   import profile.simple._

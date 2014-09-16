@@ -30,7 +30,7 @@ object UserService extends BasicCrypto {
 
   def apply(s3Service : S3Service)(implicit ec : ExecutionContext) = new UserService with DatabaseSupport with Logging {
 
-    private def insertWelcomeRow(user : ShoutoutUser)(implicit session : Session) = {
+    private def insertWelcomeRow(user : ShoutoutUser, deviceInfo : DeviceInfo)(implicit session : Session) = {
       shoutoutDao.insertShoutouts(user :: Nil, Shoutout(None,
         1,
         user.id.get,
@@ -71,20 +71,27 @@ object UserService extends BasicCrypto {
           decryptField(loginRequest.email),
           decryptField(loginRequest.password)
         ))
-        session <- sessionsDao.createSession(ShoutoutSession.newSession(user))
+        session <- sessionsDao.createSession(ShoutoutSession.newSession(
+          user,
+          deviceInfo = DeviceInfo(
+            loginRequest.screenWidth,
+            loginRequest.screenHeight,
+            loginRequest.deviceModel,
+            loginRequest.deviceLocale
+          )))
       } yield LoginSuccess(session.sessionId)
     }
 
     def facebookLogin(loginRequest : FacebookUserLogin) : Future[LoginSuccess] = {
 
-      def insertFriendIfNotExists(user : ShoutoutUser, targetFriendId : Long) = {
+      def insertFriendIfNotExists(user : ShoutoutUser, targetFriendId : Long, deviceInfo : DeviceInfo) = {
         db.withSession { implicit session : Session =>
           val contactOption = contactsDao.findContactByIdForOwner(user, 1)
           contactOption match {
             case None => {
               contactsDao.insertFriendAssociation(user, ContactOrdering(None, Some(1), FriendType), 0)
               contactsDao.insertFriendAssociation(user, ContactOrdering(None, user.id, FriendType), 1)
-              insertWelcomeRow(user)
+              insertWelcomeRow(user, deviceInfo)
             }
             case Some(c) => log.debug(s"User $user is already friends with the shoutout team")
           }
@@ -99,13 +106,22 @@ object UserService extends BasicCrypto {
         loginRequest.birthdate
       )
 
+      val deviceInfo = DeviceInfo(
+        loginRequest.screenWidth,
+        loginRequest.screenHeight,
+        loginRequest.deviceModel,
+        loginRequest.deviceLocale
+      )
+
       for {
         userTuple <- shoutoutUsersDao.loginByFacebook(decryptedLoginRequest)
         session <- {
           if (userTuple._2 == false) {
-            insertFriendIfNotExists(userTuple._1, 1)
+            insertFriendIfNotExists(userTuple._1, 1, deviceInfo)
           }
-          sessionsDao.createSession(ShoutoutSession.newSession(userTuple._1))
+          sessionsDao.createSession(ShoutoutSession.newSession(
+            userTuple._1,
+            deviceInfo = deviceInfo))
         }
       } yield LoginSuccess(session.sessionId)
     }
@@ -113,7 +129,11 @@ object UserService extends BasicCrypto {
     def register(registrationRequest : UserRegistrationRequest) : Future[RegistrationResponse] = {
       val decryptedRequest = UserRegistrationRequest(
         decryptField(registrationRequest.email),
-        decryptField(registrationRequest.password)
+        decryptField(registrationRequest.password),
+        screenWidth = registrationRequest.screenWidth,
+        screenHeight = registrationRequest.screenHeight,
+        deviceLocale = registrationRequest.deviceLocale,
+        deviceModel = registrationRequest.deviceModel
       )
 
       for {
@@ -235,12 +255,21 @@ object UserService extends BasicCrypto {
       future {
         db.withTransaction { implicit s =>
           val user = shoutoutUsersDao.registerOperation(registrationRequest)
-          val session = sessionsDao.createSessionOperation(ShoutoutSession.newSession(user))
+
+          val deviceInfo = DeviceInfo(
+            registrationRequest.screenWidth,
+            registrationRequest.screenHeight,
+            registrationRequest.deviceModel,
+            registrationRequest.deviceLocale
+          )
+
+          val session = sessionsDao.createSessionOperation(
+            ShoutoutSession.newSession(user, deviceInfo = deviceInfo))
 
           //This one liner adds an association to the team shoutout account
           contactsDao.insertFriendAssociation(user, ContactOrdering(None, Some(1), FriendType), 0)
           contactsDao.insertFriendAssociation(user, ContactOrdering(None, user.id, FriendType), 1)
-          insertWelcomeRow(user)
+          insertWelcomeRow(user, deviceInfo)
 
           RegistrationResponse(session.sessionId)
         }
