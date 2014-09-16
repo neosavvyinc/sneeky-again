@@ -124,10 +124,10 @@ package object httpx {
     implicit val failureFormat = jsonFormat2(Failure)
 
     implicit val shoutuser2json = jsonFormat12(ShoutoutUser)
-    implicit val loginWithEmail2json = jsonFormat2(UserLogin)
-    implicit val loginWithFacebook2json = jsonFormat4(FacebookUserLogin)
+    implicit val loginWithEmail2json = jsonFormat6(UserLogin)
+    implicit val loginWithFacebook2json = jsonFormat8(FacebookUserLogin)
     implicit val loginSuccess2json = jsonFormat1(LoginSuccess)
-    implicit val userRegistration2json = jsonFormat2(UserRegistrationRequest)
+    implicit val userRegistration2json = jsonFormat6(UserRegistrationRequest)
     implicit val registrationResponse2json = jsonFormat1(RegistrationResponse)
     implicit val userUpdateRequest2json = jsonFormat4(ShoutoutUserUpdateRequest)
     implicit val activeUser2json = jsonFormat9(ActiveShoutoutUser)

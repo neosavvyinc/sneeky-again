@@ -360,4 +360,21 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="24" author="aparrish">
+        <addColumn tableName="SESSIONS">
+            <column name="SCREEN_HEIGHT" type="int">
+                <constraints nullable="true"></constraints>
+            </column>
+            <column name="SCREEN_WIDTH" type="int">
+                <constraints nullable="true"></constraints>
+            </column>
+            <column name="DEVICE_MODEL" type="varchar(1024)">
+                <constraints nullable="true"></constraints>
+            </column>
+            <column name="LOCALE" type="varchar(5)">
+                <constraints nullable="true"></constraints>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>
