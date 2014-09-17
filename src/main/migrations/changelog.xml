@@ -377,4 +377,12 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="25" author="aparrish">
+        <addColumn tableName="USERS">
+            <column name="USER_STATUS" type="varchar(100)" defaultValue="unverified">
+                <constraints nullable="false"></constraints>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

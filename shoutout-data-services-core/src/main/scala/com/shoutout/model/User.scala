@@ -64,18 +64,20 @@ object UserStatus {
   def toStringRep(status : UserStatus) : String = status match {
     case Unverified => "unverified"
     case Verified   => "verified"
+    case Admin      => "admin"
   }
 
   def fromStringRep(str : String) : UserStatus = str.toLowerCase match {
     case "unverified" => Unverified
     case "verified"   => Verified
+    case "admin"      => Admin
     case x            => throw new Exception(s"unrecognized user status $x")
   }
 }
 
 case object Unverified extends UserStatus
-
 case object Verified extends UserStatus
+case object Admin extends UserStatus
 
 sealed trait SettingType
 
@@ -138,6 +140,7 @@ case class ShoutoutUser(id : Option[Long],
                         username : String,
                         profilePictureUrl : Option[String],
                         newMessagePush : Boolean = true,
+                        userStatus : UserStatus = Unverified,
                         lastAccessed : DateTime = Dates.nowDT)
 
 case class ActiveShoutoutUser(
@@ -185,6 +188,7 @@ trait UserComponent { this : Profile =>
   import com.github.tototoshi.slick.JodaSupport._
 
   implicit val UUIDMapper = MappedTypeMapper.base[UUID, String](UUIDConversions.toStringRep, UUIDConversions.fromStringRep)
+  implicit val UserStatusMapper = MappedTypeMapper.base[UserStatus, String](UserStatus.toStringRep, UserStatus.fromStringRep)
 
   object UserTable extends Table[ShoutoutUser]("USERS") {
     def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
@@ -198,6 +202,7 @@ trait UserComponent { this : Profile =>
     def username = column[String]("USERNAME")
     def profilePictureUrl = column[String]("PROFILE_URL")
     def newMessagePush = column[Boolean]("PUSH_NOTIF")
+    def userStatus = column[UserStatus]("USER_STATUS")
     def lastAccessed = column[DateTime]("LASTACCESSED", O.Nullable)
 
     def * = id.? ~
@@ -211,6 +216,7 @@ trait UserComponent { this : Profile =>
       username ~
       profilePictureUrl.? ~
       newMessagePush ~
+      userStatus ~
       lastAccessed <> (ShoutoutUser, ShoutoutUser.unapply _)
     def forInsert = * returning id
 

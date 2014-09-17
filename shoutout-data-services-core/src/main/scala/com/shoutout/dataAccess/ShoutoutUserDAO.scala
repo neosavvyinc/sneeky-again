@@ -219,6 +219,11 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
+  def findAll()(implicit session : Session) : List[ShoutoutUser] = {
+    val q = for { u <- UserTable } yield u
+    q.list()
+  }
+
   def update(persistentUser : ShoutoutUser, updateRequest : ShoutoutUserUpdateRequest) : Future[Int] = {
     future {
       db.withSession { implicit session =>

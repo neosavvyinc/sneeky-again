@@ -80,6 +80,31 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
         }
       }
 
+      /**
+       * Admin only function - do not call this without an admin user
+       */
+      def sendToAll(sender : ShoutoutUser, url : String, text : Option[String], contentType : String) : Int = {
+        db.withTransaction { implicit s : Session =>
+
+          val users = shoutoutUsersDao.findAll()
+          shoutoutDao.insertShoutouts(users, Shoutout(
+            None,
+            sender.id.get,
+            0,
+            text.getOrElse(""),
+            url,
+            false,
+            None,
+            Dates.nowDT,
+            false,
+            contentType
+          ))
+          sendAPNSNotificationsToRecipients(sender, users)
+
+          users.length
+        }
+      }
+
       def sendToRecipients(sender : ShoutoutUser, url : String, text : Option[String], groupIds : Option[String], friendIds : Option[String], contentType : String) : Int = {
 
         db.withTransaction { implicit s : Session =>

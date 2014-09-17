@@ -1,6 +1,7 @@
 package com.shoutout.ds.framework.auth
 
 import com.shoutout.ds.DSConfiguration
+import com.shoutout.model.{ Admin, Verified, Unverified, UserStatus }
 import org.joda.time.DateTime
 import scala.util.Try
 import java.security.MessageDigest
@@ -52,6 +53,19 @@ trait Authenticator extends DSConfiguration with Logging {
     val bytes = withSuffix.getBytes("UTF-8")
     val digested = digest.digest(bytes)
     valueOf(digested)
+  }
+
+}
+
+object ShoutoutAuthorizer extends Logging {
+
+  private val weights : Map[UserStatus, Int] = Map(Admin -> 999, Verified -> 100, Unverified -> 10)
+
+  def authorize(securityRole : UserStatus, userRole : UserStatus) : Boolean = {
+    val securityWeight = weights.getOrElse(securityRole, -1)
+    val userWeight = weights.getOrElse(userRole, -1)
+    log.debug(s"authorizing $securityRole with weight $securityWeight against user role $userRole with weight $userWeight")
+    userWeight >= securityWeight
   }
 
 }

@@ -67,6 +67,15 @@ package object httpx {
       }
     }
 
+    implicit object UserStatusFormat extends JsonFormat[UserStatus] {
+      def write(obj : UserStatus) = JsString(UserStatus.toStringRep(obj))
+
+      def read(json : JsValue) : UserStatus = json match {
+        case JsString(x) => UserStatus.fromStringRep(x)
+        case _           => deserializationError("Expected String value for UserStatus")
+      }
+    }
+
     implicit object ContactTypeFormat extends JsonFormat[ContactType] {
       override def write(obj : ContactType) : JsValue = JsString(ContactType.toStringRep(obj))
 
@@ -123,7 +132,7 @@ package object httpx {
 
     implicit val failureFormat = jsonFormat2(Failure)
 
-    implicit val shoutuser2json = jsonFormat12(ShoutoutUser)
+    implicit val shoutuser2json = jsonFormat13(ShoutoutUser)
     implicit val loginWithEmail2json = jsonFormat6(UserLogin)
     implicit val loginWithFacebook2json = jsonFormat8(FacebookUserLogin)
     implicit val loginSuccess2json = jsonFormat1(LoginSuccess)

@@ -19,6 +19,7 @@ trait RequestAuthenticator extends Authenticator {
   def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[(ShoutoutUser, UUID)]]
 
   def unverified(ctx : RequestContext)(implicit ec : ExecutionContext) = request(Unverified, ctx)
+  def admin(ctx : RequestContext)(implicit ec : ExecutionContext) = request(Admin, ctx)
 }
 
 trait SessionDateHashRequestAuthenticator extends RequestAuthenticator with DSConfiguration with DatabaseSupport with Logging {
@@ -35,7 +36,8 @@ trait SessionDateHashRequestAuthenticator extends RequestAuthenticator with DSCo
         user <- validateSession(s, ctx)
       } yield (user, UUID.fromString(s))
       logAuthFailure(result, s"auth failed", ctx)
-      toAuthentication(logAuthFailure(result, s"request was valid but the user's status was rejected", ctx))
+      val filtered = result.filter(x => ShoutoutAuthorizer.authorize(status, x._1.userStatus))
+      toAuthentication(logAuthFailure(filtered, s"request was valid but the user's status was rejected", ctx))
     }
   }
 
@@ -61,7 +63,9 @@ trait NonHashingRequestAuthenticator extends SessionDateHashRequestAuthenticator
         s <- extractParameter(sessionIdP, ctx)
         user <- validateSession(s, ctx)
       } yield (user, UUID.fromString(s))
-      toAuthentication(result)
+
+      val filtered = result.filter(x => ShoutoutAuthorizer.authorize(status, x._1.userStatus))
+      toAuthentication(logAuthFailure(filtered, s"request was valid but the user's status was rejected", ctx))
     }
   }
 }
