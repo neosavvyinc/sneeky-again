@@ -232,8 +232,8 @@ trait UserSessionComponent { this : Profile with UserComponent =>
     def pushNotifierToken = column[String]("PUSH_NOTIFIER_TOKEN", O.Nullable)
     def pushNotifierType = column[MobilePushType]("PUSH_NOTIFIER_TYPE", O.Nullable)
     def sessionInvalidated = column[Boolean]("SESSION_INVALID")
-    def screenHeight = column[Int]("SCREEN_HEIGHT", O.Nullable)
     def screenWidth = column[Int]("SCREEN_WIDTH", O.Nullable)
+    def screenHeight = column[Int]("SCREEN_HEIGHT", O.Nullable)
     def deviceModel = column[String]("DEVICE_MODEL", O.Nullable)
     def locale = column[String]("LOCALE", O.Nullable)
 
@@ -244,8 +244,8 @@ trait UserSessionComponent { this : Profile with UserComponent =>
       pushNotifierToken.? ~
       pushNotifierType.? ~
       sessionInvalidated ~
-      screenHeight.? ~
       screenWidth.? ~
+      screenHeight.? ~
       deviceModel.? ~
       locale.? <> (ShoutoutSession.apply _, ShoutoutSession.unapply _)
 
