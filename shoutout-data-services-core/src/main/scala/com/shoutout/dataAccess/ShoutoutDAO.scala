@@ -68,27 +68,23 @@ class ShoutoutDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
     q1.run
   }
 
-  def countUnread(user : ShoutoutUser) : Int = {
-    db.withSession { implicit session : Session =>
-      import scala.slick.jdbc.{ StaticQuery => Q }
-      import Q.interpolation
-      val id = user.id.get
-      val userName = user.username
+  def countUnread(user : ShoutoutUser)(implicit session : Session) : Int = {
+    import scala.slick.jdbc.{ StaticQuery => Q }
+    import Q.interpolation
+    val id = user.id.get
+    val userName = user.username
 
-      def countQuery = sql"select count(*) from SHOUTOUTS where RECIPIENT_ID = $id and IS_VIEWED = false and IS_BLOCKED = false and IS_CLEANED = false".as[Int]
-      try {
-        val result = countQuery.first
-        debug(s"Executing a count query for user: $userName and the result was $result")
-        if (result == 0) { 1 } else { result }
-      } catch {
-        case e : Exception => {
-          log.error(s"Something went bad wrong while counting a user's shoutouts: $e")
-          1 //something happened so let's at least return one
-        }
+    def countQuery = sql"select count(*) from SHOUTOUTS where RECIPIENT_ID = $id and IS_VIEWED = false and IS_BLOCKED = false and IS_CLEANED = false".as[Int]
+    try {
+      val result = countQuery.first
+      debug(s"Executing a count query for user: $userName and the result was $result")
+      if (result == 0) { 1 } else { result }
+    } catch {
+      case e : Exception => {
+        log.error(s"Something went bad wrong while counting a user's shoutouts: $e")
+        1 //something happened so let's at least return one
       }
-
     }
-
   }
 
 }

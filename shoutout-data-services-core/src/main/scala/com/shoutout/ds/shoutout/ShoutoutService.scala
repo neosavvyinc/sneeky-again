@@ -107,6 +107,8 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
 
       def sendToRecipients(sender : ShoutoutUser, url : String, text : Option[String], groupIds : Option[String], friendIds : Option[String], contentType : String) : Int = {
 
+        var returnVal = 0
+
         db.withTransaction { implicit s : Session =>
 
           // find a unique list of shoutout users for each group provided

@@ -36,8 +36,8 @@ trait ShoutoutEndpoint extends DataHttpService with BasicCrypto {
       val (user, sessionId) = authenticationResult
       post {
         respondWithMediaType(`application/json`) {
-          formFields('data.as[Array[Byte]], 'text.?, 'contentType) {
-            (data, text, contentType) =>
+          formFields('data.as[Array[Byte]], 'text.?, 'contentType, 'locale.?) {
+            (data, text, contentType, locale) =>
               complete {
 
                 contentType match {

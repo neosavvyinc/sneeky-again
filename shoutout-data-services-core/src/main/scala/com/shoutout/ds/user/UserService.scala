@@ -214,7 +214,7 @@ object UserService extends BasicCrypto {
 
         val sessions = sessionsDao.findFromPushNotifierAndType(applePushToken, mobilePushType)
         sessions foreach (s => {
-          sessionsDao.updatePushNotifier(s.sessionId, null, s.pushNotifierType.getOrElse(NullType))
+          sessionsDao.updatePushNotifier(s.sessionId, null, NullType)
         })
 
         sessionsDao.updatePushNotifier(sessionUUID, applePushToken, mobilePushType)
