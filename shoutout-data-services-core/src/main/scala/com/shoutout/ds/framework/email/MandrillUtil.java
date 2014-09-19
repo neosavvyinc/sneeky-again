@@ -16,25 +16,16 @@ public class MandrillUtil {
 
     public static void sendMailViaMandrill(
             MandrillConfiguration configuration,
-            String recipientEmail, String newPassword ) throws IOException, MandrillApiError {
+            String recipientEmail, String subject, String body, String fromName ) throws IOException, MandrillApiError {
 
         MandrillApi mandrillApi  = new MandrillApi(configuration.getApiKey());
 
         MandrillMessage message = new MandrillMessage();
-        message.setSubject("Shoutout Password Assistance");
-        message.setHtml(
-                "Hi,\n" +
-                "\n" +
-                "We received a notice that you forgot your password. Please use the password below as your new one:\n" +
-                "\n" +
-                newPassword + "\n" +
-                "\n" +
-                "Please email hello@shoutoutwith.us if you have any further questions.\n" +
-                "\n" +
-                "- Shoutout Team\n");
+        message.setSubject(subject);
+        message.setHtml(body);
         message.setAutoText(true);
         message.setFromEmail(configuration.getUsername());
-        message.setFromName("Team Shoutout");
+        message.setFromName(fromName);
 
 
         ArrayList<MandrillMessage.Recipient> recipients = new ArrayList<MandrillMessage.Recipient>();

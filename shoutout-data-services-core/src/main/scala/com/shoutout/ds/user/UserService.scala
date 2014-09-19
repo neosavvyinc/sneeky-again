@@ -1,5 +1,6 @@
 package com.shoutout.ds.user
 
+import com.netaporter.i18n.ResourceBundle
 import com.shoutout.ds.integration.amazon.S3Service
 
 import scala.concurrent.{ Await, ExecutionContext, Future, future }
@@ -8,7 +9,7 @@ import com.shoutout.ds.framework.{ Dates, Logging }
 import com.shoutout.model.UserLogin
 import com.shoutout.model.ShoutoutUser
 import com.shoutout.dataAccess.DatabaseSupport
-import java.util.UUID
+import java.util.{ Locale, UUID }
 import com.shoutout.ds.framework.exception.ShoutoutException
 import com.shoutout.ds.framework.email.{ MandrillConfiguration, MandrillUtil }
 import com.shoutout.ds.BasicCrypto
@@ -29,6 +30,8 @@ trait UserService {
 object UserService extends BasicCrypto {
 
   def apply(s3Service : S3Service)(implicit ec : ExecutionContext) = new UserService with DatabaseSupport with Logging {
+
+    val resourceBundle = ResourceBundle("messages/messages")
 
     private def insertWelcomeRow(user : ShoutoutUser, deviceInfo : DeviceInfo)(implicit session : Session) = {
       shoutoutDao.insertShoutouts(user :: Nil, Shoutout(None,
@@ -293,17 +296,27 @@ object UserService extends BasicCrypto {
     }
 
     private def sendResetPasswordEmail(status : Option[ResetPasswordResults]) : Future[Boolean] = {
+
       status match {
         case None => Future.successful(false)
         case Some(x) => {
           future {
+
+            val subject = resourceBundle.get("shoutout.forgotpassword.subject", Locale.ENGLISH)
+            val body = resourceBundle.getWithParams("shoutout.forgotpassword.body", Locale.ENGLISH, x.password)
+            val fromName = resourceBundle.getWithParams("shoutout.forgotpassword.fromName", Locale.ENGLISH)
+
             MandrillUtil.sendMailViaMandrill(
               new MandrillConfiguration(
                 MandrillConfiguration.apiKey,
                 MandrillConfiguration.smtpPort,
                 MandrillConfiguration.smtpHost,
                 MandrillConfiguration.username
-              ), x.email, x.password)
+              ), x.email,
+              subject,
+              body,
+              fromName
+            )
             true
           }
         }

@@ -55,6 +55,7 @@ object Build extends sbt.Build {
           Seq(
             resolvers += "spray" at "http://repo.spray.io/",
             resolvers += "jets3t" at "http://www.jets3t.org/maven2",
+            resolvers += "bintray" at "http://jcenter.bintray.com",
             compile <<= (compile in Compile) dependsOn (compile in Test, compile in IntegrationTest),
             libraryDependencies ++= Shared.testDeps
           )).settings(Defaults.itSettings: _ *).settings(atmosSettings: _*).configs(IntegrationTest).configs(Atmos)
@@ -106,7 +107,8 @@ object Shared {
     "com.relayrides" % "pushy"           % "0.2",
     "commons-codec"  % "commons-codec"   % "1.6",
     "com.mandrillapp.wrapper.lutung" % "lutung" % "0.0.4",
-    "net.java.dev.jets3t" % "jets3t" % "0.9.0"
+    "net.java.dev.jets3t" % "jets3t" % "0.9.0",
+    "com.netaporter" %% "scala-i18n" % "0.1"
   )
 
   val Slick = Seq(
