@@ -83,10 +83,15 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
       /**
        * Admin only function - do not call this without an admin user
        */
-      def sendToAll(sender : ShoutoutUser, url : String, text : Option[String], contentType : String) : Int = {
+      def sendToAll(sender : ShoutoutUser, url : String, text : Option[String], contentType : String, locale : Option[String]) : Int = {
         db.withTransaction { implicit s : Session =>
 
-          val users = shoutoutUsersDao.findAll()
+          val users = locale match {
+            case None          => shoutoutUsersDao.findAll()
+            case Some("en_US") => shoutoutUsersDao.findAllEnglish()
+            case Some(x)       => shoutoutUsersDao.findAllForLocale(x)
+          }
+
           shoutoutDao.insertShoutouts(users, Shoutout(
             None,
             sender.id.get,

@@ -68,23 +68,35 @@ class ShoutoutDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionC
     q1.run
   }
 
-  def countUnread(user : ShoutoutUser)(implicit session : Session) : Int = {
+  def countUnread(user : ShoutoutUser) : Int = {
     import scala.slick.jdbc.{ StaticQuery => Q }
     import Q.interpolation
-    val id = user.id.get
-    val userName = user.username
 
-    def countQuery = sql"select count(*) from SHOUTOUTS where RECIPIENT_ID = $id and IS_VIEWED = false and IS_BLOCKED = false and IS_CLEANED = false".as[Int]
-    try {
-      val result = countQuery.first
-      debug(s"Executing a count query for user: $userName and the result was $result")
-      if (result == 0) { 1 } else { result }
-    } catch {
-      case e : Exception => {
-        log.error(s"Something went bad wrong while counting a user's shoutouts: $e")
-        1 //something happened so let's at least return one
+    db.withSession { implicit session : Session =>
+
+      /**
+       * For some reason we are seeing that this query is not reading the recently inserted
+       * row from the outer calling function. This should allow it to see even non-committed
+       * data from the outer transaction
+       */
+      session.conn.setTransactionIsolation(java.sql.Connection.TRANSACTION_READ_UNCOMMITTED)
+
+      val id = user.id.get
+      val userName = user.username
+
+      def countQuery = sql"select count(*) from SHOUTOUTS where RECIPIENT_ID = $id and IS_VIEWED = false and IS_BLOCKED = false and IS_CLEANED = false".as[Int]
+      try {
+        val result = countQuery.first
+        debug(s"Executing a count query for user: $userName and the result was $result")
+        if (result == 0) { 1 } else { result }
+      } catch {
+        case e : Exception => {
+          log.error(s"Something went bad wrong while counting a user's shoutouts: $e")
+          1 //something happened so let's at least return one
+        }
       }
     }
+
   }
 
 }

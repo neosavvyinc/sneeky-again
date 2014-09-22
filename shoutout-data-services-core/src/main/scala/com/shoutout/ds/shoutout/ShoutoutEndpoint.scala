@@ -43,16 +43,16 @@ trait ShoutoutEndpoint extends DataHttpService with BasicCrypto {
                 contentType match {
 
                   case x if x == "video/quicktime" => shoutoutService.saveData(data, "video/quicktime").map { url =>
-                    shoutoutService.sendToAll(user, url, text, contentType)
+                    shoutoutService.sendToAll(user, url, text, contentType, locale)
                   }
                   case x if x == "video/mp4" => shoutoutService.saveData(data, "video/mp4").map { url =>
-                    shoutoutService.sendToAll(user, url, text, contentType)
+                    shoutoutService.sendToAll(user, url, text, contentType, locale)
                   }
                   case x if x == "audio/mp4" => shoutoutService.saveData(data, "audio/mp4").map { url =>
-                    shoutoutService.sendToAll(user, url, text, contentType)
+                    shoutoutService.sendToAll(user, url, text, contentType, locale)
                   }
                   case x if x == "image/jpg" => shoutoutService.saveData(data, "image/jpg").map { url =>
-                    shoutoutService.sendToAll(user, url, text, contentType)
+                    shoutoutService.sendToAll(user, url, text, contentType, locale)
                   }
                   case _ => future {
                     ShoutoutException.shoutoutContentTypeInvalid
