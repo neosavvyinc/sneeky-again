@@ -16,7 +16,10 @@ public class MandrillUtil {
 
     public static void sendMailViaMandrill(
             MandrillConfiguration configuration,
-            String recipientEmail, String subject, String body, String fromName ) throws IOException, MandrillApiError {
+            String recipientEmail,
+            String subject,
+            String body,
+            String fromName ) throws IOException, MandrillApiError {
 
         MandrillApi mandrillApi  = new MandrillApi(configuration.getApiKey());
 

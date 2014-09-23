@@ -18,7 +18,11 @@ public class MandrillUtilTest extends TestCase {
                         "smtp.mandrillapp.com",
                         "587",
                         "admin@sneekyapp.com"
-                ), "aparrish@neosavvy.com", "newPassword");
+                ),
+                "aparrish@neosavvy.com",
+                "newPassword",
+                "",
+                "");
 
 
     }
