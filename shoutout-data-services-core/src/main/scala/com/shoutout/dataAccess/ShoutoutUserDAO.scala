@@ -224,24 +224,21 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     q.list()
   }
 
+  private val usersByLocale = for {
+    locale <- Parameters[String]
+    (s, u) <- SessionTable innerJoin UserTable on ((sess, user) => sess.userId === user.id && sess.locale === locale)
+  } yield u
+
   def findAllEnglish()(implicit session : Session) : List[ShoutoutUser] = {
-
-    val english = "en_US"
-    val nullValue = null
-
     val q = for {
-      u <- UserTable
-      s <- SessionTable if s.owner == u.id && (s.locale == nullValue || s.locale == english)
+      locale <- Parameters[String]
+      (s, u) <- SessionTable innerJoin UserTable on ((sess, user) => sess.userId === user.id && (sess.locale === locale || sess.locale === null.asInstanceOf[String]))
     } yield u
-    q.list()
+    q("en_US").list()
   }
 
   def findAllForLocale(locale : String)(implicit session : Session) : List[ShoutoutUser] = {
-    val q = for {
-      u <- UserTable
-      s <- SessionTable if s.owner == u.id && s.locale == locale
-    } yield u
-    q.list()
+    usersByLocale(locale).list()
   }
 
   def update(persistentUser : ShoutoutUser, updateRequest : ShoutoutUserUpdateRequest) : Future[Int] = {
