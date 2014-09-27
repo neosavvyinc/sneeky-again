@@ -104,7 +104,7 @@ object Shared {
   val Other = Seq(
     "commons-codec"  % "commons-codec"   % "1.8",
     "com.twilio.sdk" % "twilio-java-sdk" % "3.3.9",
-    "com.relayrides" % "pushy"           % "0.2",
+    "com.relayrides" % "pushy"           % "0.3",
     "commons-codec"  % "commons-codec"   % "1.6",
     "com.mandrillapp.wrapper.lutung" % "lutung" % "0.0.4",
     "net.java.dev.jets3t" % "jets3t" % "0.9.0",
