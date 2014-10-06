@@ -384,5 +384,9 @@
             </column>
         </addColumn>
     </changeSet>
+    
+    <changeSet id="26" author="aparrish">
+        <modifyDataType tableName="SESSIONS" columnName="LOCALE" newDataType="varchar(20)"></modifyDataType>
+    </changeSet>
 
 </databaseChangeLog>

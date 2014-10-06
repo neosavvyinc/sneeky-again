@@ -10,11 +10,14 @@ import com.relayrides.pushy.apns._
 import util._
 
 class AppleAPNSRejectListener extends RejectedNotificationListener[SimpleApnsPushNotification] with Logging {
-  def handleRejectedNotification(notification : SimpleApnsPushNotification, reason : RejectedNotificationReason) = {
+
+  override def handleRejectedNotification(
+    pushManager : PushManager[_ <: SimpleApnsPushNotification], notification : SimpleApnsPushNotification, reason : RejectedNotificationReason) : Unit = {
     log.trace(s"received rejection notification")
     log.trace(s"notification: $notification")
     log.trace(s"reason: $reason")
   }
+
 }
 
 object AppleService extends DSConfiguration {
@@ -39,21 +42,20 @@ object AppleService extends DSConfiguration {
 
   private val keystoreInputStream = readPem(certificate)
 
-  val pushManager = for {
-    keyStore <- Try(java.security.KeyStore.getInstance("PKCS12"))
-    _ <- Try(keyStore.load(keystoreInputStream, ApplePushConfiguration.keyStorePassword.toCharArray))
-    pm <- Try(
-      new PushManager[SimpleApnsPushNotification](
-        environment,
-        keyStore,
-        ApplePushConfiguration.keyStorePassword.toCharArray,
-        ApplePushConfiguration.connectionCount
-      )
-    )
-    _ <- Try(pm.registerRejectedNotificationListener(new AppleAPNSRejectListener()))
-    _ <- Try(pm.start())
-    _ <- Try(keystoreInputStream.close())
-  } yield pm
+  val keyStore = java.security.KeyStore.getInstance("PKCS12")
+  keyStore.load(keystoreInputStream, ApplePushConfiguration.keyStorePassword.toCharArray)
+
+  val pushManagerFactory = new PushManagerFactory[SimpleApnsPushNotification](
+    environment,
+    PushManagerFactory.createDefaultSSLContext(
+      keyStore,
+      ApplePushConfiguration.keyStorePassword.toCharArray)
+  )
+
+  val pushManager = pushManagerFactory.buildPushManager()
+  pushManager.registerRejectedNotificationListener(new AppleAPNSRejectListener)
+  pushManager.start()
+  keystoreInputStream.close()
 }
 
 class AppleActor extends Actor with DSConfiguration with Logging {
@@ -70,19 +72,19 @@ class AppleActor extends Actor with DSConfiguration with Logging {
       val payload = payloadBuilder.buildWithDefaultMaximumLength()
 
       if (sendPushNotifications) {
-        AppleService.pushManager match {
-          case Failure(ex) => {
-            log.trace(s"Error pushing message for $token caused by: $ex")
-            throw ShoutoutException.apnsError(ex.toString())
+
+        token match {
+          case Some(t) => {
+            log.trace(s"Queing the message for $t with $messageText")
+            AppleService.pushManager.getQueue().put(new SimpleApnsPushNotification(TokenUtil.tokenStringToByteArray(t), payload))
           }
-          case Success(pm) => {
-            log.trace(s"Successful push for $token")
-            token match {
-              case Some(t) => pm.enqueuePushNotification(new SimpleApnsPushNotification(TokenUtil.tokenStringToByteArray(t), payload))
-              case None    => log.error(s"tried to send push notification via APNS but received an empty token.")
-            }
-          }
+          case None => log.error(s"tried to send push notification via APNS but received an empty token.")
         }
+
+      } else {
+
+        log.trace(s"No notification was sent for $token because sendPushNotifications was $sendPushNotifications")
+
       }
     }
   }
