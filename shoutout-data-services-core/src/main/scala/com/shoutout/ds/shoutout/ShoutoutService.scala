@@ -1,20 +1,16 @@
 package com.shoutout.ds.shoutout
 
+import com.netaporter.i18n.ResourceBundle
+
 import scala.concurrent.{ Future, ExecutionContext, future }
 import com.shoutout.model._
 import com.shoutout.dataAccess.DatabaseSupport
 import com.shoutout.ds.{ BasicCrypto, DSConfiguration }
-import com.shoutout.model.BlockUserByConversationResponse
-import com.shoutout.model.ConversationUpdateResponse
-import com.shoutout.model.Conversation
-import com.shoutout.model.ConversationItem
-import com.shoutout.model.ConversationInsertResponse
 import com.shoutout.ds.framework.{ Dates, Logging }
 import akka.actor.ActorRef
 import com.shoutout.ds.integration.apple.AppleNotification
-import com.shoutout.ds.framework.exception.ShoutoutException
 import scala.slick.session.Session
-import java.util.UUID
+import java.util.{ Locale, UUID }
 
 import com.shoutout.ds.integration.amazon.S3Service
 
@@ -41,21 +37,53 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
   def apply(appleActor : ActorRef, s3Service : S3Service)(implicit ec : ExecutionContext) =
     new ShoutoutService with DatabaseSupport with Logging {
 
+      val resourceBundle = ResourceBundle("messages/messages")
+
       def saveData(data : Array[Byte], contentType : String) : Future[String] = {
         s3Service.saveData(data, contentType)
       }
 
+      val codes = List(
+        "\ue415",
+        "\ue057",
+        "\ue404",
+        "\ue011",
+        "\ue052",
+        "\ue048",
+        "\ue531",
+        "\ue050",
+        "\ue051",
+        "\ue528",
+        "\ue109",
+        "\ue11b",
+        "\ue312",
+        "\ue112",
+        "\ue310",
+        "\ue12b",
+        "\ue120",
+        "\ue33b",
+        "\ue33a",
+        "\ue34b",
+        "\ue10d"
+      )
+
+      val randomNumber = scala.util.Random
+
       private def sendAPNSNotificationsToRecipients(sender : ShoutoutUser, recipients : List[ShoutoutUser])(implicit session : Session) : Future[Unit] = {
         future {
 
+          val randomUnicode = codes(randomNumber.nextInt(codes.size))
           val notificationMessage = (sender.firstName, sender.lastName, sender.username) match {
             case (Some(f), Some(l), _) => {
               val lastInitial = l.charAt(0)
-              s"$f $lastInitial. sent you a photo"
+              val name = s"$f $lastInitial."
+              resourceBundle.getWithParams("shoutout.pushNotification.sentPhoto", Locale.ENGLISH, name, randomUnicode)
+
             }
-            case (Some(f), None, _) => s"$f sent you a photo"
-            case (None, Some(l), _) => s"$l sent you a photo"
-            case (None, None, u)    => s"$u sent you a photo"
+
+            case (Some(f), None, _) => resourceBundle.getWithParams("shoutout.pushNotification.sentPhoto", Locale.ENGLISH, f, randomUnicode)
+            case (None, Some(l), _) => resourceBundle.getWithParams("shoutout.pushNotification.sentPhoto", Locale.ENGLISH, l, randomUnicode)
+            case (None, None, u)    => resourceBundle.getWithParams("shoutout.pushNotification.sentPhoto", Locale.ENGLISH, u, randomUnicode)
             case _                  => s"someone sent you a photo"
           }
 
