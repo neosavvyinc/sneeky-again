@@ -59,10 +59,18 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
             case _                  => s"someone sent you a photo"
           }
 
+          log.debug(s"Sending APNS notifications for recipients: $recipients")
+
           recipients.foreach {
             recipient =>
+
+              log.debug(s"about to get the count")
               val unreadMessageCount = shoutoutDao.countUnread(recipient);
+
+              log.debug(s"got the count now getting the tokens $unreadMessageCount")
               val tokens = sessionsDao.findTokensByUserId(recipient.id.get :: Nil)
+
+              log.debug(s"using tokens: $tokens for user: $recipient")
               log.trace(s"sending notification with message $notificationMessage")
 
               tokens.getOrElse(recipient.id.get, Set.empty).foreach {

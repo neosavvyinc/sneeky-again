@@ -9,6 +9,17 @@ import scala.util.Try
 import com.relayrides.pushy.apns._
 import util._
 
+class AppleAPNSRejectListener extends RejectedNotificationListener[SimpleApnsPushNotification] with Logging {
+
+  override def handleRejectedNotification(
+    pushManager : PushManager[_ <: SimpleApnsPushNotification], notification : SimpleApnsPushNotification, reason : RejectedNotificationReason) : Unit = {
+    log.trace(s"received rejection notification")
+    log.trace(s"notification: $notification")
+    log.trace(s"reason: $reason")
+  }
+
+}
+
 object AppleService extends DSConfiguration {
 
   private def readPem(location : String) = {
@@ -42,6 +53,7 @@ object AppleService extends DSConfiguration {
   )
 
   val pushManager = pushManagerFactory.buildPushManager()
+  pushManager.registerRejectedNotificationListener(new AppleAPNSRejectListener)
   pushManager.start()
   keystoreInputStream.close()
 }
@@ -63,13 +75,15 @@ class AppleActor extends Actor with DSConfiguration with Logging {
 
         token match {
           case Some(t) => {
-            AppleService.pushManager.getQueue().put(
-              new SimpleApnsPushNotification(TokenUtil.tokenStringToByteArray(t), payload
-              )
-            )
+            log.trace(s"Queing the message for $t with $messageText")
+            AppleService.pushManager.getQueue().put(new SimpleApnsPushNotification(TokenUtil.tokenStringToByteArray(t), payload))
           }
           case None => log.error(s"tried to send push notification via APNS but received an empty token.")
         }
+
+      } else {
+
+        log.trace(s"No notification was sent for $token because sendPushNotifications was $sendPushNotifications")
 
       }
     }
