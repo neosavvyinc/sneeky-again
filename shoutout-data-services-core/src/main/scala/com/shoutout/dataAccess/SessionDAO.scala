@@ -41,23 +41,27 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     }
   }
 
-  def findTokensByUserId(userIds : Seq[Long])(implicit session : Session) : Map[Long, Set[String]] = {
+  def findTokensByUserId(userIds : Seq[Long]) : Map[Long, Set[String]] = {
 
-    userIds.foreach { userId =>
-      log.debug(s"finding tokens for user id $userId")
+    db.withSession { implicit session : Session =>
+
+      userIds.foreach { userId =>
+        log.debug(s"finding tokens for user id $userId")
+      }
+
+      val q = for { s <- SessionTable if (s.userId inSet userIds) } yield s.userId ~ s.pushNotifierToken.?
+
+      log.trace("statement we are executing is " + q.selectStatement)
+
+      val tokens = q.list
+
+      log.trace(s"found tokens: $tokens")
+
+      val grouped = tokens.groupBy(_._1).mapValues(x => x.map(_._2).flatten.toSet)
+      grouped.foreach { case (k, v) => log.debug(s"tokens for $k are $v") }
+      grouped
+
     }
-
-    val q = for { s <- SessionTable if (s.userId inSet userIds) } yield s.userId ~ s.pushNotifierToken.?
-
-    log.trace("statement we are executing is " + q.selectStatement)
-
-    val tokens = q.list
-
-    log.trace(s"found tokens: $tokens")
-
-    val grouped = tokens.groupBy(_._1).mapValues(x => x.map(_._2).flatten.toSet)
-    grouped.foreach { case (k, v) => log.debug(s"tokens for $k are $v") }
-    grouped
 
   }
 
