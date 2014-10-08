@@ -11,46 +11,12 @@ case class DeviceInfo(screenWidth : Option[Int] = None,
                       deviceModel : Option[String] = None,
                       deviceLocale : Option[String] = None)
 
-case class UserRegistrationRequest(email : String,
-                                   password : String,
-                                   screenWidth : Option[Int] = None,
-                                   screenHeight : Option[Int] = None,
-                                   deviceModel : Option[String] = None,
-                                   deviceLocale : Option[String] = None)
-
-case class RegistrationResponse(sessionUUID : UUID)
-
-case class RegistrationVerification(messageSid : String,
-                                    accountSid : String,
-                                    from : String,
-                                    to : String,
-                                    body : String,
-                                    numMedia : Int)
-
-case class UserLogin(email : String,
-                     password : String,
-                     screenWidth : Option[Int] = None,
-                     screenHeight : Option[Int] = None,
-                     deviceModel : Option[String] = None,
-                     deviceLocale : Option[String] = None)
-
 case class Restriction(id : Option[Long], username : String)
 
 case class ShoutoutUserUpdateRequest(birthday : Option[LocalDate],
                                      firstName : Option[String],
                                      lastName : Option[String],
                                      username : Option[String])
-
-case class FacebookUserLogin(facebookId : String,
-                             firstName : Option[String],
-                             lastName : Option[String],
-                             birthdate : Option[LocalDate],
-                             screenWidth : Option[Int] = None,
-                             screenHeight : Option[Int] = None,
-                             deviceModel : Option[String] = None,
-                             deviceLocale : Option[String] = None)
-
-case class LoginSuccess(sessionUUID : UUID)
 
 case class UpdatePushTokenRequest(pushNotifierToken : String,
                                   pushType : MobilePushType)

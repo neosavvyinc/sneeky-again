@@ -22,47 +22,13 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
   val users = "users"
 
   /**
-   * This should accept a email and password request
-   *
-   * @return - session or user id for the record
-   */
-  def loginEmail = pathPrefix(users / "login" / "email") {
-    post {
-      entity(as[UserLogin]) { loginRequest =>
-        respondWithMediaType(`application/json`) {
-          complete(userService.login(loginRequest))
-        }
-      }
-    }
-  }
-
-  /**
-   * This should log you in with Facebook if we have a record
-   * for you, otherwise it should create a record
-   * @return - session or user id for the record
-   */
-  def loginFacebook = pathPrefix(users / "login" / "facebook") {
-    post {
-      entity(as[FacebookUserLogin]) { loginRequest =>
-        respondWithMediaType(`application/json`) {
-          complete(userService.facebookLogin(loginRequest))
-        }
-      }
-    }
-  }
-
-  /**
    * This should accept
    * @return
    */
-  def registerEmail = pathPrefix(users / "register") {
+  def register = pathPrefix(users / "register") {
     post {
       respondWithMediaType(`application/json`)
-      entity(as[UserRegistrationRequest]) {
-        reg =>
-          log.trace(s"registering $reg")
-          complete(userService.register(reg))
-      }
+      complete(userService.register())
     }
   }
 
@@ -170,13 +136,12 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
     }
   }
 
-  val userRoute = loginFacebook ~
-    loginEmail ~
-    registerEmail ~
-    logout ~
-    update ~
-    activeUser ~
-    updateSettings ~
-    updatePushNotifier
+  val userRoute =
+    register ~
+      logout ~
+      update ~
+      activeUser ~
+      updateSettings ~
+      updatePushNotifier
 
 }

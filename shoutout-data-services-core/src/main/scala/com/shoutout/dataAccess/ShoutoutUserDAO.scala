@@ -107,95 +107,11 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     user.copy(id = Some(id))
   }
 
-  private def createUserRecord(reg : UserRegistrationRequest)(implicit session : Session) = {
-    insertNoTransact(ShoutoutUser(
-      None,
-      UUID.randomUUID,
-      None,
-      Some(reg.email.toLowerCase),
-      Some(Passwords.getSaltedHash(reg.password)),
-      None,
-      None,
-      None,
-      "",
-      None))
-  }
-
   /**
    * ***********************************************************
    * External DAO API
    * ***********************************************************
    */
-
-  def login(loginRequest : UserLogin) : Future[ShoutoutUser] = {
-    future {
-      db.withSession { implicit session =>
-        log.trace(s"logging in $loginRequest")
-        val userOpt = for {
-          user <- findByEmailOperation(loginRequest.email)
-          password <- user.password if Passwords.check(loginRequest.password, password)
-        } yield user
-
-        val user = userOpt.getOrElse(throw ShoutoutException.nonExistentUser)
-        user
-      }
-    }
-  }
-
-  def loginByFacebook(loginRequest : FacebookUserLogin) : Future[(ShoutoutUser, Boolean)] = {
-    future {
-      db.withSession { implicit session =>
-        var userExists = false;
-
-        log.trace(s"logging in $loginRequest")
-        val userOpt = for {
-          user <- findByFacebookOperation(loginRequest.facebookId)
-        } yield user
-
-        userOpt match {
-          case Some(_) => userExists = true
-          case None    => userExists = false
-        }
-
-        val user = userOpt.getOrElse(insertNoTransact(ShoutoutUser(
-          None,
-          UUID.randomUUID,
-          Some(loginRequest.facebookId),
-          None,
-          None,
-          loginRequest.birthdate match {
-            case Some(x) => Some(x)
-            case None    => None
-          },
-          loginRequest.firstName match {
-            case Some(x) => Some(x)
-            case None    => None
-          },
-          loginRequest.lastName match {
-            case Some(x) => Some(x)
-            case None    => None
-          },
-          "",
-          None)))
-
-        (user, userExists)
-      }
-    }
-  }
-
-  def registerOperation(registrationRequest : UserRegistrationRequest)(implicit session : Session) : ShoutoutUser = {
-    log.trace(s"registering $registrationRequest")
-    val ex = existsQuery(registrationRequest.email.toLowerCase).firstOption
-    val mapped = ex.map { e =>
-      if (e) {
-        log.trace(s"duplicate email detected when registering $registrationRequest")
-        throw ShoutoutException.duplicateUser
-      } else {
-        createUserRecord(registrationRequest)
-      }
-    }
-    mapped.getOrElse(createUserRecord(registrationRequest))
-  }
 
   def findById(id : Long) : Future[ShoutoutUser] = {
     future {

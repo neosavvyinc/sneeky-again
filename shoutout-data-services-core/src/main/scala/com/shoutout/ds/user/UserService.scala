@@ -1,25 +1,20 @@
 package com.shoutout.ds.user
 
-import com.netaporter.i18n.ResourceBundle
-import com.shoutout.ds.integration.amazon.S3Service
+import java.util.UUID
 
-import scala.concurrent.{ Await, ExecutionContext, Future, future }
-import com.shoutout.model._
-import com.shoutout.ds.framework.{ LocaleUtilities, Dates, Logging }
-import com.shoutout.model.UserLogin
-import com.shoutout.model.ShoutoutUser
+import com.netaporter.i18n.ResourceBundle
 import com.shoutout.dataAccess.DatabaseSupport
-import java.util.{ Locale, UUID }
-import com.shoutout.ds.framework.exception.ShoutoutException
-import com.shoutout.ds.framework.email.{ MandrillConfiguration, MandrillUtil }
 import com.shoutout.ds.BasicCrypto
+import com.shoutout.ds.framework.Logging
+import com.shoutout.ds.framework.exception.ShoutoutException
+import com.shoutout.ds.integration.amazon.S3Service
+import com.shoutout.model.{ ShoutoutUser, _ }
+
+import scala.concurrent.{ ExecutionContext, Future, future }
 import scala.slick.session.Session
 
 trait UserService {
 
-  def login(loginRequest : UserLogin) : Future[LoginSuccess]
-  def facebookLogin(loginRequest : FacebookUserLogin) : Future[LoginSuccess]
-  def register(registrationRequest : UserRegistrationRequest) : Future[RegistrationResponse]
   def logout(sessionId : String) : Future[Int]
   def updateUser(userId : Long, updateRequest : ShoutoutUserUpdateRequest) : Future[Int]
   def findFromSessionId(sessionId : String) : Future[ShoutoutSession]
@@ -33,80 +28,10 @@ object UserService extends BasicCrypto {
 
     val resourceBundle = ResourceBundle("messages/messages")
 
-    def login(loginRequest : UserLogin) : Future[LoginSuccess] = {
-      for {
-        user <- shoutoutUsersDao.login(UserLogin(
-          decryptField(loginRequest.email),
-          decryptField(loginRequest.password)
-        ))
-        session <- sessionsDao.createSession(ShoutoutSession.newSession(
-          user,
-          deviceInfo = DeviceInfo(
-            loginRequest.screenWidth,
-            loginRequest.screenHeight,
-            loginRequest.deviceModel,
-            loginRequest.deviceLocale
-          )))
-      } yield LoginSuccess(session.sessionId)
-    }
-
-    def facebookLogin(loginRequest : FacebookUserLogin) : Future[LoginSuccess] = {
-
-      def insertFriendIfNotExists(user : ShoutoutUser, targetFriendId : Long, deviceInfo : DeviceInfo) = {
-        db.withSession { implicit session : Session =>
-          val contactOption = contactsDao.findContactByIdForOwner(user, 1)
-          contactOption match {
-            case None => {
-              contactsDao.insertFriendAssociation(user, ContactOrdering(None, Some(1), FriendType), 0)
-              contactsDao.insertFriendAssociation(user, ContactOrdering(None, user.id, FriendType), 1)
-            }
-            case Some(c) => log.debug(s"User $user is already friends with the shoutout team")
-          }
-
-        }
+    def register() : Future[String] = {
+      future {
+        UUID.randomUUID().toString
       }
-
-      var decryptedLoginRequest = FacebookUserLogin(
-        decryptField(loginRequest.facebookId),
-        loginRequest.firstName,
-        loginRequest.lastName,
-        loginRequest.birthdate
-      )
-
-      val deviceInfo = DeviceInfo(
-        loginRequest.screenWidth,
-        loginRequest.screenHeight,
-        loginRequest.deviceModel,
-        loginRequest.deviceLocale
-      )
-
-      for {
-        userTuple <- shoutoutUsersDao.loginByFacebook(decryptedLoginRequest)
-        session <- {
-          if (userTuple._2 == false) {
-            insertFriendIfNotExists(userTuple._1, 1, deviceInfo)
-          }
-          sessionsDao.createSession(ShoutoutSession.newSession(
-            userTuple._1,
-            deviceInfo = deviceInfo))
-        }
-      } yield LoginSuccess(session.sessionId)
-    }
-
-    def register(registrationRequest : UserRegistrationRequest) : Future[RegistrationResponse] = {
-      val decryptedRequest = UserRegistrationRequest(
-        decryptField(registrationRequest.email),
-        decryptField(registrationRequest.password),
-        screenWidth = registrationRequest.screenWidth,
-        screenHeight = registrationRequest.screenHeight,
-        deviceLocale = registrationRequest.deviceLocale,
-        deviceModel = registrationRequest.deviceModel
-      )
-
-      for {
-        _ <- Passwords.validate(decryptedRequest.password)
-        registrationResponse <- doRegistration(decryptedRequest)
-      } yield registrationResponse
     }
 
     def logout(sessionId : String) : Future[Int] = {
@@ -171,30 +96,6 @@ object UserService extends BasicCrypto {
         })
 
         sessionsDao.updatePushNotifier(sessionUUID, applePushToken, mobilePushType)
-      }
-    }
-
-    private def doRegistration(registrationRequest : UserRegistrationRequest) : Future[RegistrationResponse] = {
-      future {
-        db.withTransaction { implicit s =>
-          val user = shoutoutUsersDao.registerOperation(registrationRequest)
-
-          val deviceInfo = DeviceInfo(
-            registrationRequest.screenWidth,
-            registrationRequest.screenHeight,
-            registrationRequest.deviceModel,
-            registrationRequest.deviceLocale
-          )
-
-          val session = sessionsDao.createSessionOperation(
-            ShoutoutSession.newSession(user, deviceInfo = deviceInfo))
-
-          //This one liner adds an association to the team shoutout account
-          contactsDao.insertFriendAssociation(user, ContactOrdering(None, Some(1), FriendType), 0)
-          contactsDao.insertFriendAssociation(user, ContactOrdering(None, user.id, FriendType), 1)
-
-          RegistrationResponse(session.sessionId)
-        }
       }
     }
 
