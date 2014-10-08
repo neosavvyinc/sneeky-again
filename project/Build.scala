@@ -108,7 +108,8 @@ object Shared {
     "commons-codec"  % "commons-codec"   % "1.6",
     "com.mandrillapp.wrapper.lutung" % "lutung" % "0.0.4",
     "net.java.dev.jets3t" % "jets3t" % "0.9.0",
-    "com.netaporter" %% "scala-i18n" % "0.1"
+    "com.netaporter" %% "scala-i18n" % "0.1",
+    "commons-lang" % "commons-lang" % "2.6"
   )
 
   val Slick = Seq(

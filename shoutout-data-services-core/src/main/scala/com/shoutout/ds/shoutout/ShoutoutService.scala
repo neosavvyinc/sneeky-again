@@ -69,24 +69,31 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
 
       val randomNumber = scala.util.Random
 
+      private def getNotificationForLocale(localeString : String, sender : ShoutoutUser, randomUnicode : String) : String = {
+
+        val localeFromString = com.shoutout.ds.framework.LocaleUtilities.getLocaleFromString(localeString)
+
+        val notificationMessage = (sender.firstName, sender.lastName, sender.username) match {
+          case (Some(f), Some(l), _) => {
+            val lastInitial = l.charAt(0)
+            val name = s"$f $lastInitial."
+            resourceBundle.getWithParams("shoutout.pushNotification.sentPhoto", localeFromString, name, randomUnicode)
+
+          }
+
+          case (Some(f), None, _) => resourceBundle.getWithParams("shoutout.pushNotification.sentPhoto", localeFromString, f, randomUnicode)
+          case (None, Some(l), _) => resourceBundle.getWithParams("shoutout.pushNotification.sentPhoto", localeFromString, l, randomUnicode)
+          case (None, None, u)    => resourceBundle.getWithParams("shoutout.pushNotification.sentPhoto", localeFromString, u, randomUnicode)
+          case _                  => s"someone sent you a photo"
+        }
+
+        notificationMessage
+      }
+
       private def sendAPNSNotificationsToRecipients(sender : ShoutoutUser, recipients : List[ShoutoutUser])(implicit session : Session) : Future[Unit] = {
         future {
 
           val randomUnicode = codes(randomNumber.nextInt(codes.size))
-          val notificationMessage = (sender.firstName, sender.lastName, sender.username) match {
-            case (Some(f), Some(l), _) => {
-              val lastInitial = l.charAt(0)
-              val name = s"$f $lastInitial."
-              resourceBundle.getWithParams("shoutout.pushNotification.sentPhoto", Locale.ENGLISH, name, randomUnicode)
-
-            }
-
-            case (Some(f), None, _) => resourceBundle.getWithParams("shoutout.pushNotification.sentPhoto", Locale.ENGLISH, f, randomUnicode)
-            case (None, Some(l), _) => resourceBundle.getWithParams("shoutout.pushNotification.sentPhoto", Locale.ENGLISH, l, randomUnicode)
-            case (None, None, u)    => resourceBundle.getWithParams("shoutout.pushNotification.sentPhoto", Locale.ENGLISH, u, randomUnicode)
-            case _                  => s"someone sent you a photo"
-          }
-
           log.debug(s"Sending APNS notifications for recipients: $recipients")
 
           recipients.foreach {
@@ -99,15 +106,15 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
               val tokens = sessionsDao.findTokensByUserId(recipient.id.get :: Nil)
 
               log.debug(s"using tokens: $tokens for user: $recipient")
-              log.trace(s"sending notification with message $notificationMessage")
 
               tokens.getOrElse(recipient.id.get, Set.empty).foreach {
                 token =>
+                  val localeForSession = sessionsDao.findLocaleForToken(token)
                   val note = AppleNotification(
                     recipient.newMessagePush,
                     Some(token),
                     unreadMessageCount,
-                    notificationMessage)
+                    getNotificationForLocale(localeForSession, sender, randomUnicode))
                   appleActor ! note
               }
 

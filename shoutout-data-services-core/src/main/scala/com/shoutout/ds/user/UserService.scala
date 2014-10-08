@@ -5,7 +5,7 @@ import com.shoutout.ds.integration.amazon.S3Service
 
 import scala.concurrent.{ Await, ExecutionContext, Future, future }
 import com.shoutout.model._
-import com.shoutout.ds.framework.{ Dates, Logging }
+import com.shoutout.ds.framework.{ LocaleUtilities, Dates, Logging }
 import com.shoutout.model.UserLogin
 import com.shoutout.model.ShoutoutUser
 import com.shoutout.dataAccess.DatabaseSupport
@@ -33,12 +33,27 @@ object UserService extends BasicCrypto {
 
     val resourceBundle = ResourceBundle("messages/messages")
 
+    private def determineWelcomeImagesForLocale(deviceInfo : DeviceInfo) : (String, String, String) = {
+
+      val locale = LocaleUtilities.getLocaleFromString(deviceInfo.deviceLocale.getOrElse(""))
+
+      (
+        resourceBundle.get("shoutout.welcomeimage.one", locale),
+        resourceBundle.get("shoutout.welcomeimage.two", locale),
+        resourceBundle.get("shoutout.welcomeimage.three", locale)
+      )
+
+    }
+
     private def insertWelcomeRow(user : ShoutoutUser, deviceInfo : DeviceInfo)(implicit session : Session) = {
+
+      val welcomeImagesTuple = determineWelcomeImagesForLocale(deviceInfo)
+
       shoutoutDao.insertShoutouts(user :: Nil, Shoutout(None,
         1,
         user.id.get,
         "",
-        "https://shoutout-prod-system.s3.amazonaws.com/firstimage_1.jpg",
+        welcomeImagesTuple._1,
         false,
         None,
         Dates.nowDT,
@@ -49,7 +64,7 @@ object UserService extends BasicCrypto {
         1,
         user.id.get,
         "",
-        "https://shoutout-prod-system.s3.amazonaws.com/firstimage_2.jpg",
+        welcomeImagesTuple._2,
         false,
         None,
         Dates.nowDT,
@@ -60,7 +75,7 @@ object UserService extends BasicCrypto {
         1,
         user.id.get,
         "",
-        "https://shoutout-prod-system.s3.amazonaws.com/firstimage_3.jpg",
+        welcomeImagesTuple._3,
         false,
         None,
         Dates.nowDT,
