@@ -13,7 +13,6 @@ import scala.concurrent.{ ExecutionContext, Future, future }
 trait S3Service {
 
   def saveData(image : Array[Byte], contentType : String) : Future[String]
-  def saveProfileImage(image : Array[Byte]) : String
 
 }
 
@@ -28,11 +27,9 @@ object S3Service extends DSConfiguration {
       new RestS3Service(awsCredentials)
     }
 
-    private val profileBucketName = AWS.profileBucket
-    private val shoutoutBucketName = AWS.shoutoutBucket
+    private val sneekyBucketName = AWS.sneekyBucket
 
-    private lazy val profileBucket = s3.getBucket(profileBucketName)
-    private lazy val shoutBucket = s3.getBucket(shoutoutBucketName)
+    private lazy val shoutBucket = s3.getBucket(sneekyBucketName)
 
     private def saveFileToBucket(file : Array[Byte], bucket : S3Bucket, bucketName : String, contentType : String) : String = {
 
@@ -56,13 +53,9 @@ object S3Service extends DSConfiguration {
 
     }
 
-    override def saveProfileImage(image : Array[Byte]) : String = {
-      saveFileToBucket(image, profileBucket, profileBucketName, "image/jpg")
-    }
-
     override def saveData(image : Array[Byte], contentType : String) : Future[String] = {
       future {
-        saveFileToBucket(image, shoutBucket, shoutoutBucketName, contentType)
+        saveFileToBucket(image, shoutBucket, sneekyBucketName, contentType)
       }
     }
 

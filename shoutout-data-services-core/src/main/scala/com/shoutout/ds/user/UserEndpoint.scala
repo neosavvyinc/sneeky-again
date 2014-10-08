@@ -128,22 +128,6 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
     }
   }
 
-  def updateProfilePhoto = pathPrefix(users / "update" / "photo") {
-    val ByteJsonFormat = null
-    authenticate(unverified _) { authenticationResult =>
-
-      val (user, sessionId) = authenticationResult
-
-      post {
-        formFields('image.as[Array[Byte]]) { (image) =>
-          complete {
-            userService.updateUserPhoto(image, user)
-          }
-        }
-      }
-    }
-  }
-
   def updateSettings = pathPrefix(users / "settings") {
     authenticate(unverified _) { authenticationResult =>
 
@@ -186,42 +170,13 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
     }
   }
 
-  def forgotPassword = pathPrefix(users / "forgotPassword") {
-    post {
-      entity(as[ForgotPasswordRequest]) { forgotPasswordRequest =>
-        complete {
-          userService.forgotPassword(
-            forgotPasswordRequest.email
-          )
-        }
-      }
-    }
-  }
-
-  def changePassword = pathPrefix(users / "changePassword") {
-    authenticate(unverified _) { authenticationResult =>
-
-      val (user, sessionId) = authenticationResult
-
-      post {
-        entity(as[ChangePasswordRequest]) { changePasswordRequest =>
-          complete {
-            userService.changePassword(user, changePasswordRequest)
-          }
-        }
-      }
-    }
-  }
-
   val userRoute = loginFacebook ~
     loginEmail ~
     registerEmail ~
     logout ~
     update ~
     activeUser ~
-    updateProfilePhoto ~
     updateSettings ~
-    updatePushNotifier ~
-    forgotPassword ~
-    changePassword
+    updatePushNotifier
+
 }

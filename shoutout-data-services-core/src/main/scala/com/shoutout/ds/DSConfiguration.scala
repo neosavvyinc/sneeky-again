@@ -59,8 +59,7 @@ trait DSConfiguration {
   object AWS {
     val accessKeyId = awsConfig.getString("accessKeyId")
     val secretKey = awsConfig.getString("secretKey")
-    val profileBucket = awsConfig.getString("profileBucket")
-    val shoutoutBucket = awsConfig.getString("shoutoutBucket")
+    val sneekyBucket = awsConfig.getString("sneekyBucket")
 
     private def awsConfig = cfg.getConfig("aws")
   }
@@ -74,15 +73,6 @@ trait DSConfiguration {
 
   }
 
-  object TwilioConfiguration {
-
-    val accountSid = twilioCfg.getString("accountSid")
-    val authToken = twilioCfg.getString("authToken")
-    val phoneNumber = twilioCfg.getString("phoneNumber")
-
-    private def twilioCfg = cfg.getConfig("twilio")
-  }
-
   object ApplePushConfiguration {
     val keyStorePassword = applePushCfg.getString("keyStorePassword")
     val developmentCert = applePushCfg.getString("developmentCertPath")
@@ -93,29 +83,11 @@ trait DSConfiguration {
     private def applePushCfg = cfg.getConfig("apple")
   }
 
-  object UserConfiguration {
-
-    val invitationMax = userCfg.getInt("invitationMax")
-
-    val maxRetries = userCfg.getInt("maxRetries")
-
-    private def userCfg = cfg.getConfig("user")
-  }
-
   object SecurityConfiguration {
     val sharedSecret = securityConfig.getString("sharedSecret")
     val encryptFields = securityConfig.getBoolean("encryptFields")
 
     private def securityConfig = cfg.getConfig("security")
-  }
-
-  object MandrillConfiguration {
-    val apiKey = mandrillConfig.getString("apiKey")
-    val smtpHost = mandrillConfig.getString("smtpHost")
-    val smtpPort = mandrillConfig.getString("smtpPort")
-    val username = mandrillConfig.getString("username")
-
-    private def mandrillConfig = cfg.getConfig("mandrill")
   }
 
 }
