@@ -21,7 +21,6 @@ case class Shoutout(id : Option[Long],
                     isCleaned : Boolean = false)
 
 case class ShoutoutResponse(id : Long,
-                            sender : Friend,
                             text : String,
                             imageUrl : String,
                             createdDate : DateTime,

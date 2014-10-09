@@ -16,7 +16,7 @@ import spray.routing.RequestContext
 //since we have no real roles or permissioning yet..just being a user opens up all doors
 //hence, for every request, we opted for just one authenticator which we could use to identify a user
 trait RequestAuthenticator extends Authenticator {
-  def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[(ShoutoutUser, UUID)]]
+  def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[(SneekyV2User, UUID)]]
 
   def unverified(ctx : RequestContext)(implicit ec : ExecutionContext) = request(Unverified, ctx)
   def admin(ctx : RequestContext)(implicit ec : ExecutionContext) = request(Admin, ctx)
@@ -24,7 +24,7 @@ trait RequestAuthenticator extends Authenticator {
 
 trait SessionDateHashRequestAuthenticator extends RequestAuthenticator with DSConfiguration with DatabaseSupport with Logging {
 
-  def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[(ShoutoutUser, UUID)]] = {
+  def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[(SneekyV2User, UUID)]] = {
     log.debug(s"authenticating request ${ctx.request.uri}")
     future {
       val result = for {
@@ -48,7 +48,7 @@ trait SessionDateHashRequestAuthenticator extends RequestAuthenticator with DSCo
     logAuthFailure(opt, "clientHash $clientHash does not match calculated hash : $calculated.", ctx)
   }
 
-  protected def validateSession(sessionId : String, ctx : RequestContext) : Option[ShoutoutUser] = {
+  protected def validateSession(sessionId : String, ctx : RequestContext) : Option[SneekyV2User] = {
     val opt = sessionsDao.findFromSession(UUID.fromString(sessionId))
     logAuthFailure(opt, s"cannot find session from $sessionId", ctx)
   }
@@ -56,7 +56,7 @@ trait SessionDateHashRequestAuthenticator extends RequestAuthenticator with DSCo
 }
 
 trait NonHashingRequestAuthenticator extends SessionDateHashRequestAuthenticator {
-  override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[(ShoutoutUser, UUID)]] = {
+  override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[(SneekyV2User, UUID)]] = {
 
     future {
       val result = for {
@@ -74,7 +74,7 @@ trait DebugAuthenticator extends NonHashingRequestAuthenticator {
 
   private object FullAuth extends SessionDateHashRequestAuthenticator
 
-  override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[(ShoutoutUser, UUID)]] = {
+  override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[(SneekyV2User, UUID)]] = {
     log.debug(s"DEBUG auth for request ${ctx.request.uri}")
     val actualResults = super.request(status, ctx)
     actualResults
@@ -83,9 +83,9 @@ trait DebugAuthenticator extends NonHashingRequestAuthenticator {
 
 trait SuppliedUserRequestAuthenticator extends RequestAuthenticator {
   // :( this hurts..cannot run in parallel w/ this ever
-  var authedUser : Option[(ShoutoutUser, UUID)] = Option.empty
+  var authedUser : Option[(SneekyV2User, UUID)] = Option.empty
 
-  override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[(ShoutoutUser, UUID)]] = {
+  override def request(status : UserStatus, ctx : RequestContext)(implicit ec : ExecutionContext) : Future[Authentication[(SneekyV2User, UUID)]] = {
     Future.successful(authedUser.toRight(AuthenticationFailedRejection(CredentialsRejected, Nil)))
   }
 }

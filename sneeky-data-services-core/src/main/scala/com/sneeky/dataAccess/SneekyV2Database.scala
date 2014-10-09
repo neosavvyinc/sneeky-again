@@ -4,7 +4,7 @@ import com.jolbox.bonecp.{ BoneCPDataSource, BoneCPConfig }
 import com.sneeky.ds.DSConfiguration
 import scala.slick.session.Database
 
-object ShoutoutDatabase extends DSConfiguration {
+object SneekyV2Database extends DSConfiguration {
 
   val source = {
     val dsConfig = new BoneCPConfig

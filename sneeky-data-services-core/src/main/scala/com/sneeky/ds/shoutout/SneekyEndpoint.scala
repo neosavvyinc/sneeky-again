@@ -3,7 +3,6 @@ package com.sneeky.ds.shoutout
 import com.sneeky.ds.framework.exception.ShoutoutException
 import spray.http.MediaTypes._
 import com.sneeky.ds.{ BasicCrypto, DataHttpService }
-import com.sneeky.model.{ ConversationStartRequest, ConversationRespondRequest }
 import com.sneeky.ds.framework.auth.RequestAuthenticator
 import akka.actor.ActorRef
 import com.sneeky.model.Paging

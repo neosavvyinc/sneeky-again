@@ -8,7 +8,7 @@ import com.sneeky.ds.BasicCrypto
 import com.sneeky.ds.framework.Logging
 import com.sneeky.ds.framework.exception.ShoutoutException
 import com.sneeky.ds.integration.amazon.S3Service
-import com.sneeky.model.{ ShoutoutUser, _ }
+import com.sneeky.model.{ SneekyV2User, _ }
 
 import scala.concurrent.{ ExecutionContext, Future, future }
 import scala.slick.session.Session
@@ -16,8 +16,8 @@ import scala.slick.session.Session
 trait UserService {
 
   def logout(sessionId : String) : Future[Int]
-  def updateUser(userId : Long, updateRequest : ShoutoutUserUpdateRequest) : Future[Int]
-  def findFromSessionId(sessionId : String) : Future[ShoutoutSession]
+  //  def updateUser(userId : Long, updateRequest : ShoutoutUserUpdateRequest) : Future[Int]
+  def findFromSessionId(sessionId : String) : Future[SneekySession]
   def updatePushNotifier(sessionUUID : UUID, applePushToken : String, mobilePushType : MobilePushType) : Future[Boolean]
 
 }
@@ -38,36 +38,36 @@ object UserService extends BasicCrypto {
       sessionsDao.removeSession(UUID.fromString(sessionId))
     }
 
-    def findFromSessionId(sessionId : String) : Future[ShoutoutSession] = {
+    def findFromSessionId(sessionId : String) : Future[SneekySession] = {
       sessionsDao.sessionByUUID(UUID.fromString(sessionId))
     }
 
-    def updateUser(userId : Long, updateRequest : ShoutoutUserUpdateRequest) : Future[Int] = {
-
-      def validate() : Future[Boolean] = {
-        future {
-
-          updateRequest.username match {
-            case Some(x) => {
-              val isRestricted = shoutoutUsersDao.isUserNameRestricted(x)
-              if (isRestricted)
-                throw ShoutoutException.restrictedUsernameException
-              else
-                isRestricted
-            }
-            case _ => true
-          }
-
-        }
-      }
-
-      for {
-        _ <- validate()
-        persistentUser <- shoutoutUsersDao.findById(userId)
-        rowsUpdated <- shoutoutUsersDao.update(persistentUser, updateRequest)
-      } yield rowsUpdated
-
-    }
+    //    def updateUser(userId : Long, updateRequest : ShoutoutUserUpdateRequest) : Future[Int] = {
+    //
+    //      def validate() : Future[Boolean] = {
+    //        future {
+    //
+    //          updateRequest.username match {
+    //            case Some(x) => {
+    //              val isRestricted = shoutoutUsersDao.isUserNameRestricted(x)
+    //              if (isRestricted)
+    //                throw ShoutoutException.restrictedUsernameException
+    //              else
+    //                isRestricted
+    //            }
+    //            case _ => true
+    //          }
+    //
+    //        }
+    //      }
+    //
+    //      for {
+    //        _ <- validate()
+    //        persistentUser <- shoutoutUsersDao.findById(userId)
+    //        rowsUpdated <- shoutoutUsersDao.update(persistentUser, updateRequest)
+    //      } yield rowsUpdated
+    //
+    //    }
 
     def updateSetting(userId : Long, pushSettingType : SettingType, value : Boolean) : Future[Boolean] = {
       future {
@@ -75,7 +75,7 @@ object UserService extends BasicCrypto {
       }
     }
 
-    def deriveExtraProperties(user : ShoutoutUser, activeUser : ActiveShoutoutUser, shoutoutSession : ShoutoutSession) : ActiveShoutoutUser = {
+    def deriveExtraProperties(user : SneekyV2User, activeUser : ActiveSneekyV2User, shoutoutSession : SneekySession) : ActiveSneekyV2User = {
 
       db.withSession { implicit session : Session =>
         activeUser.copy(

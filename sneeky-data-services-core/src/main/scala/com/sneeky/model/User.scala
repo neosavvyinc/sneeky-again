@@ -11,8 +11,6 @@ case class DeviceInfo(screenWidth : Option[Int] = None,
                       deviceModel : Option[String] = None,
                       deviceLocale : Option[String] = None)
 
-case class Restriction(id : Option[Long], username : String)
-
 case class ShoutoutUserUpdateRequest(birthday : Option[LocalDate],
                                      firstName : Option[String],
                                      lastName : Option[String],
@@ -95,7 +93,7 @@ object UUIDConversions {
 
 }
 
-case class ShoutoutUser(id : Option[Long],
+case class SneekyV2User(id : Option[Long],
                         uuid : UUID,
                         facebookID : Option[String],
                         email : Option[String],
@@ -109,7 +107,7 @@ case class ShoutoutUser(id : Option[Long],
                         userStatus : UserStatus = Unverified,
                         lastAccessed : DateTime = Dates.nowDT)
 
-case class ActiveShoutoutUser(
+case class ActiveSneekyV2User(
   birthday : Option[LocalDate],
   firstName : String,
   lastName : String,
@@ -120,14 +118,11 @@ case class ActiveShoutoutUser(
   receivedCount : Int = 0,
   sessionInvalid : Boolean = false)
 
-case class ForgotPasswordRequest(email : String)
-case class ChangePasswordRequest(oldPassword : String, newPassword : String)
+object SneekySession {
 
-object ShoutoutSession {
-
-  def newSession(user : ShoutoutUser, token : Option[String] = None, deviceInfo : DeviceInfo) : ShoutoutSession = {
+  def newSession(user : SneekyV2User, token : Option[String] = None, deviceInfo : DeviceInfo) : SneekySession = {
     val now = Dates.nowDT
-    ShoutoutSession(UUID.randomUUID(), user.id.getOrElse(-1), now, now, token, None,
+    SneekySession(UUID.randomUUID(), user.id.getOrElse(-1), now, now, token, None,
       screenWidth = deviceInfo.screenWidth,
       screenHeight = deviceInfo.screenHeight,
       deviceModel = deviceInfo.deviceModel,
@@ -136,17 +131,17 @@ object ShoutoutSession {
   }
 }
 
-case class ShoutoutSession(sessionId : UUID,
-                           userId : Long,
-                           created : DateTime,
-                           lastAccessed : DateTime,
-                           pushNotifierToken : Option[String] = None,
-                           pushNotifierType : Option[MobilePushType] = None,
-                           sessionInvalid : Boolean = false,
-                           screenWidth : Option[Int] = None,
-                           screenHeight : Option[Int] = None,
-                           deviceModel : Option[String] = None,
-                           deviceLocale : Option[String] = None)
+case class SneekySession(sessionId : UUID,
+                         userId : Long,
+                         created : DateTime,
+                         lastAccessed : DateTime,
+                         pushNotifierToken : Option[String] = None,
+                         pushNotifierType : Option[MobilePushType] = None,
+                         sessionInvalid : Boolean = false,
+                         screenWidth : Option[Int] = None,
+                         screenHeight : Option[Int] = None,
+                         deviceModel : Option[String] = None,
+                         deviceLocale : Option[String] = None)
 
 trait UserComponent { this : Profile =>
 
@@ -156,7 +151,7 @@ trait UserComponent { this : Profile =>
   implicit val UUIDMapper = MappedTypeMapper.base[UUID, String](UUIDConversions.toStringRep, UUIDConversions.fromStringRep)
   implicit val UserStatusMapper = MappedTypeMapper.base[UserStatus, String](UserStatus.toStringRep, UserStatus.fromStringRep)
 
-  object UserTable extends Table[ShoutoutUser]("USERS") {
+  object UserTable extends Table[SneekyV2User]("USERS") {
     def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
     def uuid = column[UUID]("UUID", DBType("CHAR(36)"))
     def facebookID = column[String]("FACEBOOK_ID", DBType("VARCHAR(64)"), O.Nullable)
@@ -183,7 +178,7 @@ trait UserComponent { this : Profile =>
       profilePictureUrl.? ~
       newMessagePush ~
       userStatus ~
-      lastAccessed <> (ShoutoutUser, ShoutoutUser.unapply _)
+      lastAccessed <> (SneekyV2User, SneekyV2User.unapply _)
     def forInsert = * returning id
 
   }
@@ -196,7 +191,7 @@ trait UserSessionComponent { this : Profile with UserComponent =>
 
   implicit val MobilePushTypeMapper = MappedTypeMapper.base[MobilePushType, String](MobilePushType.toStringRep, MobilePushType.fromStringRep)
 
-  object SessionTable extends Table[ShoutoutSession]("SESSIONS") {
+  object SessionTable extends Table[SneekySession]("SESSIONS") {
     def sessionId = column[UUID]("SESSIONID")
     def userId = column[Long]("USERID")
     def created = column[DateTime]("CREATED")
@@ -219,26 +214,10 @@ trait UserSessionComponent { this : Profile with UserComponent =>
       screenWidth.? ~
       screenHeight.? ~
       deviceModel.? ~
-      locale.? <> (ShoutoutSession.apply _, ShoutoutSession.unapply _)
+      locale.? <> (SneekySession.apply _, SneekySession.unapply _)
 
     def owner = foreignKey("USER_FK", userId, UserTable)(_.id)
     //def userUnqiue = index("userUnique", userId, unique = true)
   }
 
 }
-
-trait UserNameRestrictionsComponent { this : Profile =>
-
-  import profile.simple._
-
-  object RestrictionTable extends Table[Restriction]("USER_NAME_RESTRICTIONS") {
-
-    def id = column[Long]("ID")
-    def restrictedName = column[String]("RESTRICTED_NAME", O.Nullable)
-
-    def * = id.? ~ restrictedName <> (Restriction.apply _, Restriction.unapply _)
-
-  }
-
-}
-

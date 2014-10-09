@@ -3,7 +3,7 @@ package com.sneeky.dataAccess
 import scala.slick.session.Database
 import com.sneeky.ds.framework.{ Dates, Logging }
 import java.util.UUID
-import com.sneeky.model.{ ShoutoutSession, ShoutoutUser, MobilePushType }
+import com.sneeky.model.{ SneekySession, SneekyV2User, MobilePushType }
 import scala.concurrent.{ ExecutionContext, Future, future }
 
 class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionContext) extends BaseDAO(dal, db)
@@ -28,13 +28,13 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
   } yield s
 
   //TODO future me
-  def findFromSession(session : UUID) : Option[ShoutoutUser] = {
+  def findFromSession(session : UUID) : Option[SneekyV2User] = {
     db.withSession { implicit s =>
       userBySessionId(session).firstOption
     }
   }
 
-  def findFromPushNotifierAndType(pushNotifier : String, pushType : MobilePushType) : List[ShoutoutSession] = {
+  def findFromPushNotifierAndType(pushNotifier : String, pushType : MobilePushType) : List[SneekySession] = {
     db.withSession { implicit s =>
       val q = for { s <- SessionTable if (s.pushNotifierToken === pushNotifier && s.pushNotifierType === pushType) } yield s
       q.list()
@@ -87,7 +87,7 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
 
   }
 
-  def existingSession(userId : Long) : Future[Option[ShoutoutSession]] = {
+  def existingSession(userId : Long) : Future[Option[SneekySession]] = {
     future {
       db.withSession { implicit session =>
         byUserId(userId).firstOption
@@ -95,7 +95,7 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     }
   }
 
-  def sessionByUUID(uuid : UUID) : Future[ShoutoutSession] = {
+  def sessionByUUID(uuid : UUID) : Future[SneekySession] = {
     future {
       db.withSession { implicit session =>
         bySessionId(uuid).first
@@ -113,13 +113,13 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     }
   }
 
-  def createSession(session : ShoutoutSession) : Future[ShoutoutSession] = {
+  def createSession(session : SneekySession) : Future[SneekySession] = {
     future {
       db.withTransaction { implicit s => createSessionOperation(session) }
     }
   }
 
-  def createSessionOperation(session : ShoutoutSession)(implicit s : Session) : ShoutoutSession = {
+  def createSessionOperation(session : SneekySession)(implicit s : Session) : SneekySession = {
     SessionTable.insert(session)
     session
   }

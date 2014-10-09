@@ -10,7 +10,7 @@ import scala.concurrent.{ ExecutionContext, Future, future }
 import java.util.UUID
 import com.sneeky.ds.user.Passwords
 
-class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionContext) extends BaseDAO(dal, db)
+class SneekyUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionContext) extends BaseDAO(dal, db)
     with Logging {
 
   import dal._
@@ -58,15 +58,15 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     userExistsQuery.firstOption
   }
 
-  def findByEmailOperation(email : String)(implicit session : Session) : Option[ShoutoutUser] = {
+  def findByEmailOperation(email : String)(implicit session : Session) : Option[SneekyV2User] = {
     byEmailQuery(email.toLowerCase).firstOption
   }
 
-  def findByUsernameOperation(username : String)(implicit session : Session) : Option[ShoutoutUser] = {
+  def findByUsernameOperation(username : String)(implicit session : Session) : Option[SneekyV2User] = {
     byUsernameQuery(username).firstOption
   }
 
-  def findByFacebookIds(facebookIds : List[String])(implicit session : Session) : List[ShoutoutUser] = {
+  def findByFacebookIds(facebookIds : List[String])(implicit session : Session) : List[SneekyV2User] = {
     val fbQuery = for {
       u <- UserTable if u.facebookID inSet facebookIds
     } yield u
@@ -74,11 +74,11 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     fbQuery.list
   }
 
-  def findByFacebookOperation(email : String)(implicit session : Session) : Option[ShoutoutUser] = {
+  def findByFacebookOperation(email : String)(implicit session : Session) : Option[SneekyV2User] = {
     byFacebookQuery(email.toLowerCase).firstOption
   }
 
-  def findByIdOperation(id : Long)(implicit session : Session) : Option[ShoutoutUser] = {
+  def findByIdOperation(id : Long)(implicit session : Session) : Option[SneekyV2User] = {
     byIdQuery(id).firstOption
   }
 
@@ -88,7 +88,7 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     numRows > 0
   }
 
-  def updateLastAccessedOperation(user : ShoutoutUser)(implicit session : Session) : Boolean = {
+  def updateLastAccessedOperation(user : SneekyV2User)(implicit session : Session) : Boolean = {
     val updateQuery = for { u <- UserTable if u.id === user.id } yield u.lastAccessed
     val numRows = updateQuery.update(Dates.nowDT)
     numRows > 0
@@ -100,7 +100,7 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     numRows > 0
   }
 
-  private def insertNoTransact(user : ShoutoutUser)(implicit session : Session) : ShoutoutUser = {
+  private def insertNoTransact(user : SneekyV2User)(implicit session : Session) : SneekyV2User = {
     log.trace(s"inserting user: $user")
     val id = UserTable.forInsert.insert(user.copy(email = user.email.map(_.toLowerCase)))
     log.trace(s"id $id")
@@ -113,7 +113,7 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
    * ***********************************************************
    */
 
-  def findById(id : Long) : Future[ShoutoutUser] = {
+  def findById(id : Long) : Future[SneekyV2User] = {
     future {
       db.withSession { implicit session =>
         val userOpt = for {
@@ -125,7 +125,7 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
-  def findByIds(ids : Set[Long]) : List[ShoutoutUser] = {
+  def findByIds(ids : Set[Long]) : List[SneekyV2User] = {
     db.withSession { implicit session =>
       val q = for {
         u <- UserTable if u.id inSet ids
@@ -135,7 +135,7 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
-  def findAll()(implicit session : Session) : List[ShoutoutUser] = {
+  def findAll()(implicit session : Session) : List[SneekyV2User] = {
     val q = for { u <- UserTable } yield u
     q.list()
   }
@@ -145,7 +145,7 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     (s, u) <- SessionTable innerJoin UserTable on ((sess, user) => sess.userId === user.id && sess.locale === locale)
   } yield u
 
-  def findAllEnglish()(implicit session : Session) : List[ShoutoutUser] = {
+  def findAllEnglish()(implicit session : Session) : List[SneekyV2User] = {
     val q = for {
       locale <- Parameters[String]
       (s, u) <- SessionTable innerJoin UserTable on ((sess, user) => sess.userId === user.id && (sess.locale === locale || sess.locale === null.asInstanceOf[String]))
@@ -153,11 +153,11 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     q("en_US").list()
   }
 
-  def findAllForLocale(locale : String)(implicit session : Session) : List[ShoutoutUser] = {
+  def findAllForLocale(locale : String)(implicit session : Session) : List[SneekyV2User] = {
     usersByLocale(locale).list()
   }
 
-  def update(persistentUser : ShoutoutUser, updateRequest : ShoutoutUserUpdateRequest) : Future[Int] = {
+  def update(persistentUser : SneekyV2User, updateRequest : ShoutoutUserUpdateRequest) : Future[Int] = {
     future {
       db.withSession { implicit session =>
 
@@ -174,7 +174,7 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
           case _ => //nothing happens
         }
 
-        val updated = ShoutoutUser(
+        val updated = SneekyV2User(
           persistentUser.id,
           persistentUser.uuid,
           persistentUser.facebookID,
@@ -210,7 +210,7 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
     }
   }
 
-  def updateProfilePicUrl(updatedUser : ShoutoutUser) : Int = {
+  def updateProfilePicUrl(updatedUser : SneekyV2User) : Int = {
     db.withSession { implicit session =>
       val q = for { user <- UserTable if user.id === updatedUser.id } yield user
       q.update(updatedUser)
@@ -230,14 +230,5 @@ class ShoutoutUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Execut
 
   }
 
-  def isUserNameRestricted(username : String) : Boolean = {
-    db.withSession { implicit session =>
-      val q = for { restriction <- RestrictionTable if restriction.restrictedName === username } yield restriction
-      q.firstOption match {
-        case Some(r) => true
-        case None    => false
-      }
-    }
-  }
 }
 

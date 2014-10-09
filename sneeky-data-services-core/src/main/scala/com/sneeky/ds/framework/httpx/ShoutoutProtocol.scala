@@ -76,51 +76,6 @@ package object httpx {
       }
     }
 
-    implicit object ContactTypeFormat extends JsonFormat[ContactType] {
-      override def write(obj : ContactType) : JsValue = JsString(ContactType.toStringRep(obj))
-
-      override def read(json : JsValue) : ContactType = json match {
-        case JsString(x) => ContactType.fromStringRep(x)
-        case _           => deserializationError("Expected String value for ContactType")
-      }
-    }
-
-    implicit object GroupListTypeFormat extends JF[List[Group]] {
-      override def write(obj : List[Group]) : JsValue = JsArray(obj.map(group2json.write))
-
-      override def read(json : JsValue) : List[Group] = json match {
-        case JsArray(x) => x.map(group2json.read)
-        case _          => deserializationError("Expected String value for List[Group]")
-      }
-    }
-
-    implicit object GroupResponseListTypeFormat extends JF[List[GroupResponse]] {
-      override def write(obj : List[GroupResponse]) : JsValue = JsArray(obj.map(groupResponse2json.write))
-
-      override def read(json : JsValue) : List[GroupResponse] = json match {
-        case JsArray(x) => x.map(groupResponse2json.read)
-        case _          => deserializationError("Expected String value for List[GroupResponse]")
-      }
-    }
-
-    implicit object FriendListTypeFormat extends JF[List[Friend]] {
-      override def write(obj : List[Friend]) : JsValue = JsArray(obj.map(friend2json.write))
-
-      override def read(json : JsValue) : List[Friend] = json match {
-        case JsArray(x) => x.map(friend2json.read)
-        case _          => deserializationError("Expected String value for List[Group]")
-      }
-    }
-
-    implicit object GroupOrderingListTypeFormat extends JF[List[ContactOrdering]] {
-      override def write(obj : List[ContactOrdering]) : JsValue = JsArray(obj.map(contactOrdering2json.write))
-
-      override def read(json : JsValue) : List[ContactOrdering] = json match {
-        case JsArray(x) => x.map(contactOrdering2json.read)
-        case _          => deserializationError("Expected String value for List[Group]")
-      }
-    }
-
     implicit object ShoutoutResponseListTypeFormat extends JF[List[ShoutoutResponse]] {
       override def write(obj : List[ShoutoutResponse]) : JsValue = JsArray(obj.map(shoutoutResponse2json.write))
 
@@ -132,27 +87,12 @@ package object httpx {
 
     implicit val failureFormat = jsonFormat2(Failure)
 
-    implicit val shoutuser2json = jsonFormat13(ShoutoutUser)
+    implicit val shoutuser2json = jsonFormat13(SneekyV2User)
     implicit val userUpdateRequest2json = jsonFormat4(ShoutoutUserUpdateRequest)
-    implicit val activeUser2json = jsonFormat9(ActiveShoutoutUser)
-
-    implicit val forgotPasswordRequest2json = jsonFormat1(ForgotPasswordRequest)
-    implicit val changePasswordRequest2json = jsonFormat2(ChangePasswordRequest)
-
-    implicit val contact2json = jsonFormat6(Contact)
-    implicit val contactOrdering2json = jsonFormat3(ContactOrdering)
-    implicit val contactRequest2json = jsonFormat1(ContactsRequest)
-    implicit val contactByUsernameRequest2json = jsonFormat1(ContactByUsernameRequest)
-    implicit val contactByFacebookRequest2json = jsonFormat1(ContactByFacebookIdsRequest)
-    implicit val deleteGroupRequest2json = jsonFormat3(DeleteContactRequest)
-    implicit val friend2json = jsonFormat6(Friend)
-    implicit val group2json = jsonFormat3(Group)
-    implicit val groupResponse2json = jsonFormat4(GroupResponse)
-    implicit val aggregateContact2json = jsonFormat4(AggregateContact)
-    implicit val groupMembershipRequest2json = jsonFormat3(GroupMembershipRequest)
+    implicit val activeUser2json = jsonFormat9(ActiveSneekyV2User)
 
     implicit val shoutout2json = jsonFormat11(Shoutout)
-    implicit val shoutoutResponse2json = jsonFormat6(ShoutoutResponse)
+    implicit val shoutoutResponse2json = jsonFormat5(ShoutoutResponse)
     implicit val updatePushToken2json = jsonFormat2(UpdatePushTokenRequest)
 
     implicit val settingsRequest2json = jsonFormat2(SettingsRequest)

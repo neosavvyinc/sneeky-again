@@ -26,9 +26,9 @@ import scala.util.Try
 trait ShoutoutService {
 
   def saveData(data : Array[Byte], contentType : String) : Future[String]
-  def sendToRecipients(sender : ShoutoutUser, url : String, imageText : Option[String], friendIds : Option[String], contentType : String) : Int
-  def findAllForUser(user : ShoutoutUser, sessionId : UUID) : Future[List[ShoutoutResponse]]
-  def updateShoutoutAsViewedForUser(user : ShoutoutUser, id : Long) : Future[Int]
+  def sendToRecipients(sender : SneekyV2User, url : String, imageText : Option[String], friendIds : Option[String], contentType : String) : Int
+  def findAllForUser(user : SneekyV2User, sessionId : UUID) : Future[List[ShoutoutResponse]]
+  def updateShoutoutAsViewedForUser(user : SneekyV2User, id : Long) : Future[Int]
 
 }
 
@@ -69,7 +69,7 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
 
       val randomNumber = scala.util.Random
 
-      private def getNotificationForLocale(localeString : String, sender : ShoutoutUser, randomUnicode : String) : String = {
+      private def getNotificationForLocale(localeString : String, sender : SneekyV2User, randomUnicode : String) : String = {
 
         val localeFromString = com.sneeky.ds.framework.LocaleUtilities.getLocaleFromString(localeString)
 
@@ -90,7 +90,7 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
         notificationMessage
       }
 
-      private def sendAPNSNotificationsToRecipients(sender : ShoutoutUser, recipients : List[ShoutoutUser])(implicit session : Session) : Future[Unit] = {
+      private def sendAPNSNotificationsToRecipients(sender : SneekyV2User, recipients : List[SneekyV2User])(implicit session : Session) : Future[Unit] = {
         future {
 
           val randomUnicode = codes(randomNumber.nextInt(codes.size))
@@ -126,7 +126,7 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
       /**
        * Admin only function - do not call this without an admin user
        */
-      def sendToAll(sender : ShoutoutUser, url : String, text : Option[String], contentType : String, locale : Option[String]) : Int = {
+      def sendToAll(sender : SneekyV2User, url : String, text : Option[String], contentType : String, locale : Option[String]) : Int = {
         db.withTransaction { implicit s : Session =>
 
           val users = locale match {
@@ -153,7 +153,7 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
         }
       }
 
-      def sendToRecipients(sender : ShoutoutUser, url : String, text : Option[String], friendIds : Option[String], contentType : String) : Int = {
+      def sendToRecipients(sender : SneekyV2User, url : String, text : Option[String], friendIds : Option[String], contentType : String) : Int = {
 
         var returnVal = 0
 
@@ -188,7 +188,7 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
         }
       }
 
-      def findAllForUser(user : ShoutoutUser, sessionId : UUID) : Future[List[ShoutoutResponse]] = {
+      def findAllForUser(user : SneekyV2User, sessionId : UUID) : Future[List[ShoutoutResponse]] = {
         future {
           db.withSession { implicit s : Session =>
             sessionsDao.updateLastAccessed(sessionId)
@@ -205,18 +205,14 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
           db.withSession { implicit s : Session =>
             shoutoutDao.findAllForUser(user) map { resp =>
               resp.copy(
-                imageUrl = encryptField(resp.imageUrl),
-                sender = resp.sender.copy(
-                  facebookId = encryptOption(resp.sender.facebookId),
-                  profilePictureUrl = encryptOption(resp.sender.profilePictureUrl)
-                )
+                imageUrl = encryptField(resp.imageUrl)
               )
             }
           }
         }
       }
 
-      def updateShoutoutAsViewedForUser(user : ShoutoutUser, id : Long) : Future[Int] = {
+      def updateShoutoutAsViewedForUser(user : SneekyV2User, id : Long) : Future[Int] = {
 
         future {
           db.withTransaction { implicit s : Session =>

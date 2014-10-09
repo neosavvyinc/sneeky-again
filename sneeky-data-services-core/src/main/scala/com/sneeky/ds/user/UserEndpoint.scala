@@ -59,7 +59,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
             Future.successful(
               userService.deriveExtraProperties(
                 user,
-                ActiveShoutoutUser(
+                ActiveSneekyV2User(
                   user.birthday,
                   user.firstName.getOrElse(""),
                   user.lastName.getOrElse(""),
@@ -77,22 +77,22 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
     }
   }
 
-  def update = pathPrefix(users / "update") {
-    authenticate(unverified _) { authenticationResult =>
-
-      val (user, sessionId) = authenticationResult
-
-      parameter('sessionId) { session =>
-        {
-          respondWithMediaType(`application/json`) {
-            entity(as[ShoutoutUserUpdateRequest]) { request =>
-              complete(userService.updateUser(user.id.get, request))
-            }
-          }
-        }
-      }
-    }
-  }
+  //  def update = pathPrefix(users / "update") {
+  //    authenticate(unverified _) { authenticationResult =>
+  //
+  //      val (user, sessionId) = authenticationResult
+  //
+  //      parameter('sessionId) { session =>
+  //        {
+  //          respondWithMediaType(`application/json`) {
+  //            entity(as[ShoutoutUserUpdateRequest]) { request =>
+  //              complete(userService.updateUser(user.id.get, request))
+  //            }
+  //          }
+  //        }
+  //      }
+  //    }
+  //  }
 
   def updateSettings = pathPrefix(users / "settings") {
     authenticate(unverified _) { authenticationResult =>
@@ -139,7 +139,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
   val userRoute =
     register ~
       logout ~
-      update ~
+      //      update ~
       activeUser ~
       updateSettings ~
       updatePushNotifier
