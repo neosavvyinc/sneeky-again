@@ -76,23 +76,23 @@ trait ShoutoutEndpoint extends DataHttpService with BasicCrypto {
 
         post {
           respondWithMediaType(`application/json`) {
-            formFields('data.as[Array[Byte]], 'text.?, 'groupIds.?, 'friendIds.?, 'contentType) {
-              (data, text, groupIds, friendIds, contentType) =>
+            formFields('data.as[Array[Byte]], 'text.?, 'friendIds.?, 'contentType) {
+              (data, text, friendIds, contentType) =>
                 complete {
 
                   contentType match {
 
                     case x if x == "video/quicktime" => shoutoutService.saveData(data, "video/quicktime").map { url =>
-                      shoutoutService.sendToRecipients(user, url, text, groupIds, friendIds, contentType)
+                      shoutoutService.sendToRecipients(user, url, text, friendIds, contentType)
                     }
                     case x if x == "video/mp4" => shoutoutService.saveData(data, "video/mp4").map { url =>
-                      shoutoutService.sendToRecipients(user, url, text, groupIds, friendIds, contentType)
+                      shoutoutService.sendToRecipients(user, url, text, friendIds, contentType)
                     }
                     case x if x == "audio/mp4" => shoutoutService.saveData(data, "audio/mp4").map { url =>
-                      shoutoutService.sendToRecipients(user, url, text, groupIds, friendIds, contentType)
+                      shoutoutService.sendToRecipients(user, url, text, friendIds, contentType)
                     }
                     case x if x == "image/jpg" => shoutoutService.saveData(data, "image/jpg").map { url =>
-                      shoutoutService.sendToRecipients(user, url, text, groupIds, friendIds, contentType)
+                      shoutoutService.sendToRecipients(user, url, text, friendIds, contentType)
                     }
                     case _ => future {
                       ShoutoutException.shoutoutContentTypeInvalid

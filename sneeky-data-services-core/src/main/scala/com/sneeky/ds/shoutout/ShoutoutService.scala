@@ -26,7 +26,7 @@ import scala.util.Try
 trait ShoutoutService {
 
   def saveData(data : Array[Byte], contentType : String) : Future[String]
-  def sendToRecipients(sender : ShoutoutUser, url : String, imageText : Option[String], groupIds : Option[String], friendIds : Option[String], contentType : String) : Int
+  def sendToRecipients(sender : ShoutoutUser, url : String, imageText : Option[String], friendIds : Option[String], contentType : String) : Int
   def findAllForUser(user : ShoutoutUser, sessionId : UUID) : Future[List[ShoutoutResponse]]
   def updateShoutoutAsViewedForUser(user : ShoutoutUser, id : Long) : Future[Int]
 
@@ -153,25 +153,11 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
         }
       }
 
-      def sendToRecipients(sender : ShoutoutUser, url : String, text : Option[String], groupIds : Option[String], friendIds : Option[String], contentType : String) : Int = {
+      def sendToRecipients(sender : ShoutoutUser, url : String, text : Option[String], friendIds : Option[String], contentType : String) : Int = {
 
         var returnVal = 0
 
         db.withTransaction { implicit s : Session =>
-
-          // find a unique list of shoutout users for each group provided
-          val uniqueGroupIds : Set[Long] = groupIds match {
-            case None     => Set()
-            case Some(xs) => xs.split(',').toList.map(x => x.toLong).toSet
-          }
-
-          //remove all the groups that you do not own
-          val (uniqueOwnedGroupIds, uniqueRejectedGroupIds) = uniqueGroupIds partition { g =>
-            groupDao.isOwnerOfGroup(g, sender.id.get)
-          }
-          uniqueRejectedGroupIds foreach (item => log.error(s"User tried to send to a group they are not an owner of: $item"))
-
-          val groupMembers = groupDao.findMembersForGroups(uniqueOwnedGroupIds)
 
           // find a unique list of shoutout user for each user id provided
           val uniqueFriendIds : Set[Long] = friendIds match {
@@ -180,28 +166,8 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
           }
           val providedUsers = shoutoutUsersDao.findByIds(uniqueFriendIds)
 
-          // for each of the users make sure we don't have any duplicates
-          val recipients = providedUsers ::: groupMembers
-
-          // find the blocked recipients
-          val usersWhoBlockSender = blockUserDao.findUsersWhoBlockSender(recipients.toSet, sender)
-
-          // unblocked recipients are the diff
-          val uniqueRecipients = recipients.toSet.diff(usersWhoBlockSender).toList
-
-          /**
-           * This really could be quite expensive to do, we may want to figure out
-           * why we think this needs to happen rather than do this check
-           */
-          //filter collection based on isFriend and isGroupOfOwner
-          //partition this out so we can see how often it is happening
-          val (filteredUniqueRecipients, filteredUniqueNonAssociations) = uniqueRecipients.partition(u => {
-            contactsDao.isFriendOfOwner(sender, u) || contactsDao.isInGroupOfOwner(sender, u)
-          })
-          filteredUniqueNonAssociations foreach (item => log.error(s"Non associated item found: $item"))
-
           // insert a record for each user into the Shoutout table that isn't blocked
-          shoutoutDao.insertShoutouts(filteredUniqueRecipients, Shoutout(
+          shoutoutDao.insertShoutouts(providedUsers, Shoutout(
             None,
             sender.id.get,
             0,
@@ -211,28 +177,14 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
             None,
             Dates.nowDT,
             false,
-            contentType
-          ))
-
-          // insert a record for each blocked user into the Shoutout table
-          shoutoutDao.insertShoutouts(usersWhoBlockSender.toList, Shoutout(
-            None,
-            sender.id.get,
-            0,
-            text.getOrElse(""),
-            url,
-            false,
-            None,
-            Dates.nowDT,
-            true,
             contentType
           ))
 
           // only send notifications to the non-blocked users
-          sendAPNSNotificationsToRecipients(sender, filteredUniqueRecipients)
+          sendAPNSNotificationsToRecipients(sender, providedUsers)
 
           // return the number of shoutouts that were sent (inserted)
-          filteredUniqueRecipients.length
+          providedUsers.length
         }
       }
 
