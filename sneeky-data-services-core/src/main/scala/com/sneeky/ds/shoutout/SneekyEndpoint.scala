@@ -19,7 +19,7 @@ import scala.concurrent.{ Future, future }
  * Date: 12/7/13
  * Time: 2:37 PM
  */
-trait ShoutoutEndpoint extends DataHttpService with BasicCrypto {
+trait SneekyEndpoint extends DataHttpService with BasicCrypto {
   this : RequestAuthenticator =>
 
   def appleActor : ActorRef
@@ -119,24 +119,8 @@ trait ShoutoutEndpoint extends DataHttpService with BasicCrypto {
     }
   }
 
-  def setShoutAsViewed = pathPrefix(shoutout / "viewed" / IntNumber) { id =>
-    authenticate(unverified _) { authenticationResult =>
-
-      val (user, sessionId) = authenticationResult
-
-      post {
-        respondWithMediaType(`application/json`) {
-          complete {
-            shoutoutService.updateShoutoutAsViewedForUser(user, id)
-          }
-        }
-      }
-    }
-  }
-
   val shoutoutRoute =
     sendShoutout ~
       findShouts ~
-      setShoutAsViewed ~
       sendAdminShoutout
 }

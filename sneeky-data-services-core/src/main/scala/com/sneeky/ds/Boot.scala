@@ -28,9 +28,9 @@ object Boot extends App with DSConfiguration with Logging {
     val mode = AuthConfiguration.mode
     log.info(s"---->>>STARTING APPLICATION WITH AUTHENTICATION: $mode <<<------")
     mode match {
-      case FullAuthentication       => system.actorOf(Props(new ShoutoutRouteActor(appleActor, S3Service()) with SessionDateHashRequestAuthenticator with PhantomEntryPointAuthenticator), "service")
-      case NonHashingAuthentication => system.actorOf(Props(new ShoutoutRouteActor(appleActor, S3Service()) with NonHashingRequestAuthenticator with PassThroughEntryPointAuthenticator), "service")
-      case DebugAuthentication      => system.actorOf(Props(new ShoutoutRouteActor(appleActor, S3Service()) with DebugAuthenticator with PhantomEntryPointAuthenticator), "service")
+      case FullAuthentication       => system.actorOf(Props(new SneekyRouteActor(appleActor, S3Service()) with SessionDateHashRequestAuthenticator with PhantomEntryPointAuthenticator), "service")
+      case NonHashingAuthentication => system.actorOf(Props(new SneekyRouteActor(appleActor, S3Service()) with NonHashingRequestAuthenticator with PassThroughEntryPointAuthenticator), "service")
+      case DebugAuthentication      => system.actorOf(Props(new SneekyRouteActor(appleActor, S3Service()) with DebugAuthenticator with PhantomEntryPointAuthenticator), "service")
     }
   }
 

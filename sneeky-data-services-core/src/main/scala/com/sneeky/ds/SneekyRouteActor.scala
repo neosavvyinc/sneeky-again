@@ -4,7 +4,7 @@ import akka.actor.{ ActorRef, Actor }
 import com.sneeky.ds.health.HealthCheckEndpoint
 import com.sneeky.ds.user.UserEndpoint
 import com.sneeky.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
-import com.sneeky.ds.shoutout.ShoutoutEndpoint
+import com.sneeky.ds.shoutout.SneekyEndpoint
 import com.sneeky.dataAccess.DatabaseSupport
 import com.sneeky.ds.integration.amazon.S3Service
 
@@ -16,9 +16,9 @@ import com.sneeky.ds.integration.amazon.S3Service
  * Time: 4:53 PM
  */
 
-class ShoutoutRouteActor(val appleActor : ActorRef, val s3Service : S3Service) extends Actor
+class SneekyRouteActor(val appleActor : ActorRef, val s3Service : S3Service) extends Actor
     with UserEndpoint
-    with ShoutoutEndpoint
+    with SneekyEndpoint
     with HealthCheckEndpoint
     with DatabaseSupport {
 
