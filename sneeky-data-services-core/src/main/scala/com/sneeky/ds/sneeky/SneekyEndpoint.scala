@@ -147,10 +147,43 @@ trait SneekyEndpoint extends DataHttpService with BasicCrypto {
       }
   }
 
+  val DEFAULT_PAGESIZE = 10;
+  val DEFAULT_PAGENUMBER = 0;
+
+  def feedByDate = pathPrefix(sneeky / "feedByDate") {
+    parameters('pageSize.as[Option[Int]], 'pageNumber.as[Option[Int]]) {
+      (pageSize, pageNumber) =>
+
+        authenticate(unverified _) {
+          authenticationResult =>
+            val (user, sessionId) = authenticationResult
+            val actualPageSize = Math.abs(pageSize.getOrElse(DEFAULT_PAGESIZE))
+            val actualPageNumber = Math.abs(pageNumber.getOrElse(DEFAULT_PAGENUMBER))
+
+            complete {
+              future {
+                sneekyService.findFeedByDateForUser(user, sessionId, actualPageSize, actualPageNumber)
+              }
+            }
+        }
+    }
+  }
+
+
+
+  /**
+   * Sorted by count of likes + dislikes
+   * @return
+   */
+  def feedByPopularity = pathPrefix(sneeky / "feedByPopularity")
+
+  def myFeed = pathPrefix(sneeky / "myFeed")
+
   val shoutoutRoute =
     sendSneek ~
       like ~
       unlike ~
       dislike ~
-      undislike
+      undislike ~
+      feedByDate
 }

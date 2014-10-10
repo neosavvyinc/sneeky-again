@@ -90,5 +90,15 @@ object SneekService extends DSConfiguration with BasicCrypto {
           sneekyDao.dislikeSneek(sneekyId, sender.id.get)
         }
       }
+
+      def findFeedByDateForUser(user : SneekyV2User, sessionId : UUID, actualPageSize : Int, actualPageNumber : Int) : List[SneekResponse] = {
+        db.withSession { implicit session : Session =>
+          sneekyDao.findFeedByDate(user.id.get, actualPageSize * actualPageNumber, actualPageSize)
+        }
+      }
+
+      def findMyFeed(user : SneekyV2User, sessionId : UUID, actualPageSize : Int, actualPageNumber : Int) : List[SneekResponse] = ???
+
+      def findFeedByPopularity(user : SneekyV2User, sessionId : UUID, actualPageSize : Int, actualPageNumber : Int) : List[SneekResponse] = ???
     }
 }

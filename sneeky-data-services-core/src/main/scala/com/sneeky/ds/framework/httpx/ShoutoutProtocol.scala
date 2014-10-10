@@ -77,21 +77,21 @@ package object httpx {
     }
 
     implicit object ShoutoutResponseListTypeFormat extends JF[List[SneekResponse]] {
-      override def write(obj : List[SneekResponse]) : JsValue = JsArray(obj.map(shoutoutResponse2json.write))
+      override def write(obj : List[SneekResponse]) : JsValue = JsArray(obj.map(sneekResponse2Json.write))
 
       override def read(json : JsValue) : List[SneekResponse] = json match {
-        case JsArray(x) => x.map(shoutoutResponse2json.read)
+        case JsArray(x) => x.map(sneekResponse2Json.read)
         case _          => deserializationError("Expected String value for List[ShoutoutResponse]")
       }
     }
 
     implicit val failureFormat = jsonFormat2(Failure)
 
-    implicit val shoutuser2json = jsonFormat6(SneekyV2User)
+    implicit val sneekyUser2json = jsonFormat6(SneekyV2User)
     implicit val activeUser2json = jsonFormat9(ActiveSneekyV2User)
 
-    implicit val shoutout2json = jsonFormat5(Sneek)
-    implicit val shoutoutResponse2json = jsonFormat5(SneekResponse)
+    implicit val sneek2json = jsonFormat5(Sneek)
+    implicit val sneekResponse2Json = jsonFormat9(SneekResponse)
     implicit val updatePushToken2json = jsonFormat2(UpdatePushTokenRequest)
 
     implicit val settingsRequest2json = jsonFormat2(SettingsRequest)

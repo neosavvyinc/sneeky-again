@@ -17,8 +17,12 @@ case class Sneek(id : Option[Long],
 case class SneekResponse(id : Long,
                          text : String,
                          imageUrl : String,
-                         createdDate : DateTime,
-                         contentType : String)
+                         createdDate : String,
+                         dislikes : Int,
+                         likes : Int,
+                         isLikedByMe : Boolean = false,
+                         isDislikedByMe : Boolean = false,
+                         isOwnedByMe : Boolean = false)
 
 trait SneekComponent { this : Profile =>
 

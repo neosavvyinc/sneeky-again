@@ -4,6 +4,7 @@ import com.sneeky.ds.framework.{ Dates, Logging }
 import com.sneeky.model._
 
 import scala.concurrent.{ ExecutionContext, Future, future }
+import scala.slick.jdbc.GetResult
 import scala.slick.session.Database
 
 /**
@@ -53,6 +54,37 @@ class SneekyDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCon
   def dislikeSneek(sneekId : Long, userId : Long)(implicit session : Session) : Unit = {
     cleanup(sneekId, userId)
     DislikeTable.forInsert.insert(Dislike(None, sneekId, userId))
+  }
+
+  def findFeedByDate(userId : Long, offset : Long, pageSize : Long)(implicit session : Session) : List[SneekResponse] = {
+    import scala.slick.jdbc.{ GetResult, StaticQuery => Q }
+    import Q.interpolation
+
+    implicit val getSneekResponse = GetResult(r => SneekResponse(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+
+    val cleanupQuery =
+      sql"""SELECT
+              S.ID,
+              TEXT,
+              IMAGE_URL,
+              DATE_FORMAT(CREATED_TIMESTAMP,'%Y-%m-%d %h:%i:%s') AS CREATED_TIMESTAMP,
+              (SELECT COUNT(*) FROM DISLIKES WHERE S.ID = SNEEK_ID) AS DISLIKE_COUNT,
+              (SELECT COUNT(*) FROM LIKES WHERE S.ID = SNEEK_ID) AS LIKE_COUNT,
+              (SELECT COUNT(*) FROM DISLIKES WHERE USER_ID = $userId AND S.ID = SNEEK_ID) AS IS_DISLIKED_BY_ME,
+              (SELECT COUNT(*) FROM LIKES WHERE USER_ID = $userId AND S.ID = SNEEK_ID) AS IS_LIKED_BY_ME,
+              (SELECT 1 FROM SNEEKS WHERE S.ID = ID AND S.SENDER_ID = $userId) AS IS_OWNED_BY_ME
+            FROM
+              SNEEKS S LEFT OUTER JOIN DISLIKES D ON S.ID = D.SNEEK_ID
+                       LEFT OUTER JOIN LIKES L ON S.ID = L.SNEEK_ID
+            GROUP BY
+              S.ID
+            ORDER BY
+              CREATED_TIMESTAMP
+            LIMIT $offset,$pageSize
+         """.as[SneekResponse]
+
+    cleanupQuery.list
+
   }
 
 }
