@@ -13,6 +13,8 @@ trait Profile {
 class DataAccessLayer(override val profile : ExtendedProfile) extends Profile with Logging
     with UserComponent
     with SneekComponent
-    with UserSessionComponent {
+    with UserSessionComponent
+    with LikeComponent
+    with DislikeComponent {
 
 }

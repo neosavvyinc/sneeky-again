@@ -4,7 +4,7 @@ import akka.actor.{ ActorRef, Actor }
 import com.sneeky.ds.health.HealthCheckEndpoint
 import com.sneeky.ds.user.UserEndpoint
 import com.sneeky.ds.framework.auth.{ EntryPointAuthenticator, RequestAuthenticator }
-import com.sneeky.ds.shoutout.SneekyEndpoint
+import com.sneeky.ds.sneeky.SneekyEndpoint
 import com.sneeky.dataAccess.DatabaseSupport
 import com.sneeky.ds.integration.amazon.S3Service
 

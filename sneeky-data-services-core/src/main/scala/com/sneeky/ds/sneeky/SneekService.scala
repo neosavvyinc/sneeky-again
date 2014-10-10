@@ -1,4 +1,4 @@
-package com.sneeky.ds.shoutout
+package com.sneeky.ds.sneeky
 
 import com.netaporter.i18n.ResourceBundle
 
@@ -28,6 +28,8 @@ trait SneekService {
   def saveData(data : Option[Array[Byte]], contentType : String) : Future[String]
   def sendToRecipients(sender : SneekyV2User, url : String, imageText : Option[String], contentType : String) : Unit
 
+  def like(sender : SneekyV2User, sessionId : UUID, sneekyId : Long) : Unit
+  def dislike(sender : SneekyV2User, sessionId : UUID, sneekyId : Long) : Unit
 }
 
 object SneekService extends DSConfiguration with BasicCrypto {
@@ -62,6 +64,30 @@ object SneekService extends DSConfiguration with BasicCrypto {
             Dates.nowDT
           ))
 
+        }
+      }
+
+      def unlike(sender : SneekyV2User, sessionId : UUID, sneekyId : Long) : Unit = {
+        db.withTransaction { implicit s : Session =>
+          sneekyDao.unlike(sneekyId, sender.id.get)
+        }
+      }
+
+      def like(sender : SneekyV2User, sessionId : UUID, sneekyId : Long) : Unit = {
+        db.withTransaction { implicit s : Session =>
+          sneekyDao.likeSneek(sneekyId, sender.id.get)
+        }
+      }
+
+      def undislike(sender : SneekyV2User, sessionId : UUID, sneekyId : Long) : Unit = {
+        db.withTransaction { implicit s : Session =>
+          sneekyDao.undislike(sneekyId, sender.id.get)
+        }
+      }
+
+      def dislike(sender : SneekyV2User, sessionId : UUID, sneekyId : Long) : Unit = {
+        db.withTransaction { implicit s : Session =>
+          sneekyDao.dislikeSneek(sneekyId, sender.id.get)
         }
       }
     }

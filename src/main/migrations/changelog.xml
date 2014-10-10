@@ -97,6 +97,35 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="4" author="aparrish">
+        <createTable tableName="LIKES">
+            <column name="ID" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"></constraints>
+            </column>
+            <column name="SNEEK_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+            <column name="USER_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+        </createTable>
+
+        <createTable tableName="DISLIKES">
+            <column name="ID" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"></constraints>
+            </column>
+            <column name="SNEEK_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+            <column name="USER_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+        </createTable>
+
+
+
+    </changeSet>
+
 
 
 </databaseChangeLog>

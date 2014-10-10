@@ -23,7 +23,7 @@
     </root>
 
     <logger name="com.sneeky.ds" level="trace"/>
-    <logger name="com.sneeky.ds.shoutout" level="trace"/>
+    <logger name="com.sneeky.ds.sneeky" level="trace"/>
     <logger name="com.sneeky.dataAccess" level="trace"/>
 
     <logger name="com.sneeky.ds.integration.twilio" level="debug"/>
