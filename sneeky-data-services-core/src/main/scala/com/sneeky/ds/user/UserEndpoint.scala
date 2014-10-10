@@ -13,7 +13,7 @@ import java.util.UUID
 import scala.concurrent.{ Await, Future }
 import spray.http.StatusCodes
 
-trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCrypto {
+trait UserEndpoint extends DataHttpService with SneekyJsonProtocol with BasicCrypto {
   this : RequestAuthenticator with EntryPointAuthenticator =>
 
   def s3Service : S3Service
@@ -43,39 +43,39 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
     }
   }
 
-  def activeUser = pathPrefix(users / "active") {
-    authenticate(unverified _) { authenticationResult =>
-
-      val (user, sessionId) = authenticationResult
-
-      get {
-        respondWithMediaType(`application/json`) {
-          log.trace(s"identify function invoked : $user")
-
-          import scala.concurrent.duration._
-          val sessionObject = Await.result(userService.findFromSessionId(sessionId.toString), 1 seconds)
-
-          complete(
-            Future.successful(
-              userService.deriveExtraProperties(
-                user,
-                ActiveSneekyV2User(
-                  user.birthday,
-                  user.firstName.getOrElse(""),
-                  user.lastName.getOrElse(""),
-                  user.username,
-                  user.profilePictureUrl.getOrElse(""),
-                  user.newMessagePush
-                ),
-                sessionObject
-              )
-            )
-          )
-
-        }
-      }
-    }
-  }
+  //  def activeUser = pathPrefix(users / "active") {
+  //    authenticate(unverified _) { authenticationResult =>
+  //
+  //      val (user, sessionId) = authenticationResult
+  //
+  //      get {
+  //        respondWithMediaType(`application/json`) {
+  //          log.trace(s"identify function invoked : $user")
+  //
+  //          import scala.concurrent.duration._
+  //          val sessionObject = Await.result(userService.findFromSessionId(sessionId.toString), 1 seconds)
+  //
+  //          complete(
+  //            Future.successful(
+  //              userService.deriveExtraProperties(
+  //                user,
+  //                ActiveSneekyV2User(
+  //                  user.birthday,
+  //                  user.firstName.getOrElse(""),
+  //                  user.lastName.getOrElse(""),
+  //                  user.username,
+  //                  user.profilePictureUrl.getOrElse(""),
+  //                  user.newMessagePush
+  //                ),
+  //                sessionObject
+  //              )
+  //            )
+  //          )
+  //
+  //        }
+  //      }
+  //    }
+  //  }
 
   //  def update = pathPrefix(users / "update") {
   //    authenticate(unverified _) { authenticationResult =>
@@ -140,7 +140,7 @@ trait UserEndpoint extends DataHttpService with PhantomJsonProtocol with BasicCr
     register ~
       logout ~
       //      update ~
-      activeUser ~
+      //      activeUser ~
       updateSettings ~
       updatePushNotifier
 

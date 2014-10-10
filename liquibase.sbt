@@ -2,10 +2,10 @@ import com.github.bigtoast.sbtliquibase.LiquibasePlugin
 
 seq(LiquibasePlugin.liquibaseSettings: _*)
 
-liquibaseUsername := "shoutout"
+liquibaseUsername := "sneekyv2"
 
-liquibasePassword := "shoutout"
+liquibasePassword := "sneekyv2"
 
 liquibaseDriver   := "com.mysql.jdbc.Driver"
 
-liquibaseUrl      := "jdbc:mysql://localhost:3306/shoutout"
+liquibaseUrl      := "jdbc:mysql://localhost:3306/sneekyv2"

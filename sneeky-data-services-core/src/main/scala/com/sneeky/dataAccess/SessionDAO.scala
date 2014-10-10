@@ -41,28 +41,6 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     }
   }
 
-  def findLocaleForToken(token : String) : String = {
-
-    db.withSession { implicit session : Session =>
-
-      val q = for { s <- SessionTable if (s.pushNotifierToken === token) } yield s.locale
-      q.first()
-
-    }
-
-  }
-
-  //  def findLocaleForSessionId(sessionId : String) : String = {
-  //
-  //    db.withSession { implicit session : Session =>
-  //
-  //      val q = for { s <- SessionTable if (s.sessionId === sessionId) } yield s.locale
-  //      q.first()
-  //
-  //    }
-  //
-  //  }
-
   def findTokensByUserId(userIds : Seq[Long]) : Map[Long, Set[String]] = {
 
     db.withSession { implicit session : Session =>
@@ -99,16 +77,6 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     future {
       db.withSession { implicit session =>
         bySessionId(uuid).first
-      }
-    }
-  }
-
-  //TODO: talk about why invalidation vs deletion is a thing
-  def invalidateAllForUser(id : Long) : Future[Int] = {
-    future {
-      db.withSession { implicit session =>
-        val updateQuery = for { s <- SessionTable if s.userId === id } yield s.sessionInvalidated
-        updateQuery.update(true)
       }
     }
   }

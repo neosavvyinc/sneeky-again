@@ -1,9 +1,9 @@
-- name: Make sure mysql-python is installed
-  easy_install: name=mysql-python
-  sudo: True
+#- name: Make sure mysql-python is installed
+#  easy_install: name=mysql-python
+#  sudo: True
 
-- name: Set up mysql user shoutout
-  mysql_user: name=shoutout password=shoutout priv=*.*:ALL state=present
+- name: Set up mysql user sneekyv2
+  mysql_user: name=sneekyv2 password=sneekyv2 priv=*.*:ALL state=present
 
-- name: Set Up mysql cadence database
-  mysql_db: name=shoutout state=present
+- name: Set Up mysql sneekyv2 database
+  mysql_db: name=sneekyv2 state=present

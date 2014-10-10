@@ -69,60 +69,6 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
 
       val randomNumber = scala.util.Random
 
-      private def getNotificationForLocale(localeString : String, sender : SneekyV2User, randomUnicode : String) : String = {
-
-        val localeFromString = com.sneeky.ds.framework.LocaleUtilities.getLocaleFromString(localeString)
-
-        val notificationMessage = (sender.firstName, sender.lastName, sender.username) match {
-          case (Some(f), Some(l), _) => {
-            val lastInitial = l.charAt(0)
-            val name = s"$f $lastInitial."
-            resourceBundle.getWithParams("shoutout.pushNotification.sentPhoto", localeFromString, name, randomUnicode)
-
-          }
-
-          case (Some(f), None, _) => resourceBundle.getWithParams("shoutout.pushNotification.sentPhoto", localeFromString, f, randomUnicode)
-          case (None, Some(l), _) => resourceBundle.getWithParams("shoutout.pushNotification.sentPhoto", localeFromString, l, randomUnicode)
-          case (None, None, u)    => resourceBundle.getWithParams("shoutout.pushNotification.sentPhoto", localeFromString, u, randomUnicode)
-          case _                  => s"someone sent you a photo"
-        }
-
-        notificationMessage
-      }
-
-      private def sendAPNSNotificationsToRecipients(sender : SneekyV2User, recipients : List[SneekyV2User])(implicit session : Session) : Future[Unit] = {
-        future {
-
-          val randomUnicode = codes(randomNumber.nextInt(codes.size))
-          log.debug(s"Sending APNS notifications for recipients: $recipients")
-
-          recipients.foreach {
-            recipient =>
-
-              log.debug(s"about to get the count")
-              val unreadMessageCount = shoutoutDao.countUnread(recipient);
-
-              log.debug(s"got the count now getting the tokens $unreadMessageCount")
-              val tokens = sessionsDao.findTokensByUserId(recipient.id.get :: Nil)
-
-              log.debug(s"using tokens: $tokens for user: $recipient")
-
-              tokens.getOrElse(recipient.id.get, Set.empty).foreach {
-                token =>
-                  val localeForSession = sessionsDao.findLocaleForToken(token)
-                  val note = AppleNotification(
-                    recipient.newMessagePush,
-                    Some(token),
-                    unreadMessageCount,
-                    getNotificationForLocale(localeForSession, sender, randomUnicode))
-                  appleActor ! note
-              }
-
-          }
-
-        }
-      }
-
       def sendToRecipients(sender : SneekyV2User, url : String, text : Option[String], contentType : String) : Unit = {
 
         var returnVal = 0
@@ -130,7 +76,7 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
         db.withTransaction { implicit s : Session =>
 
           // insert a record for each user into the Shoutout table that isn't blocked
-          shoutoutDao.insertSneek(Shoutout(
+          sneekyDao.insertSneek(Shoutout(
             None,
             sender.id.get,
             0,
@@ -155,13 +101,13 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
 
         future {
           db.withSession { implicit s : Session =>
-            shoutoutUsersDao.updateLastAccessedOperation(user)
+            sneekyUserDao.updateLastAccessedOperation(user)
           }
         }
 
         future {
           db.withSession { implicit s : Session =>
-            shoutoutDao.findAllForUser(user) map { resp =>
+            sneekyDao.findAllForUser(user) map { resp =>
               resp.copy(
                 imageUrl = encryptField(resp.imageUrl)
               )
@@ -174,7 +120,7 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
 
         future {
           db.withTransaction { implicit s : Session =>
-            shoutoutDao.setViewed(user, id)
+            sneekyDao.setViewed(user, id)
           }
         }
 

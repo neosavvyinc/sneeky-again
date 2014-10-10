@@ -18,7 +18,7 @@ package object httpx {
 
   private[httpx]type JF[T] = JsonFormat[T]
 
-  trait PhantomJsonProtocol extends DefaultJsonProtocol with Logging {
+  trait SneekyJsonProtocol extends DefaultJsonProtocol with Logging {
 
     implicit object JodaDateTimeFormat extends JsonFormat[DateTime] {
 
@@ -87,8 +87,7 @@ package object httpx {
 
     implicit val failureFormat = jsonFormat2(Failure)
 
-    implicit val shoutuser2json = jsonFormat13(SneekyV2User)
-    implicit val userUpdateRequest2json = jsonFormat4(ShoutoutUserUpdateRequest)
+    implicit val shoutuser2json = jsonFormat6(SneekyV2User)
     implicit val activeUser2json = jsonFormat9(ActiveSneekyV2User)
 
     implicit val shoutout2json = jsonFormat11(Shoutout)
@@ -101,12 +100,12 @@ package object httpx {
     implicit val statsResponse2json = jsonFormat6(StatsResponse)
   }
 
-  trait PhantomResponseMarshaller extends PhantomJsonProtocol {
+  trait PhantomResponseMarshaller extends SneekyJsonProtocol {
 
     implicit def phantomResponse[T](implicit ec : ExecutionContext, format : JF[T]) = new PhantomResponse[T]
   }
 
-  class PhantomResponse[T](implicit ec : ExecutionContext, format : JF[T]) extends ToResponseMarshaller[Future[T]] with PhantomJsonProtocol {
+  class PhantomResponse[T](implicit ec : ExecutionContext, format : JF[T]) extends ToResponseMarshaller[Future[T]] with SneekyJsonProtocol {
 
     import com.sneeky.ds.framework.exception.Errors
     private def payload = "payload"

@@ -5,7 +5,7 @@ import java.util.UUID
 import com.netaporter.i18n.ResourceBundle
 import com.sneeky.dataAccess.DatabaseSupport
 import com.sneeky.ds.BasicCrypto
-import com.sneeky.ds.framework.Logging
+import com.sneeky.ds.framework.{ Dates, Logging }
 import com.sneeky.ds.framework.exception.ShoutoutException
 import com.sneeky.ds.integration.amazon.S3Service
 import com.sneeky.model.{ SneekyV2User, _ }
@@ -28,9 +28,17 @@ object UserService extends BasicCrypto {
 
     val resourceBundle = ResourceBundle("messages/messages")
 
-    def register() : Future[String] = {
+    def register() : Future[UUID] = {
       future {
-        UUID.randomUUID().toString
+
+        db.withTransaction { implicit session : Session =>
+          val userId = UUID.randomUUID()
+          val user = sneekyUserDao.insertUser(SneekyV2User(None, userId, true, Dates.nowDT))
+          val sessionId = sessionsDao.createSessionOperation(SneekySession.newSession(user))
+
+          sessionId.sessionId
+        }
+
       }
     }
 
@@ -71,7 +79,7 @@ object UserService extends BasicCrypto {
 
     def updateSetting(userId : Long, pushSettingType : SettingType, value : Boolean) : Future[Boolean] = {
       future {
-        shoutoutUsersDao.updateSetting(userId, pushSettingType, value)
+        sneekyUserDao.updateSetting(userId, pushSettingType, value)
       }
     }
 
@@ -80,9 +88,8 @@ object UserService extends BasicCrypto {
       db.withSession { implicit session : Session =>
         activeUser.copy(
           profilePictureUrl = encryptField(activeUser.profilePictureUrl),
-          receivedCount = shoutoutDao.countReceived(user),
-          sentCount = shoutoutDao.countSent(user),
-          sessionInvalid = shoutoutSession.sessionInvalid)
+          receivedCount = sneekyDao.countReceived(user),
+          sentCount = sneekyDao.countSent(user))
       }
 
     }

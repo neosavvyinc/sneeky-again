@@ -95,15 +95,8 @@ object UUIDConversions {
 
 case class SneekyV2User(id : Option[Long],
                         uuid : UUID,
-                        facebookID : Option[String],
-                        email : Option[String],
-                        password : Option[String],
-                        birthday : Option[LocalDate],
-                        firstName : Option[String],
-                        lastName : Option[String],
-                        username : String,
-                        profilePictureUrl : Option[String],
-                        newMessagePush : Boolean = true,
+                        likeNotfication : Boolean = true,
+                        created : DateTime,
                         userStatus : UserStatus = Unverified,
                         lastAccessed : DateTime = Dates.nowDT)
 
@@ -120,14 +113,9 @@ case class ActiveSneekyV2User(
 
 object SneekySession {
 
-  def newSession(user : SneekyV2User, token : Option[String] = None, deviceInfo : DeviceInfo) : SneekySession = {
+  def newSession(user : SneekyV2User, token : Option[String] = None) : SneekySession = {
     val now = Dates.nowDT
-    SneekySession(UUID.randomUUID(), user.id.getOrElse(-1), now, now, token, None,
-      screenWidth = deviceInfo.screenWidth,
-      screenHeight = deviceInfo.screenHeight,
-      deviceModel = deviceInfo.deviceModel,
-      deviceLocale = deviceInfo.deviceLocale
-    )
+    SneekySession(UUID.randomUUID(), user.id.getOrElse(-1), now, now, token, None)
   }
 }
 
@@ -136,12 +124,7 @@ case class SneekySession(sessionId : UUID,
                          created : DateTime,
                          lastAccessed : DateTime,
                          pushNotifierToken : Option[String] = None,
-                         pushNotifierType : Option[MobilePushType] = None,
-                         sessionInvalid : Boolean = false,
-                         screenWidth : Option[Int] = None,
-                         screenHeight : Option[Int] = None,
-                         deviceModel : Option[String] = None,
-                         deviceLocale : Option[String] = None)
+                         pushNotifierType : Option[MobilePushType] = None)
 
 trait UserComponent { this : Profile =>
 
@@ -151,32 +134,31 @@ trait UserComponent { this : Profile =>
   implicit val UUIDMapper = MappedTypeMapper.base[UUID, String](UUIDConversions.toStringRep, UUIDConversions.fromStringRep)
   implicit val UserStatusMapper = MappedTypeMapper.base[UserStatus, String](UserStatus.toStringRep, UserStatus.fromStringRep)
 
+  /**
+   *
+   * +-------------------+--------------+------+-----+-------------------+----------------+
+   * | Field             | Type         | Null | Key | Default           | Extra          |
+   * +-------------------+--------------+------+-----+-------------------+----------------+
+   * | ID                | int(11)      | NO   | PRI | NULL              | auto_increment |
+   * | UUID              | char(36)     | NO   |     | NULL              |                |
+   * | LIKE_NOTIF        | tinyint(1)   | NO   |     | NULL              |                |
+   * | CREATED_TIMESTAMP | datetime     | YES  |     | CURRENT_TIMESTAMP |                |
+   * | USER_STATUS       | varchar(100) | NO   |     | unverified        |                |
+   * | LASTACCESSED      | datetime     | NO   |     | CURRENT_TIMESTAMP |                |
+   * +-------------------+--------------+------+-----+-------------------+----------------+
+   */
   object UserTable extends Table[SneekyV2User]("USERS") {
     def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
     def uuid = column[UUID]("UUID", DBType("CHAR(36)"))
-    def facebookID = column[String]("FACEBOOK_ID", DBType("VARCHAR(64)"), O.Nullable)
-    def email = column[String]("EMAIL", DBType("VARCHAR(256)"), O.Nullable)
-    def password = column[String]("PASSWORD", DBType("VARCHAR(300)"), O.Nullable)
-    def birthday = column[LocalDate]("BIRTHDAY", O.Nullable)
-    def firstName = column[String]("FIRST_NAME", O.Nullable)
-    def lastName = column[String]("LAST_NAME", O.Nullable)
-    def username = column[String]("USERNAME")
-    def profilePictureUrl = column[String]("PROFILE_URL")
-    def newMessagePush = column[Boolean]("PUSH_NOTIF")
+    def likeNotification = column[Boolean]("LIKE_NOTIF")
+    def created = column[DateTime]("CREATED_TIMESTAMP")
     def userStatus = column[UserStatus]("USER_STATUS")
-    def lastAccessed = column[DateTime]("LASTACCESSED", O.Nullable)
+    def lastAccessed = column[DateTime]("LASTACCESSED")
 
     def * = id.? ~
       uuid ~
-      facebookID.? ~
-      email.? ~
-      password.? ~
-      birthday.? ~
-      firstName.? ~
-      lastName.? ~
-      username ~
-      profilePictureUrl.? ~
-      newMessagePush ~
+      likeNotification ~
+      created ~
       userStatus ~
       lastAccessed <> (SneekyV2User, SneekyV2User.unapply _)
     def forInsert = * returning id
@@ -198,23 +180,13 @@ trait UserSessionComponent { this : Profile with UserComponent =>
     def lastAccessed = column[DateTime]("LASTACCESSED")
     def pushNotifierToken = column[String]("PUSH_NOTIFIER_TOKEN", O.Nullable)
     def pushNotifierType = column[MobilePushType]("PUSH_NOTIFIER_TYPE", O.Nullable)
-    def sessionInvalidated = column[Boolean]("SESSION_INVALID")
-    def screenWidth = column[Int]("SCREEN_WIDTH", O.Nullable)
-    def screenHeight = column[Int]("SCREEN_HEIGHT", O.Nullable)
-    def deviceModel = column[String]("DEVICE_MODEL", O.Nullable)
-    def locale = column[String]("LOCALE", O.Nullable)
 
     def * = sessionId ~
       userId ~
       created ~
       lastAccessed ~
       pushNotifierToken.? ~
-      pushNotifierType.? ~
-      sessionInvalidated ~
-      screenWidth.? ~
-      screenHeight.? ~
-      deviceModel.? ~
-      locale.? <> (SneekySession.apply _, SneekySession.unapply _)
+      pushNotifierType.? <> (SneekySession.apply _, SneekySession.unapply _)
 
     def owner = foreignKey("USER_FK", userId, UserTable)(_.id)
     //def userUnqiue = index("userUnique", userId, unique = true)
