@@ -83,17 +83,6 @@ object UserService extends BasicCrypto {
       }
     }
 
-    def deriveExtraProperties(user : SneekyV2User, activeUser : ActiveSneekyV2User, shoutoutSession : SneekySession) : ActiveSneekyV2User = {
-
-      db.withSession { implicit session : Session =>
-        activeUser.copy(
-          profilePictureUrl = encryptField(activeUser.profilePictureUrl),
-          receivedCount = sneekyDao.countReceived(user),
-          sentCount = sneekyDao.countSent(user))
-      }
-
-    }
-
     def updatePushNotifier(sessionUUID : UUID, applePushToken : String, mobilePushType : MobilePushType) : Future[Boolean] = {
       future {
 
