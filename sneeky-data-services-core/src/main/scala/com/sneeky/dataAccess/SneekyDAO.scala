@@ -15,8 +15,8 @@ class SneekyDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCon
   import dal._
   import dal.profile.simple._
 
-  def insertShoutouts(recipients : List[SneekyV2User], shoutout : Shoutout)(implicit session : Session) = {
-    recipients.map(rec => ShoutoutTable.forInsert.insert(shoutout.copy(recipient = rec.id.get)))
+  def insertSneek(shoutout : Shoutout)(implicit session : Session) = {
+    ShoutoutTable.forInsert.insert(shoutout)
   }
 
   val unviewedByOwnerQuery = for {

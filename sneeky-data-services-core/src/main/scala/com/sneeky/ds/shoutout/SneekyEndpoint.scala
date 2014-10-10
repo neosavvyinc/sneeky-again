@@ -27,45 +27,6 @@ trait SneekyEndpoint extends DataHttpService with BasicCrypto {
   val shoutoutService = ShoutoutService(appleActor, s3Service)
   val shoutout = "shoutout"
 
-  def sendAdminShoutout = pathPrefix(shoutout / "admin" / "send") {
-    val ByteJsonFormat = null
-
-    authenticate(admin _) { authenticationResult =>
-
-      val (user, sessionId) = authenticationResult
-      post {
-        respondWithMediaType(`application/json`) {
-          formFields('data.as[Array[Byte]], 'text.?, 'contentType, 'locale.?) {
-            (data, text, contentType, locale) =>
-              complete {
-
-                contentType match {
-
-                  case x if x == "video/quicktime" => shoutoutService.saveData(data, "video/quicktime").map { url =>
-                    shoutoutService.sendToAll(user, url, text, contentType, locale)
-                  }
-                  case x if x == "video/mp4" => shoutoutService.saveData(data, "video/mp4").map { url =>
-                    shoutoutService.sendToAll(user, url, text, contentType, locale)
-                  }
-                  case x if x == "audio/mp4" => shoutoutService.saveData(data, "audio/mp4").map { url =>
-                    shoutoutService.sendToAll(user, url, text, contentType, locale)
-                  }
-                  case x if x == "image/jpg" => shoutoutService.saveData(data, "image/jpg").map { url =>
-                    shoutoutService.sendToAll(user, url, text, contentType, locale)
-                  }
-                  case _ => future {
-                    ShoutoutException.shoutoutContentTypeInvalid
-                  }
-
-                }
-              }
-          }
-        }
-      }
-
-    }
-  }
-
   def sendShoutout = pathPrefix(shoutout / "send") {
     val ByteJsonFormat = null
     authenticate(unverified _) {
@@ -75,23 +36,23 @@ trait SneekyEndpoint extends DataHttpService with BasicCrypto {
 
         post {
           respondWithMediaType(`application/json`) {
-            formFields('data.as[Array[Byte]], 'text.?, 'friendIds.?, 'contentType) {
-              (data, text, friendIds, contentType) =>
+            formFields('data.as[Array[Byte]], 'text.?, 'contentType) {
+              (data, text, contentType) =>
                 complete {
 
                   contentType match {
 
                     case x if x == "video/quicktime" => shoutoutService.saveData(data, "video/quicktime").map { url =>
-                      shoutoutService.sendToRecipients(user, url, text, friendIds, contentType)
+                      shoutoutService.sendToRecipients(user, url, text, contentType)
                     }
                     case x if x == "video/mp4" => shoutoutService.saveData(data, "video/mp4").map { url =>
-                      shoutoutService.sendToRecipients(user, url, text, friendIds, contentType)
+                      shoutoutService.sendToRecipients(user, url, text, contentType)
                     }
                     case x if x == "audio/mp4" => shoutoutService.saveData(data, "audio/mp4").map { url =>
-                      shoutoutService.sendToRecipients(user, url, text, friendIds, contentType)
+                      shoutoutService.sendToRecipients(user, url, text, contentType)
                     }
                     case x if x == "image/jpg" => shoutoutService.saveData(data, "image/jpg").map { url =>
-                      shoutoutService.sendToRecipients(user, url, text, friendIds, contentType)
+                      shoutoutService.sendToRecipients(user, url, text, contentType)
                     }
                     case _ => future {
                       ShoutoutException.shoutoutContentTypeInvalid
@@ -120,6 +81,5 @@ trait SneekyEndpoint extends DataHttpService with BasicCrypto {
 
   val shoutoutRoute =
     sendShoutout ~
-      findShouts ~
-      sendAdminShoutout
+      findShouts
 }

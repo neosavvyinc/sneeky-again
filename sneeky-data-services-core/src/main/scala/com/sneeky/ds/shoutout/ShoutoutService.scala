@@ -26,7 +26,7 @@ import scala.util.Try
 trait ShoutoutService {
 
   def saveData(data : Array[Byte], contentType : String) : Future[String]
-  def sendToRecipients(sender : SneekyV2User, url : String, imageText : Option[String], friendIds : Option[String], contentType : String) : Int
+  def sendToRecipients(sender : SneekyV2User, url : String, imageText : Option[String], contentType : String) : Unit
   def findAllForUser(user : SneekyV2User, sessionId : UUID) : Future[List[ShoutoutResponse]]
   def updateShoutoutAsViewedForUser(user : SneekyV2User, id : Long) : Future[Int]
 
@@ -123,51 +123,14 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
         }
       }
 
-      /**
-       * Admin only function - do not call this without an admin user
-       */
-      def sendToAll(sender : SneekyV2User, url : String, text : Option[String], contentType : String, locale : Option[String]) : Int = {
-        db.withTransaction { implicit s : Session =>
-
-          val users = locale match {
-            case None          => shoutoutUsersDao.findAll()
-            case Some("en_US") => shoutoutUsersDao.findAllEnglish()
-            case Some(x)       => shoutoutUsersDao.findAllForLocale(x)
-          }
-
-          shoutoutDao.insertShoutouts(users, Shoutout(
-            None,
-            sender.id.get,
-            0,
-            text.getOrElse(""),
-            url,
-            false,
-            None,
-            Dates.nowDT,
-            false,
-            contentType
-          ))
-          sendAPNSNotificationsToRecipients(sender, users)
-
-          users.length
-        }
-      }
-
-      def sendToRecipients(sender : SneekyV2User, url : String, text : Option[String], friendIds : Option[String], contentType : String) : Int = {
+      def sendToRecipients(sender : SneekyV2User, url : String, text : Option[String], contentType : String) : Unit = {
 
         var returnVal = 0
 
         db.withTransaction { implicit s : Session =>
 
-          // find a unique list of shoutout user for each user id provided
-          val uniqueFriendIds : Set[Long] = friendIds match {
-            case None     => Set()
-            case Some(xs) => xs.split(',').toList.map(x => x.toLong).toSet
-          }
-          val providedUsers = shoutoutUsersDao.findByIds(uniqueFriendIds)
-
           // insert a record for each user into the Shoutout table that isn't blocked
-          shoutoutDao.insertShoutouts(providedUsers, Shoutout(
+          shoutoutDao.insertSneek(Shoutout(
             None,
             sender.id.get,
             0,
@@ -180,11 +143,6 @@ object ShoutoutService extends DSConfiguration with BasicCrypto {
             contentType
           ))
 
-          // only send notifications to the non-blocked users
-          sendAPNSNotificationsToRecipients(sender, providedUsers)
-
-          // return the number of shoutouts that were sent (inserted)
-          providedUsers.length
         }
       }
 
