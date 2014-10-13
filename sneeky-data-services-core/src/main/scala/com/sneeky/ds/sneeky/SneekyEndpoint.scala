@@ -169,15 +169,47 @@ trait SneekyEndpoint extends DataHttpService with BasicCrypto {
     }
   }
 
-
-
   /**
    * Sorted by count of likes + dislikes
    * @return
    */
-  def feedByPopularity = pathPrefix(sneeky / "feedByPopularity")
+  def feedByPopularity = pathPrefix(sneeky / "feedByPopularity") {
+    parameters('pageSize.as[Option[Int]], 'pageNumber.as[Option[Int]]) {
+      (pageSize, pageNumber) =>
 
-  def myFeed = pathPrefix(sneeky / "myFeed")
+        authenticate(unverified _) {
+          authenticationResult =>
+            val (user, sessionId) = authenticationResult
+            val actualPageSize = Math.abs(pageSize.getOrElse(DEFAULT_PAGESIZE))
+            val actualPageNumber = Math.abs(pageNumber.getOrElse(DEFAULT_PAGENUMBER))
+
+            complete {
+              future {
+                sneekyService.findFeedByPopularity(user, sessionId, actualPageSize, actualPageNumber)
+              }
+            }
+        }
+    }
+  }
+
+  def myFeed = pathPrefix(sneeky / "myFeed") {
+    parameters('pageSize.as[Option[Int]], 'pageNumber.as[Option[Int]]) {
+      (pageSize, pageNumber) =>
+
+        authenticate(unverified _) {
+          authenticationResult =>
+            val (user, sessionId) = authenticationResult
+            val actualPageSize = Math.abs(pageSize.getOrElse(DEFAULT_PAGESIZE))
+            val actualPageNumber = Math.abs(pageNumber.getOrElse(DEFAULT_PAGENUMBER))
+
+            complete {
+              future {
+                sneekyService.findMyFeed(user, sessionId, actualPageSize, actualPageNumber)
+              }
+            }
+        }
+    }
+  }
 
   val shoutoutRoute =
     sendSneek ~
@@ -185,5 +217,8 @@ trait SneekyEndpoint extends DataHttpService with BasicCrypto {
       unlike ~
       dislike ~
       undislike ~
-      feedByDate
+      feedByDate ~
+      feedByPopularity ~
+      myFeed
+
 }
