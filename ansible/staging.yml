@@ -6,11 +6,11 @@
     - deploy
     - nginx-ssl
   vars:
-      serverListenPort: "8090"
+      serverListenPort: "7070"
       serverListenAddress: "0.0.0.0"
       nginxProxyToAddress: "0.0.0.0"
-      nginxProxyToPort: "8090"
-      apiBackendDNSName: "api.phantom.neosavvy.com"
+      nginxProxyToPort: "7070"
+      apiBackendDNSName: "api.sneekyv2.neosavvy.com"
       adminContact: "aparrish@neosavvy.com"
-      shoutoutUID: "root"
-      shoutoutGID: "root"
+      sneekyv2UID: "root"
+      sneekyv2GID: "root"

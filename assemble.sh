@@ -1,3 +1,3 @@
 #!/bin/sh
 sbt clean assembly;
-cp shoutout-data-services-core/target/scala-2.10/shoutout.jar ./ansible/roles/deploy/files/
+cp sneeky-data-services-core/target/scala-2.10/sneeky-v2.jar ./ansible/roles/deploy/files/
