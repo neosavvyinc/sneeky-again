@@ -64,6 +64,14 @@ class SneekyDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCon
     q.update(true)
   }
 
+  def findById(sneekyId : Long)(implicit session : Session) : Sneek = {
+    val q = for {
+      sneeks <- SneekyTable if sneeks.id === sneekyId
+    } yield sneeks
+
+    q.first
+  }
+
   def findFeedByDate(userId : Long, offset : Long, pageSize : Long)(implicit session : Session) : List[SneekResponse] = {
     import scala.slick.jdbc.{ GetResult, StaticQuery => Q }
     import Q.interpolation

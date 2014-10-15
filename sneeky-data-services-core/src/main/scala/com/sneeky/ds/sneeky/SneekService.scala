@@ -75,7 +75,14 @@ object SneekService extends DSConfiguration with BasicCrypto {
 
       def like(sender : SneekyV2User, sessionId : UUID, sneekyId : Long) : Unit = {
         db.withTransaction { implicit s : Session =>
+
+          val sneek = sneekyDao.findById(sneekyId);
+          val tokens = sessionsDao.findTokensForId(sneek.sender)
+
           sneekyDao.likeSneek(sneekyId, sender.id.get)
+          tokens foreach { t =>
+            appleActor ! AppleNotification(true, t, 1, "Someone liked your sneek!")
+          }
         }
       }
 

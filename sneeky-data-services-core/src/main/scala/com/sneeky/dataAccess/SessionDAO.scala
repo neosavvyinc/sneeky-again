@@ -41,6 +41,21 @@ class SessionDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCo
     }
   }
 
+  def findTokensForId(userId : Long) : List[Option[String]] = {
+    db.withSession { implicit session : Session =>
+      val q = for { s <- SessionTable if s.userId === userId } yield s.pushNotifierToken.?
+
+      log.trace("statement we are executing is " + q.selectStatement)
+
+      val tokens = q.list
+
+      log.trace(s"found tokens: $tokens")
+
+      tokens
+
+    }
+  }
+
   def findTokensByUserId(userIds : Seq[Long]) : Map[Long, Set[String]] = {
 
     db.withSession { implicit session : Session =>
