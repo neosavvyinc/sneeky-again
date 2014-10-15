@@ -133,7 +133,7 @@
             </column>
         </createTable>
         
-        <createTable tableName="PHOTO">
+        <createTable tableName="PHOTOS">
             <column name="ID" type="int" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"></constraints>
             </column>
