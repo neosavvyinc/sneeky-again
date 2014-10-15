@@ -17,5 +17,6 @@ trait DatabaseSupport extends DSConfiguration with Logging {
   val sneekyUserDao = new SneekyUserDAO(dataAccessLayer, db)
   val sneekyDao = new SneekyDAO(dataAccessLayer, db)
   val sessionsDao = new SessionDAO(dataAccessLayer, db)
+  val photoDao = new StockImageDAO(dataAccessLayer, db)
 
 }

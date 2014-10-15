@@ -108,5 +108,19 @@ object SneekService extends DSConfiguration with BasicCrypto {
           sneekyDao.findFeedByPopularity(user.id.get, actualPageSize * actualPageNumber, actualPageSize)
         }
       }
+
+      def findAll : Future[List[PhotoList]] = {
+        future {
+          photoDao.findAll
+        }
+      }
+
+      def hideSneeky(sneekId : Long) : Unit = {
+        db.withSession { implicit session : Session =>
+
+          sneekyDao.hideSneekById(sneekId)
+
+        }
+      }
     }
 }

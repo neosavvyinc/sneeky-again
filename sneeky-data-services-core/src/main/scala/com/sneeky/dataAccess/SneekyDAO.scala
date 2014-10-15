@@ -57,6 +57,13 @@ class SneekyDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCon
     DislikeTable.forInsert.insert(Dislike(None, sneekId, userId))
   }
 
+  def hideSneekById(sneekId : Long)(implicit session : Session) : Unit = {
+    val q = for {
+      sneeks <- SneekyTable if sneeks.id === sneekId
+    } yield sneeks.isHidden
+    q.update(true)
+  }
+
   def findFeedByDate(userId : Long, offset : Long, pageSize : Long)(implicit session : Session) : List[SneekResponse] = {
     import scala.slick.jdbc.{ GetResult, StaticQuery => Q }
     import Q.interpolation
@@ -77,10 +84,11 @@ class SneekyDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCon
             FROM
               SNEEKS S LEFT OUTER JOIN DISLIKES D ON S.ID = D.SNEEK_ID
                        LEFT OUTER JOIN LIKES L ON S.ID = L.SNEEK_ID
+            WHERE S.IS_HIDDEN = false
             GROUP BY
               S.ID
             ORDER BY
-              CREATED_TIMESTAMP
+              CREATED_TIMESTAMP DESC
             LIMIT $offset,$pageSize
          """.as[SneekResponse]
 
@@ -108,11 +116,11 @@ class SneekyDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCon
             FROM
               SNEEKS S LEFT OUTER JOIN DISLIKES D ON S.ID = D.SNEEK_ID
                        LEFT OUTER JOIN LIKES L ON S.ID = L.SNEEK_ID
-            WHERE S.SENDER_ID = $userId
+            WHERE S.SENDER_ID = $userId AND S.IS_HIDDEN = false
             GROUP BY
               S.ID
             ORDER BY
-              CREATED_TIMESTAMP
+              CREATED_TIMESTAMP DESC
             LIMIT $offset,$pageSize
          """.as[SneekResponse]
 
@@ -139,6 +147,7 @@ class SneekyDAO(dal : DataAccessLayer, db : Database)(implicit ec : ExecutionCon
             FROM
               SNEEKS S LEFT OUTER JOIN DISLIKES D ON S.ID = D.SNEEK_ID
                        LEFT OUTER JOIN LIKES L ON S.ID = L.SNEEK_ID
+            WHERE S.IS_HIDDEN = false
             GROUP BY
               S.ID
             ORDER BY

@@ -121,11 +121,60 @@
                 <constraints nullable="false"></constraints>
             </column>
         </createTable>
+    </changeSet>
+    
+    <changeSet id="5" author="aparrish">
+        <createTable tableName="PHOTO_CATEGORIES">
+            <column name="ID" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"></constraints>
+            </column>
+            <column name="NAME" type="varchar(1024)">
+                <constraints nullable="false"></constraints>
+            </column>
+        </createTable>
+        
+        <createTable tableName="PHOTO">
+            <column name="ID" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"></constraints>
+            </column>
+            <column name="CATEGORY_ID" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+            <column name="IS_ACTIVE" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="URL" type="varchar(4096)">
+                <constraints nullable="false"></constraints>
+            </column>
+        </createTable>
+    </changeSet>
 
+    <changeSet id="6" author="aparrish">
+        <sql>
+            INSERT INTO PHOTO_CATEGORIES( NAME ) VALUES ( 'Backgrounds' );
+            INSERT INTO PHOTOS( CATEGORY_ID, IS_ACTIVE, URL ) VALUES (1, true, "https://s3.amazonaws.com/sneekyimages/stockImages/background_bigsmile%402x.png");
+            INSERT INTO PHOTOS( CATEGORY_ID, IS_ACTIVE, URL ) VALUES (1, true, "https://s3.amazonaws.com/sneekyimages/stockImages/background_cash%402x.png");
+            INSERT INTO PHOTOS( CATEGORY_ID, IS_ACTIVE, URL ) VALUES (1, true, "https://s3.amazonaws.com/sneekyimages/stockImages/background_exclaim%402x.png");
+            INSERT INTO PHOTOS( CATEGORY_ID, IS_ACTIVE, URL ) VALUES (1, true, "https://s3.amazonaws.com/sneekyimages/stockImages/background_frown%402x.png");
+            INSERT INTO PHOTOS( CATEGORY_ID, IS_ACTIVE, URL ) VALUES (1, true, "https://s3.amazonaws.com/sneekyimages/stockImages/background_hashtag%402x.png");
+            INSERT INTO PHOTOS( CATEGORY_ID, IS_ACTIVE, URL ) VALUES (1, true, "https://s3.amazonaws.com/sneekyimages/stockImages/background_heart%402x.png");
+            INSERT INTO PHOTOS( CATEGORY_ID, IS_ACTIVE, URL ) VALUES (1, true, "https://s3.amazonaws.com/sneekyimages/stockImages/background_question%402x.png");
+            INSERT INTO PHOTOS( CATEGORY_ID, IS_ACTIVE, URL ) VALUES (1, true, "https://s3.amazonaws.com/sneekyimages/stockImages/background_silent%402x.png");
+            INSERT INTO PHOTOS( CATEGORY_ID, IS_ACTIVE, URL ) VALUES (1, true, "https://s3.amazonaws.com/sneekyimages/stockImages/background_singularity%402x.png");
+            INSERT INTO PHOTOS( CATEGORY_ID, IS_ACTIVE, URL ) VALUES (1, true, "https://s3.amazonaws.com/sneekyimages/stockImages/background_smile%402x.png");
+            INSERT INTO PHOTOS( CATEGORY_ID, IS_ACTIVE, URL ) VALUES (1, true, "https://s3.amazonaws.com/sneekyimages/stockImages/background_winksmile%402x.png");
+            INSERT INTO PHOTOS( CATEGORY_ID, IS_ACTIVE, URL ) VALUES (1, true, "https://s3.amazonaws.com/sneekyimages/stockImages/background_winktongue%402x.png");
 
-
+        </sql>
     </changeSet>
 
 
+    <changeSet id="7" author="aparrish">
+        <addColumn tableName="SNEEKS">
+            <column name="IS_HIDDEN" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 
 </databaseChangeLog>

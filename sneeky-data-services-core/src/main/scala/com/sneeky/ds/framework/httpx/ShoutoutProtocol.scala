@@ -90,9 +90,15 @@ package object httpx {
     implicit val sneekyUser2json = jsonFormat6(SneekyV2User)
     implicit val activeUser2json = jsonFormat9(ActiveSneekyV2User)
 
-    implicit val sneek2json = jsonFormat5(Sneek)
+    implicit val photoResponse = jsonFormat4(Photo)
+    implicit val photoListResponse = jsonFormat2(PhotoList)
+    implicit val photoCategoryResponse = jsonFormat2(PhotoCategory)
+    implicit val photoCategoryListResponse = jsonFormat2(PhotoCategoryList)
+
+    implicit val sneek2json = jsonFormat6(Sneek)
     implicit val sneekResponse2Json = jsonFormat9(SneekResponse)
     implicit val updatePushToken2json = jsonFormat2(UpdatePushTokenRequest)
+    implicit val stockSneek2json = jsonFormat2(StockSneekRequest)
 
     implicit val settingsRequest2json = jsonFormat2(SettingsRequest)
 

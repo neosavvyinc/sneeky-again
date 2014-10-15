@@ -1,8 +1,8 @@
 - name: Copy the configuration for production
-  template: src=production.conf dest=/opt/shoutout/production.conf
+  template: src=production.conf dest=/opt/sneekyv2/production.conf
 
 - name: Copy logback xml file for production
-  copy: src=logback.xml dest=/opt/shoutout/logback.xml
+  copy: src=logback.xml dest=/opt/sneekyv2/logback.xml
 
 - name: Install supervisord
   easy_install: name=supervisor
@@ -10,57 +10,26 @@
 - name: Initialize our supervisor directory
   file: path=/etc/supervisor owner=root group=root state=directory
 
-- name: Fresh Supervisor Sneeky Conf
-  copy: src=supervisord.sneeky.conf dest=/etc/supervisor/supervisord.sneeky.conf
+- name: Fresh Supervisor sneekyv2 Conf
+  copy: src=supervisord.sneekyv2.conf dest=/etc/supervisor/supervisord.sneekyv2.conf
 
-- name: Copy the Supervisord Startup Script
-  copy: src=supervisord.shoutout dest=/etc/init.d/supervisord.shoutout mode=0755
-
-- name: Fresh Supervisor Shoutout Conf
-  copy: src=supervisord.shoutout.conf dest=/etc/supervisor/supervisord.shoutout.conf
-
-- name: Copy the Supervisord Shoutout Startup Script
-  copy: src=supervisord.sneeky dest=/etc/init.d/supervisord.sneeky mode=0755
+- name: Copy the Supervisord sneekyv2 Startup Script
+  copy: src=supervisord.sneekyv2 dest=/etc/init.d/supervisord.sneekyv2 mode=0755
 
 - name: Ensure both are in default run levels
   command: update-rc.d supervisord.{{ item }} defaults
   with_items:
-    - sneeky
-    - shoutout
-#
-#- name: Kill all Supervisord
-#  command: killall supervisord
-#  ignore_errors: yes
-#
-- name: Kill any running Shoutout Supervisord scripts
-  shell: kill -9 $(ps aux | grep '[s]upervisord' | grep shoutout | awk '{print $2}')
+    - sneekyv2
+
+- name: Kill any running sneekyv2 Supervisord scripts
+  shell: kill -9 $(ps aux | grep '[s]upervisord' | grep sneekyv2 | awk '{print $2}')
   ignore_errors: yes
   sudo: True
 
-- name: Kill any running Sneeky Supervisord scripts
-  shell: kill -9 $(ps aux | grep '[s]upervisord' | grep sneeky | awk '{print $2}')
+- name: Kill any running sneekyv2 Java Processes
+  shell: kill -9 $(ps aux | grep '[j]ava' | grep sneekyv2 | awk '{print $2}')
   ignore_errors: yes
   sudo: True
-
-
-- name: Kill any running Shoutout Java Processes
-  shell: kill -9 $(ps aux | grep '[j]ava' | grep shoutout | awk '{print $2}')
-  ignore_errors: yes
-  sudo: True
-
-
-- name: Kill any running Sneeky Java Processes
-  shell: kill -9 $(ps aux | grep '[j]ava' | grep server | awk '{print $2}')
-  ignore_errors: yes
-  sudo: True
-#
-#
-#- name: Kill all Java
-#  command: killall java
-#  ignore_errors: yes
 
 - name: Restart the Supervisord Script
-  command: /etc/init.d/supervisord.shoutout restart
-
-- name: Restart the Supervisord Script
-  command: /etc/init.d/supervisord.sneeky restart
+  command: /etc/init.d/supervisord.sneekyv2 restart

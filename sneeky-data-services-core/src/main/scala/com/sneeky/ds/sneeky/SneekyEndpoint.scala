@@ -7,7 +7,7 @@ import spray.http.MediaTypes._
 import com.sneeky.ds.{ BasicCrypto, DataHttpService }
 import com.sneeky.ds.framework.auth.RequestAuthenticator
 import akka.actor.{ ActorRefFactory, ActorRef }
-import com.sneeky.model.{ SneekyV2User, UserStatus, Paging }
+import com.sneeky.model._
 import com.sneeky.ds.integration.amazon.S3Service
 import spray.http.StatusCodes
 import spray.routing.RequestContext
@@ -68,6 +68,29 @@ trait SneekyEndpoint extends DataHttpService with BasicCrypto {
           }
         }
     }
+  }
+
+  def sendStockSneek = pathPrefix(sneeky / "sendStock") {
+
+    authenticate(unverified _) {
+      authenticationResult =>
+
+        val (user, sessionId) = authenticationResult
+
+        post {
+
+          respondWithMediaType(`application/json`) {
+            entity(as[StockSneekRequest]) { request =>
+              complete {
+                sneekyService.sendToRecipients(user, request.stockImageUrl, request.text, "image/jpg")
+                StatusCodes.OK
+              }
+            }
+          }
+
+        }
+    }
+
   }
 
   def like = pathPrefix(sneeky / "like" / IntNumber) {
@@ -211,6 +234,30 @@ trait SneekyEndpoint extends DataHttpService with BasicCrypto {
     }
   }
 
+  def findPhoto = pathPrefix(sneeky / "photos") {
+    authenticate(unverified _) { user =>
+      get {
+        respondWithMediaType(`application/json`) {
+          complete(sneekyService.findAll.map(PhotoCategoryList(_)))
+        }
+      }
+    }
+  }
+
+  def hideSneek = pathPrefix(sneeky / "hide" / IntNumber) { sneekId =>
+    authenticate(admin _) { user =>
+      put {
+        respondWithMediaType(`application/json`) {
+          complete {
+            sneekyService.hideSneeky(sneekId)
+            StatusCodes.OK
+          }
+        }
+
+      }
+    }
+  }
+
   val shoutoutRoute =
     sendSneek ~
       like ~
@@ -219,6 +266,9 @@ trait SneekyEndpoint extends DataHttpService with BasicCrypto {
       undislike ~
       feedByDate ~
       feedByPopularity ~
-      myFeed
+      myFeed ~
+      findPhoto ~
+      sendStockSneek ~
+      hideSneek
 
 }

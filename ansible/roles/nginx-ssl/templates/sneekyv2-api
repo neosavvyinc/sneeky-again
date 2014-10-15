@@ -4,7 +4,7 @@ server {
 
     access_log /opt/sneekyv2/logs/non-ssl.log;
 
-    location /sneekyv2/1.0/ {
+    location /sneekyv2/ {
       proxy_pass        http://localhost:{{ nginxProxyToPort }}/;
     }
 }

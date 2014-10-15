@@ -15,6 +15,8 @@ class DataAccessLayer(override val profile : ExtendedProfile) extends Profile wi
     with SneekComponent
     with UserSessionComponent
     with LikeComponent
-    with DislikeComponent {
+    with DislikeComponent
+    with PhotoCategoryComponent
+    with PhotoComponent {
 
 }

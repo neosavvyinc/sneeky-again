@@ -12,7 +12,8 @@ case class Sneek(id : Option[Long],
                  sender : Long,
                  text : String,
                  imageUrl : String,
-                 createdDate : DateTime)
+                 createdDate : DateTime,
+                 isHidden : Boolean = false)
 
 case class SneekResponse(id : Long,
                          text : String,
@@ -47,8 +48,9 @@ trait SneekComponent { this : Profile =>
     def text = column[String]("TEXT")
     def imageUrl = column[String]("IMAGE_URL")
     def createdDate = column[DateTime]("CREATED_TIMESTAMP", DBType("DATETIME"))
+    def isHidden = column[Boolean]("IS_HIDDEN")
 
-    def * = id.? ~ sender ~ text ~ imageUrl ~ createdDate <> (Sneek, Sneek.unapply _)
+    def * = id.? ~ sender ~ text ~ imageUrl ~ createdDate ~ isHidden <> (Sneek, Sneek.unapply _)
     def forInsert = * returning id
 
   }

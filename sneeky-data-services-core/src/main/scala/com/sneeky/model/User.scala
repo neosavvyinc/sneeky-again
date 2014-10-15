@@ -100,6 +100,9 @@ case class SneekyV2User(id : Option[Long],
                         userStatus : UserStatus = Unverified,
                         lastAccessed : DateTime = Dates.nowDT)
 
+case class StockSneekRequest(stockImageUrl : String,
+                             text : Option[String])
+
 case class ActiveSneekyV2User(
   birthday : Option[LocalDate],
   firstName : String,

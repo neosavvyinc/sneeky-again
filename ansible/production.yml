@@ -8,12 +8,12 @@
     - nginx-ssl
 #    - autoscale
   vars:
-      serverListenPort: "8090"
+      serverListenPort: "7070"
       serverListenAddress: "0.0.0.0"
       nginxProxyToAddress: "0.0.0.0"
-      nginxProxyToPort: "8090"
-      apiBackendDNSName: "api.shoutoutwith.us"
+      nginxProxyToPort: "7070"
+      apiBackendDNSName: "api-v2.sneekyapp.com"
       adminContact: "aparrish@neosavvy.com"
-      shoutoutUID: "ubuntu"
-      shoutoutGID: "ubuntu"
+      sneekyv2UID: "ubuntu"
+      sneekyv2GID: "ubuntu"
       deploymentBranch: "master"
