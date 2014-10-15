@@ -48,17 +48,17 @@ sealed trait SettingType
 object SettingType {
 
   def toStringRep(pushSettingType : SettingType) : String = pushSettingType match {
-    case NewMessagePushNotifications => "newMessagePush"
+    case LikeNotification => "likeNotifications"
   }
 
   def fromStringRep(str : String) : SettingType = str match {
-    case "newMessagePush" => NewMessagePushNotifications
-    case x                => throw new Exception(s"unrecognized push setting $x")
+    case "likeNotifications" => LikeNotification
+    case x                   => throw new Exception(s"unrecognized push setting $x")
   }
 
 }
 
-case object NewMessagePushNotifications extends SettingType
+case object LikeNotification extends SettingType
 
 sealed trait MobilePushType
 

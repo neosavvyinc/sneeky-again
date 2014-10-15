@@ -81,7 +81,7 @@ class SneekyUserDAO(dal : DataAccessLayer, db : Database)(implicit ec : Executio
   def updateSetting(userId : Long, userSetting : SettingType, userValue : Boolean) : Boolean = {
 
     userSetting match {
-      case NewMessagePushNotifications => db.withSession { implicit session =>
+      case LikeNotification => db.withSession { implicit session =>
         val upQuery = for { u <- UserTable if u.id is userId } yield u.likeNotification
         val numRows = upQuery.update(userValue)
         numRows > 0
